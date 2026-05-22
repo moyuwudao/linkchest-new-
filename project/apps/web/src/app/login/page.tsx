@@ -450,8 +450,7 @@ function LoginForm() {
 
         <div className="relative z-10 space-y-6">
           <h2 className="text-4xl font-extrabold text-parchment leading-tight tracking-tight font-display">
-            {t('login.headline')}<br />
-            <span className="text-amber-400">Your Links,</span> Unified
+            {t('login.headline')}
           </h2>
         </div>
 
@@ -508,7 +507,9 @@ function LoginForm() {
 
             {/* 标题 */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-charcoal dark:text-parchment">{t('login.login')}</h2>
+              <h2 className="text-2xl font-bold text-charcoal dark:text-parchment">
+                {marketConfig?.market === 'china' ? '链藏' : 'LinkChest'}
+              </h2>
               <p className="text-sm text-taupe mt-1.5">{t('sidebar.subtitle')}</p>
             </div>
 

@@ -447,7 +447,10 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
           {t('add.addToGroup')}{' '}
           {selectedListIds.length > 0 && listsData && (
             <span className="text-blue-500 ml-1">
-              ({listsData.find((l: ListItem) => selectedListIds.includes(l.id))?.name || ''})
+              ({(() => {
+                const foundList = listsData.find((l: ListItem) => selectedListIds.includes(l.id))
+                return foundList ? getListDisplayName(foundList, t) : ''
+              })()})
             </span>
           )}
         </span>
@@ -558,9 +561,21 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">
-        {isAdd ? t('add.title') : t('edit.title')}
-      </h1>
+      <div className="flex items-center justify-between mb-6">
+        <button 
+          onClick={() => router.back()} 
+          className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          {t('common.back')}
+        </button>
+        <h1 className="text-2xl font-bold">
+          {isAdd ? t('add.title') : t('edit.title')}
+        </h1>
+        <div className="w-20"></div>
+      </div>
 
       <div className="space-y-6">
         {/* URL输入 */}

@@ -90,7 +90,7 @@
       "selectAll": "全选",
       "deselectAll": "取消全选",
       "selected": "已选 {count} 项",
-      "items": "Items"
+      "items": "项目"
     },
     "addedTime": "添加时间",
     "tag": "标签",
@@ -181,6 +181,7 @@
     "typeCollections": "收藏",
     "typeCustom": "自定义收藏",
     "itemCount": "{count} 个收藏",
+    "totalViews": "总浏览",
     "viewCount": "{count} 次浏览",
     "password": "访问密码：",
     "copy": "复制",

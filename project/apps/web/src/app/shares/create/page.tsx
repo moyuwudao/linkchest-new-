@@ -216,7 +216,7 @@ export default function CreateSharePage() {
       <div className="max-w-3xl mx-auto py-8 px-4">
         <div className="flex items-center gap-4 mb-6">
           <Link
-            href="/shares"
+            href="/manage"
             className="p-2.5 hover:bg-parchment/10 dark:hover:bg-charcoal/50 rounded-xl transition-colors text-taupe dark:text-parchment/60 hover:text-charcoal dark:hover:text-parchment cursor-pointer"
           >
             <ArrowLeft size={20} />
@@ -246,7 +246,7 @@ export default function CreateSharePage() {
                 <Copy size={18} />
                 {t('share.create.copyLink')}
               </button>
-              <Link href="/shares" className="btn-secondary">
+              <Link href="/manage" className="btn-secondary">
                 {t('share.create.done')}
               </Link>
             </div>
@@ -606,7 +606,7 @@ export default function CreateSharePage() {
 
             <div className="flex gap-3">
               <Link
-                href="/shares"
+                href="/manage"
                 className="flex-1 py-2.5 text-center border border-parchment/40 dark:border-charcoal/40 rounded-lg hover:bg-parchment/5 dark:hover:bg-charcoal/50 text-charcoal dark:text-parchment"
               >
                 {t('share.create.cancel')}

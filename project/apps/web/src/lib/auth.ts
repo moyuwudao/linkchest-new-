@@ -63,8 +63,23 @@ export function isLoggedIn(): boolean {
 }
 
 export function logout(): void {
+  // 清除所有可能的认证信息
   removeToken();
   removeUser();
+  
+  // 清除其他可能的本地存储
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (key.startsWith('linkchest_') || key.startsWith('lc_'))) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+  
+  // 派发退出登录事件
   window.dispatchEvent(new CustomEvent('linkchest-logout'));
+  
+  // 跳转到登录页面
   window.location.replace('/login?logout=1&t=' + Date.now());
 }
