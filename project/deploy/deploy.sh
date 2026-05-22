@@ -1,206 +1,137 @@
 #!/bin/bash
 # ============================================================
-# LinkChest 统一部署脚本
-# 支持国内/海外双市场，支持服务器别名
+# LinkChest Git-Only 统一部署入口
+# 所有代码通过服务器端 git pull 更新，不从本地推送
 #
 # 使用方式:
-#   bash deploy/deploy.sh global       # 部署海外版
-#   bash deploy/deploy.sh china        # 部署国内版
-#   bash deploy/deploy.sh linkchest-global   # 使用服务器别名
-#   bash deploy/deploy.sh linkchest-cn-app   # 使用服务器别名
+#   bash deploy/deploy.sh global   # 部署海外版
+#   bash deploy/deploy.sh china    # 部署国内版
 # ============================================================
 
 set -e
 
-# 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+BLUE='\033[0;34m'
+NC='\033[0m'
 
-# 服务器配置映射
-declare -A SERVER_CONFIG
-SERVER_CONFIG["global"]="43.133.44.232"
-SERVER_CONFIG["linkchest-global"]="43.133.44.232"
-SERVER_CONFIG["linkchest-cn-app"]="43.136.82.88"
-SERVER_CONFIG["linkchest-cn-db"]="114.132.81.246"
-SERVER_CONFIG["china"]="43.136.82.88"
+GLOBAL_IP="43.133.44.232"
+CHINA_IP="43.136.82.88"
+REMOTE_DIR="/opt/linkchest/api"
 
-# 市场类型映射
-declare -A MARKET_TYPE
-MARKET_TYPE["global"]="global"
-MARKET_TYPE["linkchest-global"]="global"
-MARKET_TYPE["china"]="china"
-MARKET_TYPE["linkchest-cn-app"]="china"
-MARKET_TYPE["linkchest-cn-db"]="china"
-
-# PM2 进程名
-declare -A PM2_NAME
-PM2_NAME["global"]="linkchest-api-global"
-PM2_NAME["china"]="linkchest-api-china"
-
-# 解析参数
 TARGET="${1:-}"
 if [ -z "$TARGET" ]; then
     echo -e "${RED}❌ 请指定部署目标${NC}"
     echo ""
-    echo "用法: bash deploy/deploy.sh <目标>"
+    echo "用法: bash deploy/deploy.sh <global|china>"
     echo ""
-    echo "可用目标:"
-    echo "  global           - 海外服务器 (43.133.44.232)"
-    echo "  china            - 国内应用层服务器 (43.136.82.88)"
-    echo "  linkchest-global - 海外服务器别名"
-    echo "  linkchest-cn-app - 国内应用层服务器别名"
-    echo ""
-    echo "示例:"
-    echo "  bash deploy/deploy.sh global"
-    echo "  bash deploy/deploy.sh china"
+    echo "  global  - 海外服务器 ($GLOBAL_IP)"
+    echo "  china   - 国内应用层 ($CHINA_IP)"
     exit 1
 fi
 
-# 获取服务器 IP 和市场类型
-SERVER_IP="${SERVER_CONFIG[$TARGET]}"
-MARKET="${MARKET_TYPE[$TARGET]}"
-
-if [ -z "$SERVER_IP" ]; then
-    echo -e "${RED}❌ 未知部署目标: $TARGET${NC}"
-    echo "请使用 'global' 或 'china'"
-    exit 1
-fi
-
-# 确定 PM2 进程名
-PM2_PROCESS="${PM2_NAME[$MARKET]:-linkchest-api}"
+case "$TARGET" in
+    global) SERVER_IP="$GLOBAL_IP"; UPDATE_SCRIPT="deploy/update-server.sh"; PM2_API="linkchest-api-global" ;;
+    china)  SERVER_IP="$CHINA_IP";  UPDATE_SCRIPT="deploy/update-server-cn.sh"; PM2_API="linkchest-api-china" ;;
+    *)
+        echo -e "${RED}❌ 未知目标: $TARGET${NC} (可用: global, china)"
+        exit 1
+        ;;
+esac
 
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  LinkChest 部署脚本${NC}"
+echo -e "${GREEN}  LinkChest Git-Only 部署${NC}"
 echo -e "${GREEN}========================================${NC}"
-echo ""
-echo -e "目标服务器: ${YELLOW}${SERVER_IP}${NC}"
-echo -e "市场类型:   ${YELLOW}${MARKET}${NC}"
-echo -e "PM2 进程:   ${YELLOW}${PM2_PROCESS}${NC}"
+echo -e "目标: ${YELLOW}${TARGET}${NC}  服务器: ${YELLOW}${SERVER_IP}${NC}"
+echo -e "更新脚本: ${YELLOW}${UPDATE_SCRIPT}${NC}"
 echo ""
 
-# 项目路径
+# [1/4] 检查本地 Git 状态
+echo -e "[1/4] ${BLUE}检查本地 Git 状态...${NC}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-REMOTE_DIR="/opt/linkchest/api"
+cd "$PROJECT_ROOT"
 
-# 1. 检查本地环境
-echo -e "[1/6] ${GREEN}检查本地环境...${NC}"
-if [ ! -d "$PROJECT_ROOT/apps/api" ]; then
-    echo -e "${RED}❌ 错误: 找不到 API 目录${NC}"
-    exit 1
+GIT_WARN=0
+UNCOMMITTED=$(git status --porcelain 2>/dev/null)
+if [ -n "$UNCOMMITTED" ]; then
+    echo -e "  ${YELLOW}⚠ 有未提交的更改:${NC}"
+    echo "$UNCOMMITTED" | head -5 | sed 's/^/    /'
+    [ "$(echo "$UNCOMMITTED" | wc -l)" -gt 5 ] && echo "    ..."
+    GIT_WARN=1
 fi
 
-# 检查环境变量文件
-ENV_FILE="$PROJECT_ROOT/apps/api/.env.${MARKET}"
-if [ ! -f "$ENV_FILE" ]; then
-    echo -e "${RED}❌ 错误: 找不到环境变量文件: $ENV_FILE${NC}"
-    exit 1
+UNPUSHED=$(git log origin/master..HEAD --oneline 2>/dev/null)
+if [ -n "$UNPUSHED" ]; then
+    echo -e "  ${YELLOW}⚠ 有未推送的提交 (服务器不会获取):${NC}"
+    echo "$UNPUSHED" | head -5 | sed 's/^/    /'
+    GIT_WARN=1
 fi
-echo "✓ 环境检查完成"
 
-# 2. 测试 SSH 连接
+if [ "$GIT_WARN" -eq 0 ]; then
+    echo "  ✓ Git 状态干净，所有代码已推送"
+else
+    echo -e "  ${YELLOW}⚠ 服务器将通过 git pull 获取代码，上述更改不会生效${NC}"
+fi
 echo ""
-echo -e "[2/6] ${GREEN}测试 SSH 连接...${NC}"
+
+# [2/4] 测试 SSH 连接
+echo -e "[2/4] ${BLUE}测试 SSH 连接...${NC}"
 if ! ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} "echo OK" 2>/dev/null | grep -q "OK"; then
-    echo -e "${RED}❌ SSH 连接失败，请检查: ssh ubuntu@${SERVER_IP}${NC}"
+    echo -e "  ${RED}❌ SSH 连接失败: ubuntu@${SERVER_IP}${NC}"
     exit 1
 fi
-echo "✓ SSH 连接正常"
-
-# 3. 同步代码到服务器
+echo "  ✓ SSH 连接正常"
 echo ""
-echo -e "[3/6] ${GREEN}同步代码到服务器...${NC}"
-echo "  同步以下目录:"
-echo "    - apps/api/ (源码)"
-echo "    - apps/web/ (前端)"
-echo "    - deploy/ (部署脚本)"
 
-rsync -avz --exclude='node_modules' --exclude='.git' --exclude='.next' --exclude='dist' \
-    --exclude='.turbo' --exclude='*.log' \
-    -e "ssh -o StrictHostKeyChecking=accept-new" \
-    "$PROJECT_ROOT/" \
-    "ubuntu@${SERVER_IP}:${REMOTE_DIR}/"
-
-# 同步环境变量文件
-scp -o StrictHostKeyChecking=accept-new \
-    "$ENV_FILE" \
-    "ubuntu@${SERVER_IP}:${REMOTE_DIR}/.env"
-
-echo "✓ 代码同步完成"
-
-# 4. 服务器端依赖安装
-echo ""
-echo -e "[4/6] ${GREEN}服务器端安装依赖...${NC}"
-ssh -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} << 'ENDSSH'
-cd /opt/linkchest/api
-
-# 安装 API 依赖
-cd apps/api
-npm install --production
-
-# 生成 Prisma Client
-npx prisma generate
-
-# 同步 PM2 进程名
-if grep -q "linkchest-api-global" /opt/linkchest/api/deploy/ecosystem.config.js 2>/dev/null; then
-    PM2_NAME="linkchest-api-global"
-elif grep -q "linkchest-api-china" /opt/linkchest/api/deploy/ecosystem.config.js 2>/dev/null; then
-    PM2_NAME="linkchest-api-china"
-else
-    PM2_NAME="linkchest-api"
-fi
-
-echo "PM2 进程名: $PM2_NAME"
-ENDSSH
-echo "✓ 依赖安装完成"
-
-# 5. 数据库迁移（仅国内需要单独迁移数据库到服务器B）
-echo ""
-echo -e "[5/6] ${GREEN}数据库迁移...${NC}"
-if [ "$MARKET" == "china" ]; then
-    echo "  国内市场：数据库在服务器B (114.132.81.246)"
-    ssh -o StrictHostKeyChecking=accept-new ubuntu@114.132.81.246 << 'ENDSSH'
-cd /opt/linkchest/api/apps/api
-npx prisma migrate deploy
-ENDSSH
-    echo "✓ 数据库迁移完成"
-else
-    echo "  海外市场：数据库在本地容器，无需额外迁移"
-fi
-
-# 6. 重启服务（使用 restart 而不是 delete）
-echo ""
-echo -e "[6/6] ${GREEN}重启服务...${NC}"
+# [3/4] 服务器端 git pull + 执行更新脚本
+echo -e "[3/4] ${BLUE}服务器端更新代码并执行 ${UPDATE_SCRIPT}...${NC}"
 ssh -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} << ENDSSH
-cd /opt/linkchest/api
+set -e
+cd ${REMOTE_DIR}
 
-# 确保脚本有执行权限
-chmod +x deploy/start-api.sh deploy/start-web.sh
+echo ">>> git pull"
+git pull
 
-# 重启 PM2 服务（使用 restart 而不是 delete）
-pm2 restart deploy/ecosystem.config.js --update-env
-
-# 保存进程列表
-pm2 save
-
-# 显示状态
-pm2 status
+echo ""
+echo ">>> bash ${UPDATE_SCRIPT}"
+bash ${UPDATE_SCRIPT}
 ENDSSH
-echo "✓ 服务重启完成"
+echo ""
+echo -e "  ${GREEN}✓ 服务器更新完成${NC}"
+echo ""
 
-# 健康检查
+# [4/4] 健康检查
+echo -e "[4/4] ${BLUE}健康检查...${NC}"
+sleep 3
+
+API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 http://${SERVER_IP}:3001/api/health 2>/dev/null || echo "000")
+if [ "$API_STATUS" = "200" ]; then
+    echo -e "  ✓ API 健康检查: ${GREEN}${API_STATUS}${NC}"
+else
+    echo -e "  ✗ API 健康检查: ${RED}${API_STATUS}${NC}"
+fi
+
+if [ "$TARGET" = "china" ]; then
+    WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 http://${SERVER_IP}/login 2>/dev/null || echo "000")
+    MANIFEST=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 http://${SERVER_IP}/manifest.json 2>/dev/null || echo "000")
+    if [ "$WEB_STATUS" = "200" ]; then
+        echo -e "  ✓ WEB 页面: ${GREEN}${WEB_STATUS}${NC}"
+    else
+        echo -e "  ✗ WEB 页面: ${RED}${WEB_STATUS}${NC}"
+    fi
+    if [ "$MANIFEST" = "200" ]; then
+        echo -e "  ✓ 静态资源: ${GREEN}${MANIFEST}${NC}"
+    else
+        echo -e "  ✗ 静态资源: ${RED}${MANIFEST}${NC}"
+    fi
+fi
+
 echo ""
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  部署完成！${NC}"
+echo -e "${GREEN}  部署完成${NC}"
 echo -e "${GREEN}========================================${NC}"
-echo ""
-echo -e "API 地址:    ${YELLOW}http://${SERVER_IP}:3001${NC}"
-echo -e "健康检查:    ${YELLOW}http://${SERVER_IP}:3001/health${NC}"
-echo ""
-echo -e "${GREEN}常用命令:${NC}"
-echo "  查看状态: ssh ubuntu@${SERVER_IP} 'pm2 status'"
-echo "  查看日志: ssh ubuntu@${SERVER_IP} 'pm2 logs linkchest-api'"
-echo "  重启服务: ssh ubuntu@${SERVER_IP} 'pm2 restart all'"
+echo -e "  API: ${YELLOW}http://${SERVER_IP}:3001${NC}"
+echo -e "  日志: ${YELLOW}ssh ubuntu@${SERVER_IP} 'pm2 logs ${PM2_API}'${NC}"
 echo ""
