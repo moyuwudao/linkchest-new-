@@ -43,11 +43,15 @@ echo "=== Building ${TARGET_FLAVOR^^} flavor (MARKET=${MARKET_VALUE}) ==="
 echo "=========================================="
 
 # 写入 .env.market 文件，app.config.js 会在 Metro 打包时读取
+# 使用 flavor 特定的文件，避免并行构建时的竞争条件
 ENV_MARKET_FILE="/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market"
+ENV_MARKET_FILE_FLAVOR="/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.${TARGET_FLAVOR}"
 echo -n "$MARKET_VALUE" > "$ENV_MARKET_FILE"
+echo -n "$MARKET_VALUE" > "$ENV_MARKET_FILE_FLAVOR"
 echo "=== Written .env.market: $MARKET_VALUE ==="
+echo "=== Written .env.market.${TARGET_FLAVOR}: $MARKET_VALUE ==="
 
-# 设置环境变量（双重保险）
+# 设置环境变量，确保 app.config.js 能正确读取
 export MARKET="$MARKET_VALUE"
 
 # 日志捕获配置

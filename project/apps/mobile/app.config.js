@@ -1,20 +1,33 @@
 const fs = require('fs');
 const path = require('path');
 
-// 从 .env.market 文件读取 MARKET 值（构建脚本在构建前写入）
-// 如果文件不存在，回退到 process.env.MARKET，再回退到 'global'
+// 从环境变量或 .env.market 文件读取 MARKET 值
+// 优先顺序: process.env.MARKET > .env.market.{flavor} > .env.market > 'global'
 let marketValue = 'global';
-const envMarketPath = path.join(__dirname, '.env.market');
-try {
-  if (fs.existsSync(envMarketPath)) {
-    marketValue = fs.readFileSync(envMarketPath, 'utf8').trim() || 'global';
-  } else if (process.env.MARKET) {
-    marketValue = process.env.MARKET;
-  }
-} catch (e) {
-  // 文件读取失败，使用默认值
-  if (process.env.MARKET) {
-    marketValue = process.env.MARKET;
+
+// 1. 优先使用环境变量（构建脚本设置）
+if (process.env.MARKET) {
+  marketValue = process.env.MARKET;
+} else {
+  // 2. 尝试检测当前构建的 flavor（从 Gradle 任务）
+  const gradleTask = process.env.GRADLE_TASK || '';
+  const detectedFlavor = gradleTask.includes('China') ? 'china' : 
+                         gradleTask.includes('Global') ? 'global' : '';
+  
+  // 3. 使用 flavor 特定的文件
+  const envMarketFlavorPath = detectedFlavor 
+    ? path.join(__dirname, `.env.market.${detectedFlavor}`)
+    : null;
+  const envMarketPath = path.join(__dirname, '.env.market');
+  
+  try {
+    if (envMarketFlavorPath && fs.existsSync(envMarketFlavorPath)) {
+      marketValue = fs.readFileSync(envMarketFlavorPath, 'utf8').trim() || 'global';
+    } else if (fs.existsSync(envMarketPath)) {
+      marketValue = fs.readFileSync(envMarketPath, 'utf8').trim() || 'global';
+    }
+  } catch (e) {
+    // 文件读取失败，使用默认值
   }
 }
 
