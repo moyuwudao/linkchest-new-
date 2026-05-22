@@ -1,0 +1,432 @@
+{
+  "version": "2.2",
+  "description": "LinkChest 规则智能加载索引 - 根据任务类型动态加载相关规则",
+  "rules": {
+    "core": {
+      "priority": "always",
+      "files": [
+        "SOUL.md",
+        "USER.md",
+        "INTERACTION.md"
+      ],
+      "description": "核心身份和交互规则，始终加载"
+    },
+    "safety": {
+      "priority": "always",
+      "files": [
+        "RED_LINES.md",
+        "HIGH_RISK.md",
+        "CAUTION_ZONE.md",
+        "BUILD_RED_LINES.md"
+      ],
+      "description": "安全红线（Zero Tolerance）、高风险操作、警告区域和构建红线，始终加载"
+    },
+    "project": {
+      "priority": "context",
+      "files": [
+        "PROJECT_SENSE.md",
+        "NAMING_CONVENTIONS.md",
+        "CONTEXT.md"
+      ],
+      "description": "项目感知、命名约定和上下文保持，需要项目上下文时加载",
+      "triggers": [
+        "项目结构",
+        "技术栈",
+        "快速入门",
+        "命名规范",
+        "文件命名",
+        "变量命名",
+        "函数命名",
+        "上下文",
+        "记忆",
+        "会话",
+        "状态保持"
+      ]
+    },
+    "workflow": {
+      "priority": "context",
+      "files": [
+        "common/DEVELOPMENT_WORKFLOW.md"
+      ],
+      "description": "开发工作流，首次访问项目时加载",
+      "triggers": [
+        "开发流程",
+        "工作流",
+        "需求分析",
+        "代码提交"
+      ]
+    },
+    "coding": {
+      "priority": "task",
+      "files": [
+        "CODE_STYLE.md"
+      ],
+      "description": "代码风格规范，编写代码时加载",
+      "triggers": [
+        "编写代码",
+        "代码风格",
+        "函数定义",
+        "类定义",
+        "组件开发",
+        "React",
+        "TypeScript"
+      ]
+    },
+    "testing": {
+      "priority": "task",
+      "files": [
+        "TESTING.md"
+      ],
+      "description": "测试规范，编写测试时加载",
+      "triggers": [
+        "测试",
+        "单元测试",
+        "集成测试",
+        "E2E",
+        "jest",
+        "playwright",
+        "TDD"
+      ]
+    },
+    "review": {
+      "priority": "task",
+      "files": [
+        "common/CODE_REVIEW.md"
+      ],
+      "description": "代码审查标准，审查代码时加载",
+      "triggers": [
+        "代码审查",
+        "PR",
+        "pull request",
+        "审查清单",
+        "代码质量"
+      ]
+    },
+    "quality": {
+      "priority": "task",
+      "files": [
+        "LINT.md"
+      ],
+      "description": "代码质量检查，运行 lint/typecheck 时加载",
+      "triggers": [
+        "lint",
+        "typecheck",
+        "代码检查",
+        "ESLint",
+        "TypeScript",
+        "类型错误"
+      ]
+    },
+    "git": {
+      "priority": "task",
+      "files": [
+        "GIT_WORKFLOW.md"
+      ],
+      "description": "Git 工作流，Git 操作时加载",
+      "triggers": [
+        "git",
+        "commit",
+        "分支",
+        "PR",
+        "pull request",
+        "merge",
+        "版本发布"
+      ]
+    },
+    "dependency": {
+      "priority": "task",
+      "files": [
+        "DEPENDENCY.md"
+      ],
+      "description": "依赖管理，依赖操作时加载",
+      "triggers": [
+        "依赖",
+        "npm install",
+        "依赖更新",
+        "依赖删除",
+        "安全漏洞",
+        "npm audit"
+      ]
+    },
+    "build": {
+      "priority": "task",
+      "files": [
+        "BUILD.md"
+      ],
+      "description": "构建流程，构建相关操作时加载（含APK构建详细流程）",
+      "triggers": [
+        "构建",
+        "build",
+        "APK",
+        "打包",
+        "Android",
+        "iOS",
+        "Chrome 扩展",
+        "WSL",
+        "gradle",
+        "expo"
+      ]
+    },
+    "deployment": {
+      "priority": "task",
+      "files": [
+        "DEPLOYMENT.md"
+      ],
+      "description": "服务器部署，部署/推送操作时加载",
+      "triggers": [
+        "部署",
+        "deploy",
+        "上线",
+        "发布",
+        "ssh",
+        "pm2",
+        "服务器",
+        "scp",
+        "prisma db push",
+        "migrate"
+      ]
+    },
+    "debugging": {
+      "priority": "task",
+      "files": [
+        "DEBUG.md"
+      ],
+      "description": "开发调试，调试/排查问题时加载",
+      "triggers": [
+        "调试",
+        "debug",
+        "排查",
+        "日志",
+        "报错",
+        "异常",
+        "DevTools",
+        "断点"
+      ]
+    },
+    "hooks": {
+      "priority": "task",
+      "files": [
+        "common/HOOKS.md"
+      ],
+      "description": "Hooks 系统，配置自动化工作流时加载",
+      "triggers": [
+        "hooks",
+        "自动化",
+        "PreToolUse",
+        "PostToolUse"
+      ]
+    },
+    "agents": {
+      "priority": "task",
+      "files": [
+        "common/AGENTS.md"
+      ],
+      "description": "Agents 使用指南，调用工具时加载",
+      "triggers": [
+        "agent",
+        "工具",
+        "代码审查",
+        "安全审查",
+        "TDD",
+        "性能优化"
+      ]
+    },
+    "performance": {
+      "priority": "task",
+      "files": [
+        "common/PERFORMANCE.md"
+      ],
+      "description": "性能优化策略，性能问题排查时加载",
+      "triggers": [
+        "性能",
+        "优化",
+        "响应时间",
+        "缓存",
+        "数据库查询"
+      ]
+    },
+    "patterns": {
+      "priority": "task",
+      "files": [
+        "common/patterns.md"
+      ],
+      "description": "通用设计模式，架构设计时加载",
+      "triggers": [
+        "设计模式",
+        "架构",
+        "Repository",
+        "Clean Architecture",
+        "API 响应"
+      ]
+    },
+    "security-guide": {
+      "priority": "task",
+      "files": [
+        "common/security.md"
+      ],
+      "description": "通用安全指南，安全检查时加载",
+      "triggers": [
+        "安全检查",
+        "秘密管理",
+        "输入验证",
+        "安全测试"
+      ]
+    },
+    "market-ops": {
+      "priority": "task",
+      "files": [
+        "MARKET-OPS.md"
+      ],
+      "description": "国内外分运营配置方案，涉及支付/登录/合规时加载",
+      "triggers": [
+        "国内",
+        "海外",
+        "china",
+        "global",
+        "市场",
+        "MARKET",
+        "支付",
+        "payment",
+        "PayPal",
+        "微信支付",
+        "支付宝",
+        "Google Pay",
+        "Apple IAP",
+        "登录",
+        "auth",
+        "OAuth",
+        "微信登录",
+        "Apple Sign In",
+        "Google OAuth",
+        "合规",
+        "审核",
+        "内容审核",
+        "contentModeration",
+        "Provider",
+        "市场守卫",
+        "marketGuard"
+      ]
+    },
+    "base-info": {
+      "priority": "task",
+      "files": [
+        "BASE-INFO.md"
+      ],
+      "description": "基础信息规则，涉及信息查询/录入/更新/维护时加载",
+      "triggers": [
+        "基础信息",
+        "查询信息",
+        "信息录入",
+        "国内运营",
+        "海外运营",
+        "运营方案",
+        "部署情况",
+        "服务器配置",
+        "环境配置",
+        "信息更新",
+        "维护机制",
+        "时效性",
+        "权限管理",
+        "信息查询",
+        "配置确认"
+      ]
+    },
+    "index": {
+      "priority": "context",
+      "files": [
+        "INDEX.md"
+      ],
+      "description": "规则体系总览，首次访问项目时加载",
+      "triggers": [
+        "规则总览",
+        "快速查找",
+        "规则结构"
+      ]
+    }
+  },
+  "agents": {
+    "core": [
+      {
+        "name": "planner",
+        "purpose": "复杂功能规划",
+        "triggers": ["复杂功能", "新功能开发", "大型任务"],
+        "priority": "high"
+      },
+      {
+        "name": "tdd-guide",
+        "purpose": "TDD 流程指导",
+        "triggers": ["测试", "TDD", "新功能"],
+        "priority": "high"
+      },
+      {
+        "name": "code-reviewer",
+        "purpose": "代码审查",
+        "triggers": ["代码审查", "PR", "代码质量"],
+        "priority": "high"
+      },
+      {
+        "name": "security-reviewer",
+        "purpose": "安全分析",
+        "triggers": ["安全", "认证", "支付", "用户数据"],
+        "priority": "high"
+      },
+      {
+        "name": "build-error-resolver",
+        "purpose": "构建错误修复",
+        "triggers": ["构建失败", "编译错误", "build error"],
+        "priority": "medium"
+      },
+      {
+        "name": "performance-optimizer",
+        "purpose": "性能优化",
+        "triggers": ["性能", "优化", "慢查询", "卡顿", "内存问题"],
+        "priority": "medium"
+      },
+      {
+        "name": "refactor-cleaner",
+        "purpose": "死代码清理",
+        "triggers": ["重构", "清理", "技术债务"],
+        "priority": "low"
+      }
+    ]
+  },
+  "commands": {
+    "core": [
+      {
+        "name": "/plan",
+        "purpose": "功能规划",
+        "agent": "planner"
+      },
+      {
+        "name": "/tdd",
+        "purpose": "TDD 流程",
+        "agent": "tdd-guide"
+      },
+      {
+        "name": "/review",
+        "purpose": "代码审查",
+        "agent": "code-reviewer"
+      },
+      {
+        "name": "/security",
+        "purpose": "安全审查",
+        "agent": "security-reviewer"
+      },
+      {
+        "name": "/build-fix",
+        "purpose": "构建错误修复",
+        "agent": "build-error-resolver"
+      },
+      {
+        "name": "/optimize",
+        "purpose": "性能优化",
+        "agent": "performance-optimizer"
+      },
+      {
+        "name": "/clean",
+        "purpose": "死代码清理",
+        "agent": "refactor-cleaner"
+      }
+    ]
+  }
+}

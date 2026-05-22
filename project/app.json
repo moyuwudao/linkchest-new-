@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "linkchest",
+    "slug": "linkchest",
+    "version": "1.1.0",
+    "description": "跨平台收藏聚合工具",
+    "sdkVersion": "51.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "@linkchest/web",
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3003 -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@linkchest/i18n": "1.0.0",
+    "@next/env": "^14.1.0",
+    "@react-oauth/google": "^0.13.5",
+    "@stripe/stripe-js": "^4.10.0",
+    "@swc/helpers": "^0.5.2",
+    "@tanstack/query-sync-storage-persister": "^5.100.9",
+    "@tanstack/react-query": "^5.17.0",
+    "@tanstack/react-query-persist-client": "^5.100.9",
+    "@tanstack/react-virtual": "^3.0.0",
+    "@tanstack/virtual-core": "^3.14.0",
+    "axios": "^1.6.2",
+    "clsx": "^2.0.0",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^0.303.0",
+    "next": "14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-jsx": "^5.1.7",
+    "tailwind-merge": "^2.2.0"
+  },
+  "devDependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.3.0",
+    "workbox-webpack-plugin": "^7.1.0"
+  }
+}

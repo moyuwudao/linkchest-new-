@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkChest 登录测试</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            word-break: break-all;
+            display: none;
+        }
+        .result.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+        .result.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+        .result.show {
+            display: block;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        .info code {
+            background: #e0e0e0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>LinkChest 登录测试</h1>
+        
+        <div class="form-group">
+            <label for="email">邮箱</label>
+            <input type="email" id="email" value="test@linkchest.cn" placeholder="请输入邮箱">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" value="password" placeholder="请输入密码">
+        </div>
+        
+        <button id="loginBtn" onclick="login()">登录</button>
+        
+        <div id="result" class="result"></div>
+        
+        <div class="info">
+            <strong>测试账户：</strong><br>
+            邮箱: <code>test@linkchest.cn</code><br>
+            密码: <code>password</code><br><br>
+            <strong>API地址：</strong><br>
+            <code>http://43.136.82.88:3001</code>
+        </div>
+    </div>
+
+    <script>
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            const result = document.getElementById('result');
+            
+            btn.disabled = true;
+            btn.textContent = '登录中...';
+            result.className = 'result';
+            
+            try {
+                const response = await fetch('http://43.136.82.88:3001/api/auth/login-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.className = 'result success show';
+                    result.innerHTML = `
+                        <strong>登录成功！</strong><br><br>
+                        <strong>Token:</strong><br>
+                        <code style="font-size:11px">${data.token}</code><br><br>
+                        <strong>用户信息:</strong><br>
+                        ID: ${data.user.id}<br>
+                        昵称: ${data.user.nickname}<br>
+                        邮箱: ${data.user.email}<br>
+                        等级: ${data.user.userTier}
+                    `;
+                } else {
+                    result.className = 'result error show';
+                    result.innerHTML = `<strong>登录失败:</strong> ${data.error || '未知错误'}`;
+                }
+            } catch (error) {
+                result.className = 'result error show';
+                result.innerHTML = `<strong>请求错误:</strong> ${error.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '登录';
+            }
+        }
+        
+        // 回车键登录
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+    </script>
+</body>
+</html>

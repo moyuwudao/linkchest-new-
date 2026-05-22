@@ -1,0 +1,14 @@
+{
+  "name": "@linkchest/i18n",
+  "version": "1.0.0",
+  "description": "Shared i18n resources and error code translations for LinkChest",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

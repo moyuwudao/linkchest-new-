@@ -1,0 +1,428 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表
+model User {
+  id               String   @id @default(uuid())
+  phone            String?  @unique
+  email            String?  @unique
+  googleId         String?  @unique
+  appleId          String?  @unique
+  facebookId       String?  @unique
+  wechatOpenId     String?  @unique
+  wechatUnionId    String?
+  alipayId         String?  @unique
+  username         String?  @unique
+  nickname         String?
+  avatar           String?
+  passwordHash     String?
+  authSource       String   @default("email") // email | google | apple | facebook | wechat | alipay_auth — 用户原始注册来源
+  emailVerified    Boolean  @default(false) // 邮箱是否已验证（用户手动维护）
+  passwordSet      Boolean  @default(false) // 是否已设置密码
+  realNameVerified Boolean  @default(false) // 实名认证状态（国内市场）
+  lang             String   @default("zh")  // 用户语言偏好: zh 或 en
+  userTier                String   @default("medium") // medium | heavy | super（自动计算：super有效→super；super过期但heavy有效→heavy；否则medium）
+  heavyExpiresAt          DateTime? // 专业版到期时间
+  superExpiresAt          DateTime? // 旗舰版到期时间
+  status           String   @default("active") // active | suspended | banned
+  bannedAt         DateTime?
+  bannedReason     String?
+  loginAttempts    Int      @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  lastLoginIp      String?
+  settings         Json?    // { shareMode, coverStrategyOrder, defaultListId, defaultTagIds }
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // 关联
+  collections      Collection[]
+  tags             Tag[]
+  lists            List[]
+  shares           Share[]
+  coverImages      CoverImage[]
+  shareSubscriptions ShareSubscription[]
+  shareViews       ShareView[]
+  subscriptions    Subscription[]
+  referralCode     ReferralCode?
+  referralUse      ReferralUse?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([userTier])
+  @@index([lastLoginAt])
+  @@map("users")
+}
+
+// 收藏表
+model Collection {
+  id          String    @id @default(uuid())
+  userId      String
+  url         String
+  title       String
+  coverImage  String?
+  platform    String    // 平台来源：douyin, xiaohongshu, bilibili, youtube等
+  pageType    String?   @default("detail") // 页面类型: home, detail, list, search, navigation, document, download, other
+  note        String?
+  rating      Decimal?  @db.Decimal(2, 1) // 评分: 0.5-5.0, null 表示未评分
+  deletedAt   DateTime? // 软删除标记：非null表示在回收站中，30天后自动清理
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // 关联
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags        Tag[]
+  lists       List[]
+  shareItems  ShareItem[]
+
+  @@index([userId])
+  @@index([userId, platform])
+  @@index([userId, deletedAt]) // 回收站查询：按用户查找已删除/未删除的收藏
+  @@index([userId, platform, createdAt]) // 收藏列表筛选+排序优化
+  @@index([userId, createdAt]) // 用户收藏时间排序优化
+  @@index([userId, rating]) // 评分筛选排序优化
+  @@index([createdAt])
+  @@map("collections")
+}
+
+// 标签表
+model Tag {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String   // 显示名称（根据用户语言环境返回）
+  nameCn    String   // 中文名称
+  nameEn    String   // 英文名称
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关联
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collections Collection[]
+
+  @@unique([userId, nameCn])
+  @@unique([userId, nameEn])
+  @@index([userId])
+  @@map("tags")
+}
+
+// 分组表（收藏夹）
+model List {
+  id            String   @id @default(uuid())
+  userId        String
+  name          String
+  description   String?
+  sortOrder     Int      @default(0)
+  parentId      String?  // 支持多层级嵌套：父分组ID
+  depth         Int      @default(0)  // 层级深度：0=根分组，1=子分组，2=孙分组（不能再建子分组）
+  sourceShareId String?  // 来源分享ID（订阅导入）
+  sourceType    String?  @default("original") // original | import | subscribe
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 关联
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collections Collection[]
+  shares      Share[]
+  parent      List?        @relation("ListHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    List[]       @relation("ListHierarchy")
+
+  @@unique([userId, name, parentId])  // 同一父分组下名称唯一
+  @@index([userId])
+  @@index([parentId])
+  @@index([sourceShareId])
+  @@map("lists")
+}
+
+// 分享表
+model Share {
+  id            String    @id @default(cuid())
+  userId        String
+  type          String    // 分享类型: ALL, LIST, TAG, MULTI_TAG, MULTI_LIST, CUSTOM
+  listId        String?   // 如果是分组分享
+  tagId         String?   // 如果是标签分享
+  title         String    // 分享页面标题
+  description   String?   // 分享描述
+  coverImage    String?   // 分享自定义封面图
+  layout        String    @default("grid") // 分享页布局: grid | list | card
+  password      String?   // 访问密码（bcrypt 哈希）
+  passwordPlain String?   // 访问密码明文（按需接口返回）
+  isActive      Boolean   @default(true)
+  isPlaza       Boolean   @default(false)   // 是否发布到分享广场
+  allowSync     Boolean   @default(false)   // 是否允许订阅同步
+  lastSyncedAt  DateTime? // 上次同步时间
+  plazaTags     String[]  @default([])      // 广场标签，用于分类筛选
+  viewCount     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime? // 过期时间（可选）
+
+  // 关联
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  list            List?               @relation(fields: [listId], references: [id], onDelete: SetNull)
+  shareItems      ShareItem[]
+  shareViews      ShareView[]
+  subscriptions   ShareSubscription[]
+
+  @@index([userId])
+  @@index([id])
+  @@index([isPlaza, createdAt])
+  @@map("shares")
+}
+
+// 分享内容快照表（创建分享时复制收藏元数据，分享不受收藏增删改影响）
+model ShareItem {
+  id           String  @id @default(uuid())
+  shareId      String
+  collectionId String? // 可选：收藏被删除后置 null，快照数据仍保留
+
+  // 快照字段（创建分享时从 Collection 复制）
+  title       String
+  coverImage  String?
+  platform    String
+  url         String
+  tags        Json?    // 标签快照 [{nameCn, nameEn}]
+  rating      Decimal?  @db.Decimal(2, 1) // 评分快照
+  originalCreatedAt DateTime? // 原始收藏创建时间
+  createdAt   DateTime @default(now()) // 快照创建时间，用于定期清理
+
+  share      Share       @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  collection Collection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+
+  @@index([shareId])
+  @@index([createdAt]) // 用于定期清理：删除 N 天前的孤立快照
+  @@unique([shareId, url])
+  @@map("share_items")
+}
+
+// ===== 新增表 =====
+
+// 封面图片表（COS 存储元数据）
+model CoverImage {
+  id            String   @id @default(uuid())
+  userId        String
+  collectionId  String?  @unique  // 关联收藏，null 表示未关联
+  cosKey        String   // COS 对象键
+  cosUrl        String   // 签名 URL（缓存）
+  urlExpiresAt  DateTime? // 签名 URL 过期时间
+  size          Int      // 文件大小(bytes)
+  width         Int?
+  height        Int?
+  format        String   // webp
+  createdAt     DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([collectionId])
+  @@index([createdAt])
+  @@map("cover_images")
+}
+
+// 系统封面表（预置封面库）
+model SystemCover {
+  id           String   @id @default(uuid())
+  cosKey       String   @unique
+  cosUrl       String
+  urlExpiresAt DateTime?
+  size         Int
+  width        Int?
+  height       Int?
+  format       String
+  name         String?
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("system_covers")
+}
+
+// 分享订阅表
+model ShareSubscription {
+  id          String   @id @default(uuid())
+  userId      String
+  shareId     String
+  lastSyncAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  share Share @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shareId])
+  @@index([userId])
+  @@index([shareId])
+  @@map("share_subscriptions")
+}
+
+// 分享浏览记录表（UV 统计，仅登录用户）
+model ShareView {
+  id        String   @id @default(uuid())
+  shareId   String
+  userId    String
+  referer   String?  // 来源页面 URL
+  source    String?  // 来源标识: direct | wechat | weibo | qrcode | other
+  createdAt DateTime @default(now())
+
+  share Share @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shareId, userId])
+  @@index([shareId])
+  @@index([shareId, source])
+  @@map("share_views")
+}
+
+// ===== 运维监控表 =====
+
+model ErrorEvent {
+  id          String   @id @default(uuid())
+  errorCode   String?  // 业务错误码
+  message     String   // 错误消息
+  stack       String?  // 堆栈信息
+  path        String?  // 请求路径
+  method      String?  // 请求方法
+  statusCode  Int?     // HTTP 状态码
+  userId      String?  // 关联用户
+  ip          String?  // 请求IP
+  metadata    Json?    // 附加元数据
+  status      String   @default("pending") // pending | confirmed | fixed | ignored
+  count       Int      @default(1)         // 聚合计数
+  firstAt     DateTime @default(now())
+  lastAt      DateTime @updatedAt
+
+  @@index([status, lastAt])
+  @@index([errorCode])
+  @@index([firstAt])
+  @@map("error_events")
+}
+
+model AlertRule {
+  id              String   @id @default(uuid())
+  name            String   // 规则名称
+  type            String   // error_rate | error_count | response_time | service_down
+  conditionConfig Json     // 阈值配置 { window: 秒, threshold: 数值 }
+  channels        Json     // 推送通道 { email: string[], feishu: string[], wecom: string[] }
+  enabled         Boolean  @default(true)
+  cooldownMinutes Int      @default(30)     // 冷却时间（分钟）
+  priority        String   @default("P1")   // P0 | P1 | P2 | P3
+  silentStart     String?  // 静默开始 HH:MM
+  silentEnd       String?  // 静默结束 HH:MM
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  history         AlertHistory[]
+
+  @@map("alert_rules")
+}
+
+model AlertHistory {
+  id           String   @id @default(uuid())
+  ruleId       String
+  ruleName     String
+  priority     String   // P0 | P1 | P2 | P3
+  message      String
+  channelsSent Json     // 实际发送的通道及结果
+  createdAt    DateTime @default(now())
+
+  rule AlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId, createdAt])
+  @@index([createdAt])
+  @@map("alert_history")
+}
+
+// ===== 等级配置表 =====
+model TierConfig {
+  id            String   @id @default(uuid())
+  key           String   @unique // medium | heavy | super
+  nameZh        String
+  nameEn        String
+  description   String?
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  quotaConfig   Json     // { collections, tags, lists, shares, shareItems, coverImages }
+  pricingConfig Json?    // { monthly: { cny, usd }, yearly: { cny, usd } }
+  benefits      Json     @default("[]") // ["benefit1", "benefit2"]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@index([isActive])
+  @@map("tier_configs")
+}
+
+// ===== 订阅表 =====
+
+// 付费订阅记录表
+model Subscription {
+  id                  String   @id @default(uuid())
+  userId              String
+  tier                String   // heavy | super
+  billingCycle        String   // monthly | yearly
+  status              String   // active | expired | cancelled
+  priceCny            Int      // 价格（分），¥10=1000, ¥96=9600
+  priceUsd            Int      // 价格（美分），$2.99=299, $28.71=2871
+  source              String   // paypal | google_pay | wechat_pay | alipay | apple_iap | google_play_billing | admin
+  sourceTransactionId String?  // 第三方交易ID
+  startedAt           DateTime // 生效时间
+  expiresAt           DateTime // 到期时间
+  cancelledAt         DateTime? // 取消时间
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // 关联
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, expiresAt]) // 到期扫描索引
+  @@index([userId])
+  @@index([userId, status])
+  @@map("subscriptions")
+}
+
+// ===== 邀请码表（定义） =====
+model ReferralCode {
+  id        String   @id @default(uuid())
+  userId    String   @unique // 每个用户一个邀请码
+  code      String   @unique // 6位邀请码
+  maxUses   Int      @default(0) // 0 = 无限使用
+  useCount  Int      @default(0)
+  expiresAt DateTime? // 过期时间
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  uses  ReferralUse[]
+
+  @@index([code])
+  @@map("referral_codes")
+}
+
+// ===== 邀请使用记录表 =====
+model ReferralUse {
+  id             String   @id @default(uuid())
+  referralCodeId String
+  refereeId      String?  @unique // 被邀请人，每人只能被邀请一次
+  status         String   @default("registered") // registered | rewarded
+  rewardType     String?  // subscription_extension
+  rewardValue    Int?     // 奖励天数
+  rewardGivenAt  DateTime?
+  rewardTriggered Boolean @default(false) // 是否已触发过首次升级奖励（防止重复奖励）
+  useIp          String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  referralCode ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  referee      User?        @relation(fields: [refereeId], references: [id], onDelete: SetNull)
+
+  @@index([referralCodeId])
+  @@index([refereeId])
+  @@map("referral_uses")
+}

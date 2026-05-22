@@ -1,0 +1,106 @@
+# Dependencies - EAS will reinstall these on build servers
+node_modules/
+
+# Git - Not needed for builds
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# Build artifacts - Will be regenerated
+dist/
+.next/
+.build/
+.cache/
+*.log
+build/
+out/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+
+# Editor files
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+
+# Environment files - Use EAS secrets instead
+.env*
+!.env.example
+
+# Android specific - ALL android artifacts
+android/app/build/
+android/build/
+android/.gradle/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+*.apk
+*.aab
+
+# iOS specific
+ios/build/
+ios/Pods/
+ios/Podfile.lock
+*.ipa
+*.xcarchive
+
+# Expo cache
+.expo/cache/
+.expo/metro-cache/
+.expo/artifacts/
+.expo/settings.json
+.expo/versions.json
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+node_modules/.cache/
+
+# Test files - Not needed for production builds
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+coverage/
+jest.config.js
+jest.setup.js
+test/
+
+# Documentation
+*.md
+docs/
+README*
+CHANGELOG*
+CONTRIBUTING*
+LICENSE
+
+# Assets that can be regenerated
+*.zip
+*.tar
+*.gz
+*.rar
+
+# Storybook
+.storybook/
+storybook-static/
+
+# Misc
+*.md
+*.txt
+*.json
+!.expo-shared/
+!.expo/
+!.gitignore

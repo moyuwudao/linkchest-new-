@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
+  <!-- 国内版允许 HTTP 明文流量（国内服务器暂无 HTTPS） -->
+  <application
+    android:usesCleartextTraffic="true"
+    tools:replace="android:usesCleartextTraffic" />
+</manifest>

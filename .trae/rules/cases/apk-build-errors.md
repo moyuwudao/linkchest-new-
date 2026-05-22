@@ -1,0 +1,968 @@
+---
+alwaysApply: false
+description: APK构建异常案例集锦 - Gradle、WSL、镜像、缓存、图标等构建问题
+---
+
+# APK 构建异常案例集锦
+
+> 记录所有 APK 构建过程中遇到的异常及解决方案。
+> 
+> **使用方式**：遇到构建异常时，搜索错误关键词，找到对应案例，按解决步骤执行。
+
+---
+
+## 案例索引
+
+| 编号 | 问题 | 严重程度 | 频率 | 状态 |
+|------|------|----------|------|------|
+| [CASE-001](#case-001-gradle-镜像被重置为官方地址) | Gradle 镜像被重置为官方地址 | high | frequent | resolved |
+| [CASE-002](#case-002-使用-clean-命令导致缓存被删除) | 使用 clean 命令导致缓存被删除 | high | frequent | resolved |
+| [CASE-003](#case-003-prebuild-后图标被覆盖) | prebuild 后图标被覆盖 | medium | frequent | resolved |
+| [CASE-004](#case-004-gradle-反复下载依赖) | Gradle 反复下载依赖 | high | frequent | resolved |
+| [CASE-005](#case-005-离线模式构建失败) | 离线模式构建失败 | medium | occasional | resolved |
+| [CASE-006](#case-006-wsl-环境变量未设置) | WSL 环境变量未设置 | high | occasional | resolved |
+| [CASE-007](#case-007-gradle-版本不兼容) | Gradle 版本不兼容 | medium | rare | resolved |
+| [CASE-008](#case-008-构建脚本引号转义问题) | 构建脚本引号转义问题 | medium | occasional | resolved |
+| [CASE-009](#case-009-代码目录与构建目录不同步) | 代码目录与构建目录不同步 | high | occasional | resolved |
+| [CASE-010](#case-010-文件被占用导致prebuild失败) | 文件被占用导致 prebuild 失败 | medium | occasional | new |
+| [CASE-011](#case-011-违规使用eas构建) | 违规使用 EAS 构建（必须使用 WSL） | critical | rare | new |
+| [CASE-012](#case-012-单wsl串行构建缓存冲突) | 单 WSL 串行构建缓存冲突（已通过双 WSL 解决） | high | frequent | resolved |
+| [CASE-013](#case-013-appconfigjs-esm兼容性错误) | app.config.js ESM 兼容性错误 | high | occasional | resolved |
+| [CASE-014](#case-014-expo-build-properties覆盖usesCleartextTraffic) | expo-build-properties 覆盖 usesCleartextTraffic | critical | occasional | resolved |
+| [CASE-015](#case-015-登录页面第三方登录按钮不显示) | 登录页面第三方登录按钮不显示 | high | occasional | resolved |
+
+---
+
+## CASE-001: Gradle 镜像被重置为官方地址
+
+```yaml
+---
+id: CASE-001
+category: apk-build
+severity: high
+frequency: frequent
+first_seen: "2026-05-10"
+last_seen: "2026-05-14"
+status: resolved
+---
+```
+
+### 现象
+
+构建时 Gradle 从官方地址下载，速度极慢或超时：
+
+```
+Downloading https://services.gradle.org/distributions/gradle-8.8-all.zip
+... 超时/失败
+```
+
+### 根因
+
+`npx expo prebuild --platform android` 会重新生成 `gradle-wrapper.properties`，将 `distributionUrl` 重置为官方地址 `https://services.gradle.org/distributions/gradle-8.8-all.zip`。
+
+### 解决
+
+**步骤 1**：检查当前镜像地址
+```bash
+cat project/apps/mobile/android/gradle/wrapper/gradle-wrapper.properties | grep distributionUrl
+```
+
+**步骤 2**：如果被重置，恢复为国内镜像
+```bash
+# 使用腾讯云镜像
+sed -i 's|https://services.gradle.org/distributions/|https://mirrors.cloud.tencent.com/gradle/|g' \
+  project/apps/mobile/android/gradle/wrapper/gradle-wrapper.properties
+```
+
+**步骤 3**：验证修改
+```bash
+cat project/apps/mobile/android/gradle/wrapper/gradle-wrapper.properties | grep distributionUrl
+# 应输出：distributionUrl=https\://mirrors.cloud.tencent.com/gradle/gradle-8.8-all.zip
+```
+
+### 预防
+
+1. **prebuild 后自动检查**：将镜像恢复加入 prebuild 后的标准流程
+2. **使用脚本构建**：通过 `build-gradle.sh` 脚本构建，脚本内自动验证镜像
+3. **定期验证**：每周检查一次 `gradle-wrapper.properties`
+
+### 相关
+
+- CASE-004: Gradle 反复下载依赖（镜像问题导致）
+
+---
+
+## CASE-002: 使用 clean 命令导致缓存被删除
+
+```yaml
+---
+id: CASE-002
+category: apk-build
+severity: high
+frequency: frequent
+first_seen: "2026-05-10"
+last_seen: "2026-05-14"
+status: resolved
+---
+```
+
+### 现象
+
+执行 `./gradlew clean assembleRelease` 后，下次构建需要重新下载所有依赖，耗时 10+ 分钟。
+
+### 根因
+
+`clean` 任务会删除 `build/` 目录和构建缓存，但不会删除已下载的 Gradle 发行包和 Maven 依赖。然而，如果配合 `--no-configuration-cache`，配置缓存也会被清除，导致重新解析依赖。
+
+### 解决
+
+**避免使用 clean**：
+
+```bash
+# ❌ 错误：会清除缓存
+./gradlew clean assembleRelease --no-daemon
+
+# ✅ 正确：保留缓存，增量构建
+./gradlew assembleRelease --no-daemon --no-configuration-cache
+```
+
+**如果必须 clean**（如项目配置大幅变更）：
+```bash
+# 仅清理项目构建产物，保留全局缓存
+./gradlew clean --no-daemon
+# 然后正常构建
+./gradlew assembleRelease --no-daemon --no-configuration-cache
+```
+
+### 预防
+
+1. **规则禁止**：在规则中明确禁止 `clean` 命令
+2. **脚本封装**：构建脚本中不包含 `clean` 步骤
+3. **缓存监控**：定期检查缓存目录大小，确认缓存有效
+
+```bash
+# 检查缓存目录
+du -sh /home/mayn/.gradle/wrapper/dists/
+du -sh /home/mayn/.m2/repository/
+```
+
+### 相关
+
+- CASE-004: Gradle 反复下载依赖（缓存被删除导致）
+
+---
+
+## CASE-003: prebuild 后图标被覆盖
+
+```yaml
+---
+id: CASE-003
+category: apk-build
+severity: medium
+frequency: frequent
+first_seen: "2026-05-10"
+last_seen: "2026-05-14"
+status: resolved
+---
+```
+
+### 现象
+
+执行 `npx expo prebuild --platform android` 后，之前修复的 Android 图标被重置为默认图标。
+
+### 根因
+
+prebuild 根据 `app.json` 中的 `icon` 和 `adaptiveIcon` 配置重新生成 `res/mipmap-*/` 目录下的图标文件，覆盖手动修复的图标。
+
+### 解决
+
+**步骤 1**：prebuild 后立即恢复图标
+```bash
+for dir in hdpi mdpi xhdpi xxhdpi xxxhdpi; do
+    cp project/assets/icons/android/mipmap-${dir}/ic_launcher.png \
+       project/apps/mobile/android/app/src/main/res/mipmap-${dir}/ic_launcher.png
+    cp project/assets/icons/android/mipmap-${dir}/ic_launcher.png \
+       project/apps/mobile/android/app/src/main/res/mipmap-${dir}/ic_launcher_round.png
+done
+
+for dir in hdpi mdpi xhdpi xxhdpi xxxhdpi; do
+    cp project/assets/icons/android/ic_launcher_foreground.png \
+       project/apps/mobile/android/app/src/main/res/mipmap-${dir}/ic_launcher_foreground.png
+done
+```
+
+**步骤 2**：验证图标已恢复
+```bash
+ls -la project/apps/mobile/android/app/src/main/res/mipmap-xhdpi/
+```
+
+### 预防
+
+1. **长期方案**：修改 `apps/mobile/assets/icon.png` 和 `apps/mobile/assets/adaptive-icon.png` 为正确版本
+2. **脚本自动化**：将图标恢复加入 prebuild 后的标准流程
+3. **Git 追踪**：将修复后的图标文件加入 Git 版本控制
+
+### 相关
+
+- CASE-001: prebuild 同时会重置 Gradle 镜像
+
+---
+
+## CASE-004: Gradle 反复下载依赖
+
+```yaml
+---
+id: CASE-004
+category: apk-build
+severity: high
+frequency: frequent
+first_seen: "2026-05-10"
+last_seen: "2026-05-14"
+status: resolved
+---
+```
+
+### 现象
+
+每次构建都重新下载 Gradle 发行包或 Maven 依赖，即使之前已成功构建。
+
+### 根因
+
+1. **镜像配置失效**：`gradle-wrapper.properties` 被重置为官方地址
+2. **缓存未启用**：`gradle.properties` 中未启用 `org.gradle.caching=true`
+3. **clean 命令**：使用了 `clean` 任务删除缓存
+4. **WSL 路径问题**：Windows 和 WSL 路径不一致导致缓存位置混乱
+
+### 解决
+
+**步骤 1**：检查并修复镜像配置
+```bash
+# 检查 Gradle Wrapper 镜像
+cat project/apps/mobile/android/gradle/wrapper/gradle-wrapper.properties | grep distributionUrl
+
+# 检查 Maven 仓库镜像
+cat project/apps/mobile/android/build.gradle | grep -A 5 "repositories"
+```
+
+**步骤 2**：启用缓存
+```bash
+cat project/apps/mobile/android/gradle.properties | grep "org.gradle.caching"
+# 应输出：org.gradle.caching=true
+```
+
+**步骤 3**：检查缓存目录
+```bash
+# WSL 内检查
+ls -la /home/mayn/.gradle/wrapper/dists/
+ls -la /home/mayn/.m2/repository/
+```
+
+**步骤 4**：如果缓存为空，手动下载并放置
+```bash
+# 在 WSL 内执行首次构建，确保依赖被缓存
+wsl -d linkchest-global -u mayn -- bash -c "cd /mnt/d/trae_projects/linkchest/project/apps/mobile/android && ./gradlew assembleRelease --no-daemon --no-configuration-cache"
+```
+
+### 预防
+
+1. **镜像锁定**：prebuild 后自动恢复镜像配置
+2. **缓存启用**：确保 `gradle.properties` 中 `org.gradle.caching=true`
+3. **禁止 clean**：规则中禁止使用 `clean` 命令
+4. **缓存监控**：定期检查缓存目录
+
+### 相关
+
+- CASE-001: Gradle 镜像被重置
+- CASE-002: 使用 clean 命令
+
+---
+
+## CASE-005: 离线模式构建失败
+
+```yaml
+---
+id: CASE-005
+category: apk-build
+severity: medium
+frequency: occasional
+first_seen: "2026-05-10"
+last_seen: "2026-05-12"
+status: resolved
+---
+```
+
+### 现象
+
+使用 `--offline` 参数构建时失败：
+
+```
+No cached version available for offline mode
+```
+
+### 根因
+
+prebuild 重新生成 Android 项目后，依赖配置可能变化，新增或变更的依赖在本地缓存中不存在，离线模式无法下载。
+
+### 解决
+
+**移除 --offline 参数**：
+
+```bash
+# ❌ 错误：离线模式可能导致失败
+./gradlew assembleRelease --no-daemon --offline
+
+# ✅ 正确：使用国内镜像，允许联网下载
+./gradlew assembleRelease --no-daemon --no-configuration-cache
+```
+
+**如果必须使用离线模式**（确认所有依赖已缓存）：
+```bash
+# 先执行一次在线构建，确保所有依赖缓存
+./gradlew assembleRelease --no-daemon --no-configuration-cache
+
+# 后续构建可使用离线模式
+./gradlew assembleRelease --no-daemon --offline
+```
+
+### 预防
+
+1. **默认不使用离线模式**：规则中不推荐 `--offline`
+2. **国内镜像足够快**：腾讯云 + 阿里云镜像已能满足速度需求
+3. **缓存验证**：使用离线模式前，先验证缓存完整性
+
+### 相关
+
+- CASE-004: Gradle 反复下载依赖
+
+---
+
+## CASE-006: WSL 环境变量未设置
+
+```yaml
+---
+id: CASE-006
+category: apk-build
+severity: high
+frequency: occasional
+first_seen: "2026-05-10"
+last_seen: "2026-05-12"
+status: resolved
+---
+```
+
+### 现象
+
+构建时提示找不到 Java 或 Android SDK：
+
+```
+ERROR: JAVA_HOME is not set and no 'java' command could be found
+# 或
+SDK location not found. Define location with sdk.dir in the local.properties file
+```
+
+### 根因
+
+WSL 会话中未设置 `JAVA_HOME` 和 `ANDROID_HOME` 环境变量，或 `local.properties` 文件缺失。
+
+### 解决
+
+**步骤 1**：设置环境变量
+```bash
+export ANDROID_HOME=/opt/android-sdk
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:$JAVA_HOME/bin:$PATH
+```
+
+**步骤 2**：创建 local.properties（如果不存在）
+```bash
+echo "sdk.dir=/opt/android-sdk" > project/apps/mobile/android/local.properties
+```
+
+**步骤 3**：验证环境
+```bash
+java -version
+adb --version
+```
+
+### 预防
+
+1. **.bashrc 配置**：将环境变量加入 `~/.bashrc`
+2. **构建脚本**：脚本内自动设置环境变量
+3. **环境检查**：构建前验证环境变量
+
+### 相关
+
+- CASE-008: 构建脚本引号转义问题（环境变量设置相关）
+
+---
+
+## CASE-007: Gradle 版本不兼容
+
+```yaml
+---
+id: CASE-007
+category: apk-build
+severity: medium
+frequency: rare
+first_seen: "2026-05-10"
+last_seen: "2026-05-10"
+status: resolved
+---
+```
+
+### 现象
+
+构建时提示 Gradle 版本不兼容：
+
+```
+Minimum supported Gradle version is 8.8. Current version is 8.5.
+```
+
+### 根因
+
+`gradle-wrapper.properties` 中的 Gradle 版本与项目要求的版本不一致。
+
+### 解决
+
+**更新 Gradle Wrapper 版本**：
+```bash
+# 修改 gradle-wrapper.properties
+distributionUrl=https\://mirrors.cloud.tencent.com/gradle/gradle-8.8-all.zip
+
+# 或者使用 Gradle 命令更新
+./gradlew wrapper --gradle-version 8.8
+```
+
+### 预防
+
+1. **版本锁定**：项目文档中明确 Gradle 版本
+2. **prebuild 后检查**：prebuild 后验证 Gradle 版本
+3. **统一配置**：所有开发者使用相同的 Gradle 版本
+
+### 相关
+
+- CASE-001: Gradle 镜像被重置
+
+---
+
+## CASE-008: 构建脚本引号转义问题
+
+```yaml
+---
+id: CASE-008
+category: apk-build
+severity: medium
+frequency: occasional
+first_seen: "2026-05-10"
+last_seen: "2026-05-12"
+status: resolved
+---
+```
+
+### 现象
+
+通过 PowerShell 执行 WSL 命令时，引号转义错误：
+
+```
+bash: -c: line 1: unexpected EOF while looking for matching `"'
+```
+
+### 根因
+
+PowerShell 和 bash 的引号转义规则不同，复杂命令在 PowerShell 中难以正确传递。
+
+### 解决
+
+**使用独立脚本文件**：
+
+创建 `apps/mobile/build-gradle.sh`：
+```bash
+#!/bin/bash
+set -e
+cd /mnt/d/trae_projects/linkchest/project/apps/mobile/android
+export ANDROID_HOME=/opt/android-sdk
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH=/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:/opt/android-sdk/build-tools/34.0.0:/usr/lib/jvm/java-17-openjdk-amd64/bin:$PATH
+
+echo "=== Starting Gradle assembleRelease ==="
+./gradlew assembleRelease --no-daemon --no-configuration-cache
+
+echo "=== Build completed ==="
+echo "APK location: app/build/outputs/apk/release/app-release.apk"
+```
+
+执行：
+```bash
+wsl -d linkchest-global -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
+```
+
+### 预防
+
+1. **脚本文件优先**：复杂命令使用脚本文件，避免命令行转义
+2. **简单命令行**：简单命令可直接使用，复杂命令必须脚本化
+3. **测试脚本**：新脚本先在 WSL 内测试，确认无误后再集成
+
+### 相关
+
+- CASE-006: WSL 环境变量未设置
+
+---
+
+## CASE-009: 代码目录与构建目录不同步
+
+```yaml
+---
+id: CASE-009
+category: apk-build
+severity: high
+frequency: occasional
+first_seen: "2026-05-16"
+last_seen: "2026-05-16"
+status: resolved
+---
+```
+
+### 现象
+
+APK 构建成功，但安装后发现功能未更新，仍是旧版本。检查 APK 时间戳发现是构建前的旧文件：
+
+```
+-rwxrwxrwx 1 mayn mayn 72M May 16 00:44 app-release.apk
+# 而代码改动是在 00:44 之后进行的
+```
+
+Gradle 构建日志中大量任务显示 `UP-TO-DATE`，未触发 `createBundleReleaseJsAndAssets`（JS 重新打包）。
+
+### 根因
+
+项目存在两个代码目录：
+
+| 目录 | 用途 | 说明 |
+|------|------|------|
+| `apps/mobile/` | 开发编辑目录 | TRAE 编辑器修改的文件在这里 |
+| `project/apps/mobile/` | 构建目录 | WSL 构建脚本从这里读取代码 |
+
+**代码修改在 `apps/mobile/`，但构建脚本运行在 `project/apps/mobile/`**。如果修改后未同步，Gradle 检测不到源码变化，直接使用缓存，打包的还是旧 JS bundle。
+
+### 解决
+
+**步骤 1**：确认两个目录的差异
+```bash
+# 检查新文件是否存在于构建目录
+ls project/apps/mobile/src/screens/ManagementScreen.tsx
+# 如果不存在，说明未同步
+
+# 对比两个目录的文件列表
+diff <(ls apps/mobile/src/screens/) <(ls project/apps/mobile/src/screens/)
+```
+
+**步骤 2**：同步修改的文件到构建目录
+```bash
+# 使用同步脚本（推荐）
+wsl -d linkchest-global -u mayn -- bash /mnt/d/trae_projects/linkchest/apps/mobile/sync-to-project.sh
+
+# 或手动同步单个文件
+cp apps/mobile/src/screens/ManagementScreen.tsx project/apps/mobile/src/screens/
+cp apps/mobile/src/navigation/MainTabNavigator.tsx project/apps/mobile/src/navigation/
+cp apps/mobile/App.tsx project/apps/mobile/
+# ... 其他修改的文件
+```
+
+**步骤 3**：重新构建，验证 JS 重新打包
+```bash
+wsl -d linkchest-global -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
+# 构建日志中应出现：
+# > Task :app:createBundleReleaseJsAndAssets
+# Starting Metro Bundler
+# warning: Bundler cache is empty, rebuilding (this may take a minute)
+```
+
+**步骤 4**：验证 APK 时间戳已更新
+```bash
+ls -la project/apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+# 时间戳应为构建时间，而非旧时间
+```
+
+### 预防
+
+1. **构建前必同步**：每次构建前执行 `sync-to-project.sh`，确保代码一致
+2. **验证 JS 打包**：构建日志中必须出现 `createBundleReleaseJsAndAssets`，否则说明代码未更新
+3. **检查 APK 时间戳**：构建完成后确认 APK 时间戳是当前时间
+4. **统一目录**：长期方案是将开发目录和构建目录统一，避免双目录问题
+
+### 同步脚本参考
+
+`apps/mobile/sync-to-project.sh`：
+```bash
+#!/bin/bash
+set -e
+SRC=/mnt/d/trae_projects/linkchest/apps/mobile
+DST=/mnt/d/trae_projects/linkchest/project/apps/mobile
+
+# 同步所有源码文件
+cp "$SRC/App.tsx" "$DST/App.tsx"
+cp -r "$SRC/src/" "$DST/src/"
+
+echo "=== Sync complete ==="
+```
+
+### 相关
+
+- CASE-008: 构建脚本引号转义问题（同步脚本也需注意 PowerShell 转义）
+
+---
+
+## CASE-010: 文件被占用导致 prebuild 失败
+
+```yaml
+---
+id: CASE-010
+category: apk-build
+severity: medium
+frequency: occasional
+first_seen: "2026-05-17"
+last_seen: "2026-05-17"
+status: new
+---
+```
+
+### 现象
+
+执行 `npx expo prebuild` 时报错：
+
+```
+× Failed to delete android code: EBUSY: resource busy or locked,
+  rmdir 'D:\trae_projects\linkchest\project\apps\mobile\android\app\build\outputs\apk\release'
+Error: EBUSY: resource busy or locked, rmdir '...'
+```
+
+### 根因
+
+1. 之前的构建产物（APK 文件）被其他进程占用（如文件管理器、ADB、杀毒软件）
+2. 或者之前的构建进程未完全退出，仍在占用构建目录
+
+### 解决
+
+**步骤 1**：关闭占用进程
+```bash
+# 查找占用该目录的进程（Windows）
+# 使用资源监视器或 Process Explorer 查找句柄
+
+# 或重启终端/IDE 释放占用
+```
+
+**步骤 2**：手动删除被占用的文件
+```powershell
+# PowerShell 强制删除
+Remove-Item -Recurse -Force D:\trae_projects\linkchest\project\apps\mobile\android\app\build\outputs\apk\release\app-release.apk
+
+# 然后删除目录
+Remove-Item -Recurse -Force D:\trae_projects\linkchest\project\apps\mobile\android\app\build\outputs\apk\release
+```
+
+**步骤 3**：重新执行 prebuild（不带 --clean）
+```bash
+cd project/apps/mobile
+npx expo prebuild --platform android
+# 注意：不要使用 --clean 参数！
+```
+
+### 预防
+
+1. **构建前关闭文件管理器**：避免文件管理器打开构建输出目录
+2. **避免重复执行 prebuild**：一次 prebuild 后，除非必要，不要重复执行
+3. **使用 WSL 构建**：WSL 内文件系统不受 Windows 进程占用影响
+4. **不要手动操作构建目录**：让 Gradle 脚本管理构建产物
+
+### 相关
+
+- CASE-002: 使用 clean 命令导致缓存被删除（--clean 同样危险）
+
+---
+
+## CASE-011: 违规使用 EAS 构建
+
+```yaml
+---
+id: CASE-011
+category: apk-build
+severity: critical
+frequency: rare
+first_seen: "2026-05-17"
+last_seen: "2026-05-17"
+status: new
+---
+```
+
+### 现象
+
+SOLO Agent 尝试使用 EAS (Expo Application Services) 构建：
+
+```
+EAS 构建需要 Expo 账号登录...
+服务器上没有 eas-cli...
+```
+
+然后尝试在 Windows 本地执行：
+```bash
+npx expo prebuild --platform android --clean
+```
+
+导致：
+1. EAS 构建不可用（服务器未安装 eas-cli）
+2. `--clean` 参数删除了 Android 项目配置
+3. 在 Windows 本地构建违反 WSL 强制要求
+
+### 根因
+
+1. **未阅读 BUILD.md 规则**：不知道必须使用 WSL 构建
+2. **未识别构建规则加载**：`BUILD.md` 为 `alwaysApply: false`，SOLO Agent 未识别构建场景；构建红线由 `BUILD_RED_LINES.md`（alwaysApply: true）兜底保护
+3. **试图使用云构建服务**：EAS 需要 Expo 账号和 eas-cli，项目环境不满足
+
+### 解决
+
+**立即停止当前操作**，按正确流程执行：
+
+**步骤 1**：确认 WSL 环境可用
+```bash
+wsl -d linkchest-global -u mayn -- echo "WSL OK"
+```
+
+**步骤 2**：如果 Android 项目已被 --clean 破坏，重新 prebuild（在 WSL 内）
+```bash
+wsl -d linkchest-global -u mayn -- bash -c "cd /mnt/d/trae_projects/linkchest/project/apps/mobile && npx expo prebuild --platform android"
+```
+
+**步骤 3**：恢复镜像配置（prebuild 可能重置为官方地址）
+```bash
+# 检查并恢复 Gradle 镜像
+sed -i 's|https://services.gradle.org/distributions/|https://mirrors.cloud.tencent.com/gradle/|g' \
+  project/apps/mobile/android/gradle/wrapper/gradle-wrapper.properties
+```
+
+**步骤 4**：使用 WSL 构建
+```bash
+wsl -d linkchest-global -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
+```
+
+### 预防
+
+1. **绝对禁止 EAS 构建**：项目不使用 Expo 云服务，所有构建必须在 WSL 本地完成
+2. **强制阅读 BUILD.md**：任何构建操作前必须先阅读构建规则
+3. **WSL 唯一构建路径**：所有 APK 构建命令必须通过 `wsl -d linkchest-global` 或 `wsl -d linkchest-cn` 执行
+4. **禁止 --clean 参数**：prebuild 和 gradlew 都禁止携带 clean 相关参数
+
+### 相关
+
+- CASE-001: Gradle 镜像被重置为官方地址（prebuild 后需恢复）
+- CASE-002: 使用 clean 命令导致缓存被删除
+- CASE-006: WSL 环境变量未设置
+
+---
+
+## CASE-012: 单WSL串行构建缓存冲突
+
+- **发现时间**：2026-05-21
+- **严重程度**：high
+- **频率**：frequent（双版本构建时必现）
+- **状态**：resolved（通过双 WSL 架构解决）
+
+### 现象
+
+单 WSL 实例串行构建 global 和 china 两个 flavor 时，第二个构建的 APK 配置与第一个相同：
+- 国内版 APK 使用海外 API 地址
+- 国内版显示 Google/Apple 登录按钮而非微信/支付宝
+- `Constants.expoConfig.extra.market` 读取为旧值
+
+### 根因
+
+1. **Metro 缓存冲突**：Metro Bundler 缓存了第一个 flavor 的 JS bundle，第二个 flavor 构建时复用了缓存
+2. **`.env.market` 文件竞争**：两个 flavor 共享同一个 `.env.market` 文件，后写入的值覆盖前一个
+3. **expo-constants 缓存**：原生层缓存了 `app.config.js` 的旧值
+
+### 解决方案
+
+**永久方案：双 WSL 架构**
+
+```
+linkchest-global → 专构建 global flavor（MARKET=global）
+linkchest-cn     → 专构建 china flavor（MARKET=china）
+```
+
+- 两个 WSL 实例有独立的 Metro 缓存、Gradle 缓存
+- 并行构建互不干扰，总耗时接近单次构建
+- 构建脚本自动通过 `WSL_DISTRO_NAME` 检测 flavor
+
+```powershell
+# 并行构建（推荐）
+.\project\apps\mobile\build-apk.ps1
+```
+
+### 预防
+
+1. **禁止单 WSL 串行构建两个 flavor**
+2. **双版本构建必须使用并行构建**：`.\project\apps\mobile\build-apk.ps1`
+3. **单独构建时使用对应 WSL 实例**
+
+### 相关
+
+- CASE-013: app.config.js ESM 兼容性错误
+- CASE-014: expo-build-properties 覆盖 usesCleartextTraffic
+- CASE-015: 登录页面第三方登录按钮不显示
+
+---
+
+## CASE-013: app.config.js ESM兼容性错误
+
+- **发现时间**：2026-05-21
+- **严重程度**：high
+- **频率**：occasional
+- **状态**：resolved
+
+### 现象
+
+构建时 Metro 报错：
+```
+ReferenceError: exports is not defined in ES module scope
+```
+或
+```
+ReferenceError: __dirname is not defined in ES module scope
+```
+
+### 根因
+
+`app.config.js` 使用了 ESM 语法（`import`/`export default`），但 Metro/Expo 的配置加载器在某些版本下不完全支持 ESM，导致：
+- `import.meta.url` 不可用
+- `__dirname` 在 ESM 中未定义
+- `exports` 对象在 ESM 中不存在
+
+### 解决方案
+
+将 `app.config.js` 改为 CommonJS 格式：
+
+```javascript
+// ❌ ESM 格式（可能报错）
+import * as fs from 'fs';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export default { expo: { ... } };
+
+// ✅ CommonJS 格式（稳定）
+const fs = require('fs');
+const path = require('path');
+module.exports = { expo: { ... } };
+```
+
+### 预防
+
+1. **app.config.js 必须使用 CommonJS 格式**
+2. 使用 `require()` 而非 `import`
+3. 使用 `module.exports` 而非 `export default`
+
+---
+
+## CASE-014: expo-build-properties覆盖usesCleartextTraffic
+
+- **发现时间**：2026-05-21
+- **严重程度**：critical
+- **频率**：occasional
+- **状态**：resolved
+
+### 现象
+
+国内版 APK 无法连接服务器（HTTP 请求被拦截），但网页端正常。
+
+### 根因
+
+`app.config.js` 中的 `expo-build-properties` 插件硬编码了 `usesCleartextTraffic: false`：
+
+```javascript
+plugins: [
+  ['expo-build-properties', {
+    android: {
+      usesCleartextTraffic: false,  // ❌ 硬编码 false，覆盖了国内版设置
+    }
+  }]
+]
+```
+
+即使 `android.usesCleartextTraffic` 设为 `true`，插件也会覆盖为 `false`，导致国内版无法发送 HTTP 请求。
+
+### 解决方案
+
+让 `expo-build-properties` 的 `usesCleartextTraffic` 跟随市场配置：
+
+```javascript
+plugins: [
+  ['expo-build-properties', {
+    android: {
+      usesCleartextTraffic: marketValue === 'china',  // ✅ 国内版允许 HTTP
+    }
+  }]
+]
+```
+
+### 预防
+
+1. **`expo-build-properties` 中的配置必须与 `android` 字段保持一致**
+2. 国内版必须允许 HTTP 明文流量（国内服务器暂无 HTTPS）
+3. 修改 `app.config.js` 时，同时检查 `android.usesCleartextTraffic` 和插件配置
+
+---
+
+## CASE-015: 登录页面第三方登录按钮不显示
+
+- **发现时间**：2026-05-21
+- **严重程度**：high
+- **频率**：occasional
+- **状态**：resolved
+
+### 现象
+
+APK 登录页面只显示邮箱/密码登录，没有第三方登录按钮（Google/Apple/微信/支付宝）。
+
+### 根因
+
+登录页面的第三方登录按钮依赖 `/market/config` API 返回的 `authProviders` 配置。当 APK 无法连接服务器时（如 CASE-014 导致），API 请求失败，`marketConfig` 为 null，所有第三方登录按钮都不显示。
+
+### 解决方案
+
+在 `LoginScreen.tsx` 中添加本地市场配置回退逻辑：
+
+```typescript
+// 本地市场判断（API 不可用时的回退）
+const localMarket = Constants.expoConfig?.extra?.market as string || 'global';
+const isLocalChina = localMarket === 'china' ||
+  (Constants.expoConfig?.android?.package || '') === 'cn.linkchest.app';
+
+// 默认市场配置（API 失败时使用）
+const defaultMarketConfig: MarketConfig = isLocalChina
+  ? { market: 'china', authProviders: { wechat: true, alipay_auth: true, ... }, ... }
+  : { market: 'global', authProviders: { google: true, apple: true, facebook: true, ... }, ... };
+
+// 获取市场配置
+useEffect(() => {
+  async function fetchMarketConfig() {
+    try {
+      const config = await getMarketConfig();
+      setMarketConfig(config);
+    } catch (err) {
+      // API 不可用时，使用本地默认配置
+      setMarketConfig(defaultMarketConfig);
+    }
+  }
+  fetchMarketConfig();
+}, []);
+```
+
+### 预防
+
+1. **所有依赖 API 的 UI 功能必须有本地回退逻辑**
+2. 市场配置应优先使用构建时注入的 `Constants.expoConfig.extra.market`
+3. API 请求失败不应导致核心功能（如登录）不可用
+
+---
+
+*最后更新：2026-05-21*
+*版本：v1.2*

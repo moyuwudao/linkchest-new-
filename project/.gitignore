@@ -1,0 +1,87 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+.next/
+.expo/
+*.apk
+*.aab
+
+# Platform test data
+platform-test-results/
+apps/platform-test-results/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.market
+!.env.example
+
+# Database
+*.db
+*.db-journal
+prisma/*.db
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Turbo
+.turbo/
+
+# Backups (large files)
+backups/
+data_backup/
+backup-*.sql
+
+# Keystore / signing keys
+*.keystore
+*.jks
+*.pem
+*.key
+
+# Secrets
+.env.production
+.env.local
+secrets/
+passwords.txt
+deploy/cos-config.env
+deploy/SERVER-REINSTALL-GUIDE.md
+
+# Build artifacts
+build_error.txt
+build_log.txt
+
+# AI tool files
+.codebuddy/
+.workbuddy/
+
+# Generated/binary files
+cover-processed/
+*.tar.gz
+
+# Cloudflare Workers
+workers/
+
+# Chrome extension build output
+apps/chrome-extension/dist.zip
+
+# Web build artifacts
+apps/web/public/fallback-*.js
+apps/web/public/workbox-*.js
+
+# Mobile build artifacts
+apps/mobile/android/.gradle/
+apps/mobile/android/app/build/
+apps/mobile/android/build/

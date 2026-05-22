@@ -1,0 +1,905 @@
+key,web_zh,mobile_zh
+account.accountInfo,账号信息,
+account.advancedSetting,高级设置，修改后可能无法连接,
+account.avatar,头像,
+account.avatarDeleteFailed,头像删除失败,头像删除失败
+account.avatarDeleted,,头像已删除
+account.avatarHint,建议上传正方形图片，将自动裁剪为 200x200,
+account.avatarUpdated,,头像更新成功
+account.avatarUploadFailed,头像上传失败,头像上传失败
+account.bindEmail,绑定邮箱,绑定邮箱
+account.changeAvatar,更换头像,更换头像
+account.changeEmail,修改邮箱,修改邮箱
+account.changePassword,修改密码,修改密码
+account.changePasswordFailed,,修改密码失败
+account.changePhone,,换绑手机号
+account.changePhoneBtn,,换绑
+account.checking,检查中...,
+account.chooseFromAlbum,,从相册选择
+account.codeSent,验证码已发送,验证码已发送
+account.confirmChange,确认换绑,
+account.confirmNewPassword,确认新密码,确认新密码
+account.dangerZone,危险操作,
+account.dataWillBeDeleted,你的所有收藏、标签、分组和分享数据将被永久删除。,
+account.deleteAccount,删除账号,
+account.deleteAccountConfirmPhrase,删除我的账号,
+account.deleteAccountDesc,永久删除你的账号和所有数据，此操作不可恢复,
+account.deleteAccountFailed,删除账号失败,
+account.deleteAvatar,,删除头像
+account.deleteAvatarBtn,删除头像,删除头像
+account.deleteAvatarConfirm,,确定要删除头像吗？将恢复默认头像。
+account.deleting,删除中...,
+account.email,邮箱,邮箱
+account.emailBindSuccess,邮箱绑定成功,
+account.emailBound,,邮箱绑定成功
+account.enterCode,,验证码
+account.enterEmail,,请输入邮箱地址
+account.enterEmailHint,,请输入邮箱
+account.enterServerAddress,,请输入服务器地址
+account.enterToConfirm,请输入 ,
+account.enterUsername,,请输入用户名
+account.fillComplete,,请填写完整
+account.getCode,获取验证码,
+account.googleEmailLocked,Google 登录邮箱不可修改,Google 登录邮箱不可修改
+account.irreversibleWarning,⚠️ 此操作不可恢复！,
+account.localUpload,从电脑导入,
+account.needPhotoPermission,,需要相册权限才能选择头像
+account.newPassword,新密码,新密码
+account.newPhone,新手机号,新手机号
+account.nicknameFallback,Google 用户,Google 用户
+account.notBound,未绑定,未绑定
+account.notSet,未设置,未设置
+account.oldPassword,旧密码,旧密码
+account.pageDesc,管理你的账号信息,
+account.pageTitle,账号与安全,
+account.password,密码,密码
+account.passwordChangeFailed,修改密码失败,
+account.passwordChangeSuccess,密码修改成功,
+account.passwordChangedSuccess,,密码修改成功
+account.passwordHint,至少8位，包含英文大小写和数字,至少8位，包含英文大小写和数字
+account.passwordMinLength,密码至少8位，且包含英文大小写和数字,
+account.passwordMismatch,两次密码不一致,两次密码不一致
+account.passwordSetFailed,设置密码失败,
+account.passwordSetSuccess,密码设置成功,密码设置成功
+account.permanentlyDelete,永久删除,
+account.phoneChangeFailed,换绑失败,
+account.phoneChangeSuccess,手机号换绑成功,
+account.pleaseEnterEmail,请输入邮箱,
+account.pleaseEnterEmailAddr,请输入邮箱地址,
+account.pleaseEnterServer,请输入服务器地址,
+account.pleaseEnterUsername,请输入用户名,
+account.pleaseFillComplete,请填写完整,
+account.resetDefault,恢复默认,恢复默认
+account.saveFailed,保存失败,
+account.saveSuccess,保存成功,
+account.selectFromCover,从封面库选择,从封面选择
+account.sendCodeFailed,发送验证码失败,发送验证码失败
+account.serverAddress,服务器地址,服务器地址
+account.serverExample,,例如：http://192.168.0.104:3001
+account.serverHint,输入服务器地址（不含 /api 后缀）,输入服务器地址（不含 /api 后缀）
+account.serverPlaceholder,例如：http://192.168.0.104:3001,
+account.serverReset,,已恢复默认服务器地址
+account.serverResetFailed,重置失败,重置失败
+account.serverResetSuccess,已恢复默认服务器地址,
+account.serverSetFailed,设置失败,设置失败
+account.serverUpdateSuccess,服务器地址已更新，请重新登录,
+account.serverUpdated,,服务器地址已更新，请重新登录
+account.serverWarning,⚠️ 仅在开发调试时修改，错误配置将导致无法连接服务器,高级设置，修改后可能无法连接
+account.serverWarningDetail,,⚠️ 仅在开发调试时修改，错误配置将导致无法连接服务器
+account.set,已设置,已设置
+account.setPassword,设置密码,设置密码
+account.setPasswordFailed,,设置密码失败
+account.setUsername,设置用户名,设置用户名
+account.takePhoto,,拍照
+account.tapToChangeAvatar,,点击更换头像
+account.title,账号设置,
+account.toConfirmDelete, 以确认删除：,
+account.username,用户名,用户名
+account.usernameAvailable,用户名可用,
+account.usernameChanged,,用户名修改成功
+account.usernamePlaceholder,2-20位字母、数字、下划线或中文,2-20位字母、数字、下划线或中文
+account.usernameTaken,用户名已被占用,
+account.verificationCode,,验证码
+account.verifyCode,验证码,
+account.yourCodeIs,"您的验证码是：{code}
+（当前无短信服务，验证码直接显示）","您的验证码是：{code}
+（当前无短信服务，验证码直接显示）"
+add.addFailed,,添加失败
+add.addNote,添加备注...,
+add.addToGroup,添加到分组 *,
+add.addedSuccess,,收藏已添加
+add.autoDetectedAs,已自动识别为：{platform},已识别：{platform}
+add.canStillSave,,（仍可保存）
+add.collapseMorePlatforms,收起更多平台,收起更多平台
+add.coverImage,封面图片,
+add.coverImagePlaceholder,封面图片URL（自动获取或手动填写）,封面URL（可选）
+add.createGroup,创建分组,创建分组
+add.createTag,创建标签,创建标签
+add.detected,,已检测到平台信息
+add.duplicateWarning,该链接已收藏过：{title},该链接已收藏过：{title}
+add.enterTitle,输入标题,输入标题
+add.fetchingPageInfo,正在获取页面信息...,
+add.groupNamePlaceholder,输入分组名称,输入分组名
+add.levelPlatforms,级平台,级平台
+add.linkOrShareText,链接或分享文本 *,内容链接 *
+add.noTitle,无标题,无标题
+add.noteField,备注（可选，最多100字）,备注（可选）
+add.parseFailed,解析失败,链接解析失败
+add.parseResultEmpty,,解析结果为空
+add.parsingLink,正在解析链接...,
+add.parsingShareText,正在解析分享文本...,
+add.pasteLinkPlaceholder,粘贴链接或APP分享文本（支持抖音、小红书、淘宝等）,粘贴链接或APP分享文本
+add.platformCount,,等{count}个平台
+add.platformField,平台,
+add.pleaseEnterLinkAndTitle,,请填写链接和标题
+add.pleaseEnterValidLink,请输入有效的链接或分享文本,
+add.pleaseSelectGroup,请选择一个分组,
+add.quickSelectPlatform,快速选择平台,快速选择平台
+add.resolvingShortLink,正在还原短链...,
+add.saveCollection,保存收藏,保存收藏
+add.saveFailed,保存失败,
+add.selectGroup,选择分组,选择分组
+add.selectTags,选择标签,选择标签
+add.selectedTags,已选,已选
+add.shortLinkResolved,（短链已还原）,
+add.supportShareText,支持直接粘贴抖音、小红书、淘宝等APP的分享文本,
+add.supportedPlatforms,,支持的平台
+add.tagNamePlaceholder,输入标签名称,输入标签名
+add.tags,标签,标签
+add.title,添加收藏,
+add.titleDuplicateWarning,已存在同名收藏：{title}（仍可继续保存）,已存在同名收藏：{title}
+add.titleField,标题 *,标题 *
+add.viewMorePlatforms,查看更多平台,查看更多平台
+app.name,链藏,链藏
+app.nameEn,LinkChest,LinkChest
+app.subtitle,跨平台收藏管理,收藏并分享你的宝藏
+app.subtitleEn,,Collect and share your treasures
+collection.add,,添加收藏
+collection.addFailed,,添加失败
+collection.addFirst,添加第一条收藏,点击右下角添加
+collection.addTag,加标签,加标签
+collection.addTagFailed,,添加失败
+collection.addTagTitle,添加标签,添加标签
+collection.addToTag,,添加收藏到 #{name}
+collection.addToTagBtn,,添加到标签
+collection.added,,收藏已添加
+collection.addedTag,,已添加标签 #{name}
+collection.addedTime,,添加时间
+collection.applyFilter,,应用筛选
+collection.batchAddTags,批量添加标签,批量添加标签
+collection.batchDeleteConfirm,,确定要删除选中的 {count} 个收藏吗？
+collection.batchManage,批量管理,批量管理
+collection.batchMoveToGroup,批量移动到分组,批量移动到分组
+collection.cancel,取消,取消
+collection.cannotOpenLink,,无法打开此链接，请尝试手动复制打开
+collection.clear,,清除
+collection.clearFilter,清除筛选,清除筛选
+collection.collapse,,收起
+collection.confirm,,确认
+collection.confirmDelete,,确认删除
+collection.contentLink,,内容链接 *
+collection.coverUrlOptional,,封面URL（可选）
+collection.default,默认,默认
+collection.delete,删除,删除
+collection.deleteConfirm,确定删除此收藏？,"确定要删除""{title}""吗？"
+collection.deleteWithNoRecover,,"确定要删除""{title}""吗？此操作不可恢复。"
+collection.deleted,已删除「{title}」,收藏已删除
+collection.deselectAll,全不选,全不选
+collection.detail.delete,删除,删除
+collection.detail.edit,编辑,编辑
+collection.detail.groups,分组,分组
+collection.detail.note,备注,备注
+collection.detail.openLink,打开链接,打开链接
+collection.detail.tags,标签,标签
+collection.duplicateWarning,,该链接已收藏过：{title}
+collection.ecommerce,,电商
+collection.enterTitle,,输入标题
+collection.error,,错误
+collection.filter,,筛选
+collection.filter.allGroups,全部分组,
+collection.filter.allTags,全部标签,
+collection.filter.clear,清除,
+collection.filter.group,分组,
+collection.filter.platform,平台,
+collection.filter.tag,标签,
+collection.filterGroupLabel,,分组: {name}
+collection.filterLabel,,筛选: {label}
+collection.filterTitle,筛选,筛选
+collection.goBack,,返回
+collection.gridView,网格视图,网格视图
+collection.group,,分组
+collection.identified,,已识别：{name}
+collection.listView,列表视图,
+collection.loadFailed,,加载失败，请返回重试
+collection.loadMore,加载全部收藏,加载更多...
+collection.loadMoreText,,加载更多...
+collection.morePlatforms,,等{count}个平台
+collection.moveFailed,,移动失败
+collection.moveToGroup,移到分组,移到分组
+collection.moveToGroupBtn,,移入分组
+collection.moveToGroupName,,移动收藏到「{name}」
+collection.moveToGroupTitle,移动到分组,移动到分组
+collection.movedToGroup,,已移动到「{name}」
+collection.myCollections,我的收藏,我的收藏
+collection.noCollections,暂无收藏,暂无收藏
+collection.noCollectionsHint,快去收集你的第一个内容吧！,点击右下角添加
+collection.noCollectionsInFilter,「{label}」中没有收藏内容,
+collection.noGroupFilter,当前未按分组筛选,
+collection.noItemsToAdd,,没有可添加的收藏
+collection.noItemsToAddHint,,没有可添加的收藏
+collection.noTitle,,无标题
+collection.notExist,,收藏不存在
+collection.originalLink,,原链接
+collection.parseFailed,,链接解析失败
+collection.parseResultEmpty,,解析结果为空
+collection.parsing,,解析中...
+collection.pasteLinkPlaceholder,,粘贴链接或APP分享文本
+collection.platformMultiSelect,,平台（多选）
+collection.pleaseFillLinkTitle,,请填写链接和标题
+collection.removeFromGroup,,移出分组
+collection.removeFromGroupConfirm,确定将 {count} 个收藏从当前分组移除？,"确定将选中的 {count} 个收藏从该分组移除吗？将移至""我的收藏""。"
+collection.removeFromTagConfirm,,确定将选中的 {count} 个收藏从该标签移除吗？
+collection.removeGroup,移出分组,
+collection.removeTag,移除标签,移除标签
+collection.reset,,重置
+collection.resetFilter,,重置
+collection.saveCollection,,保存收藏
+collection.searchPlaceholder,搜索标题、备注、标签...,搜索标题、备注、标签...
+collection.selectAll,全选,全选
+collection.selectAllItems,,全选
+collection.selectSourceGroup,,请选择来源分组
+collection.selectSourceGroupHint,,请选择来源分组
+collection.selectTagsToAdd,选择要添加的标签：,选择要添加的标签
+collection.selectTargetGroup,选择目标分组：,选择目标分组
+collection.selected,已选 {count},已选 {count}
+collection.selectedCount,,已选 {count}
+collection.selectedItems,已选 {count} 项,
+collection.selectedItemsCount,,已选 {count} 项
+collection.selectedItemsTarget,已选 {count} 个收藏 → 选择{target},已选 {count} 个收藏 → 选择{target}
+collection.showCount,已显示 {shown} / {total} 条收藏,
+collection.sourceGroup,,选择来源分组：
+collection.supportedPlatforms,,支持的平台
+collection.table.actions,操作,操作
+collection.table.groups,分组,分组
+collection.table.platform,平台,平台
+collection.table.tags,标签,标签
+collection.table.title,标题,标题
+collection.tableView,,表格视图
+collection.tag,,标签
+collection.titleDuplicateWarning,,已存在同名收藏：{title}（仍可保存）
+collection.titleStar,,标题 *
+collection.undoFailed,撤销失败，请手动重新添加,
+collection.viewAll,,查看全部 ({count})
+common.cancel,取消,取消
+common.checkNetwork,,请检查网络设置
+common.close,关闭,关闭
+common.collapse,,收起
+common.collapseAll,全部折叠,全部折叠
+common.confirm,确认,确认
+common.createSuccess,创建成功,创建成功
+common.delete,删除,删除
+common.deleteSuccess,删除成功,删除成功
+common.edit,编辑,编辑
+common.error,错误,错误
+common.errorOccurred,,应用出错了
+common.expandAll,全部展开,全部展开
+common.hint,提示,提示
+common.listRenamed,分组名「{originalName}」已存在，已自动重命名为「{name}」,
+common.loadFailed,加载失败：{error},
+common.loadMore,,加载更多...
+common.loading,加载中...,加载中...
+common.networkError,,网络连接失败
+common.noAccess,,无权访问
+common.noData,暂无数据,
+common.operationFailed,操作失败,操作失败
+common.quotaExceeded,配额超限，请稍后重试或升级套餐。,
+common.rateLimited,请求过于频繁，请稍后再试,请求过于频繁，请稍后再试
+common.requestTimeout,,请求超时
+common.retry,重试,重试
+common.save,保存,保存
+common.search,,搜索
+common.serverBusy,,服务器繁忙
+common.success,成功,成功
+common.tagRenamed,标签名「{originalName}」已存在，已自动重命名为「{name}」,
+common.tryLater,,请稍后再试
+common.undo,撤销,撤销
+common.unknownError,,发生了未知错误
+common.updateSuccess,更新成功,更新成功
+common.viewAll,,查看全部
+cover.aiComingSoon,AI 封面生成功能即将上线，敬请期待,
+cover.comingSoon,即将上线,
+cover.currentPreview,封面预览,
+cover.dragOrClick,拖拽图片到此处，或点击选择文件,
+cover.gradientHint,使用 {platform} 品牌色渐变作为封面,
+cover.modeAi,AI封面,AI 封面
+cover.modeAiDesc,从系统封面选择,
+cover.modeGradient,平台渐变色,
+cover.modeGradientDesc,品牌色渐变,
+cover.modeLibrary,我的封面,我的封面
+cover.modeLibraryDesc,从封面库选择,
+cover.modeSystem,系统封面,
+cover.modeSystemDesc,从系统封面选择,
+cover.modeUpload,本地上传,
+cover.modeUploadDesc,拖拽或选择图片,
+cover.modeUrl,图片链接,
+cover.modeUrlDesc,粘贴图片地址,
+cover.noCoversInLibrary,暂无封面,
+cover.quotaExceeded,封面存储配额已用完，请清理后重试,
+cover.randomCover,随机封面,
+cover.refreshLibrary,刷新封面库,
+cover.tapToUpload,点击上传,
+cover.upgradeToUpload,升级高级版即可上传自定义封面,
+cover.uploadFailed,封面上传失败,
+cover.uploadHint,建议 2MB 以内，服务端将自动压缩至 80KB 以下,
+cover.uploadInvalid,请选择有效的图片文件,
+cover.uploadProOnly,高级用户专享,
+cover.uploadShareHint,自定义上传封面仅自己可见，分享时将自动使用品牌色封面。,自定义上传封面仅自己可见，分享时将自动使用品牌色封面。
+cover.uploadToSeeHere,上传封面后将显示在这里,
+cover.uploadTooLarge,图片大小超过 5MB 限制,
+cover.uploading,正在上传...,
+cover.uploadingPreview,上传中...,
+cover.urlPlaceholder,粘贴图片 URL,
+download.backToHome,返回首页,
+download.backToLogin,返回登录,
+download.copyright,© 2026 链藏 LinkChest. 保留所有权利。,
+download.downloadApk,立即下载 APK,
+download.feature1Desc,不限平台均可支持，一键保存好内容,
+download.feature1Title,全平台收藏,
+download.feature2Desc,自动识别平台来源，支持标签管理，OG元数据智能提取封面,
+download.feature2Title,智能整理,
+download.feature3Desc,将收藏分组生成分享页，支持密码保护和有效期设置，宝藏随时分享给好友,
+download.feature3Title,精美分享,
+download.feature4Desc,云端实时同步，多端数据保持一致,
+download.feature4Title,安全同步,
+download.installGuide,安装指南,
+download.iosWarning,检测到您使用的是 iOS 设备。链藏目前仅提供 Android 版本，iOS 版本正在开发中。您可以通过浏览器访问网页版使用全部功能。,
+download.req1,Android 8.0 (API 26) 或更高版本,
+download.req2,建议预留 50MB 以上存储空间,
+download.req3,需要网络连接用于数据同步,
+download.step1,点击上方「立即下载 APK」按钮下载安装包,
+download.step2,下载完成后，点击通知栏中的下载完成提示,
+download.step3,如系统提示「禁止安装未知来源应用」，请前往设置中允许此来源,
+download.step4,按提示完成安装，打开 APP 即可开始使用,
+download.subtitle,收藏并分享你的宝藏 — 跨平台内容聚合管理工具,
+download.systemRequirements,系统要求,
+download.title,下载 链藏 APP,
+edit.add,添加,
+edit.addNote,添加备注...,添加备注...
+edit.aiComingSoon,,智能封面功能即将上线
+edit.autoDetected,自动识别,
+edit.coverAiTab,,AI封面
+edit.coverGradientTab,,渐变色
+edit.coverImage,封面图片,
+edit.coverImageLink,,封面图片链接
+edit.coverImagePlaceholder,封面图片URL（自动获取或手动填写）,
+edit.coverImageUrl,,输入封面图片URL
+edit.coverLibraryTab,,我的
+edit.coverSizeLimit,,图片大小不能超过 5MB
+edit.coverUploadHint,,建议 2MB 以内，服务端将压缩至 80KB 以下
+edit.coverUploadTab,,上传
+edit.coverUrlTab,,链接
+edit.delete,删除,
+edit.deleteConfirm,确定要删除这个收藏吗？,
+edit.enterTitle,输入标题,请输入标题
+edit.enterVideoTitle,,输入视频标题
+edit.group,分组,
+edit.groupExists,"分组""{name}""已存在，是否继续创建？（将自动重命名）",
+edit.groupField,,所属分组 *
+edit.groupNameExists,"分组名""{originalName}""已存在，已自动重命名为""{newName}""",
+edit.groupRequired,分组 *,所属分组 *
+edit.linkAddress,链接地址,
+edit.newGroup,新建分组,
+edit.newTag,新建标签,
+edit.noCoversInLibrary,,暂无封面
+edit.note,备注,备注（最多100字）
+edit.originalLink,,原链接
+edit.parseFailed,解析失败,
+edit.pasteLinkOrShareText,粘贴链接或APP分享文本,
+edit.platform,,平台
+edit.platformField,平台,
+edit.pleaseSelectGroup,请选择一个分组,请选择一个分组
+edit.preview,,预览
+edit.randomCover,,随机
+edit.reParse,重新解析,
+edit.refreshCover,,刷新封面
+edit.refreshCoverFailed,,刷新封面失败
+edit.refreshCoverSuccess,,封面已刷新
+edit.refreshingCover,,正在刷新...
+edit.save,保存,
+edit.saveChanges,,保存修改
+edit.saveFailed,保存失败,
+edit.saveSuccess,保存成功,收藏已更新
+edit.saving,保存中...,
+edit.supportShareText,支持粘贴抖音、小红书、淘宝等APP的分享文本,
+edit.syncCover,同步封面,同步封面
+edit.syncCoverFailed,同步封面失败,同步封面失败
+edit.syncCoverSame,当前封面与源相同,封面与源相同，无需同步
+edit.syncCoverSuccess,封面已同步,封面已同步
+edit.syncingCover,正在同步...,正在同步...
+edit.systemCoverTab,,系统
+edit.tagExists,"标签""{name}""已存在，是否继续创建？（将自动重命名）",
+edit.tags,标签,标签
+edit.tapToSelectGradient,,点击选择此渐变色
+edit.tapToUpload,,点击上传
+edit.title,编辑收藏,编辑收藏
+edit.titleField,标题,标题 *
+edit.unrecognizedPlatform,未识别平台，请确认链接来源,
+edit.updateFailed,,更新失败
+edit.uploadFailed,,上传失败
+edit.uploadToSeeHere,,上传封面后将显示在这里
+error.accountGoogleNoPassword,该账户通过 Google 登录，请使用 Google 登录后设置密码,该账户通过 Google 登录，请使用 Google 登录后设置密码
+error.accountNotFound,该账号未注册，请先注册,该账号未注册，请先注册
+error.accountNotSetPassword,该账号未设置密码,该账号未设置密码
+error.appError,应用发生异常,
+error.backHome,返回首页,
+error.emailAlreadyRegistered,该邮箱已被注册,该邮箱已被注册
+error.emailSendFailed,,验证码邮件发送失败，请稍后重试
+error.googleEmailCannotChange,Google 登录用户的邮箱不可修改,Google 登录用户的邮箱不可修改
+error.invalidEmailFormat,请输入有效的邮箱地址,请输入有效的邮箱地址
+error.invalidGoogleToken,,Google 令牌无效
+error.invalidPasswordFormat,密码至少8位，且包含英文大小写和数字,密码至少8位，且包含英文大小写和数字
+error.pageDesc,抱歉，应用遇到了意外错误。请尝试刷新页面或返回首页。,
+error.pageTitle,页面出错了,
+error.passwordIncorrect,密码错误,密码错误
+error.passwordMismatch,两次密码不一致,两次密码不一致
+error.quotaExceeded,,资源配额已超出限制，请升级账户或删除部分数据
+error.refresh,刷新页面,
+error.retry,重试,
+error.server,服务器错误，请稍后重试,服务器错误，请稍后重试
+error.tokenExpired,登录已过期，请重新登录,登录已过期，请重新登录
+error.tokenInvalid,登录已过期，请重新登录,登录已过期，请重新登录
+error.unauthorized,未授权，请重新登录,未授权，请重新登录
+error.unknown,发生了未知错误,发生了未知错误
+error.userNotFound,用户不存在,用户不存在
+error.usernameAlreadyExists,用户名已被使用,用户名已被使用
+error.usernameContainsBannedWords,用户名包含违禁词,用户名包含违禁词
+error.usernameInvalidFormat,用户名格式不正确,用户名2-20位字母、数字、下划线或中文
+error.verificationAttemptsExceeded,验证码错误次数过多，请重新获取,验证码错误次数过多，请重新获取
+error.verificationExpired,验证码已过期，请重新获取,验证码已过期，请重新获取
+error.verificationInvalid,验证码错误,验证码错误
+error.verificationSendTooFrequent,发送太频繁，请60秒后重试,发送太频繁，请60秒后重试
+errors.SHARE_COLLECTION_IDS_REQUIRED,请至少选择一个收藏,
+errors.SHARE_CREATE_FAILED,创建分享失败,
+errors.SHARE_DELETE_FAILED,删除分享失败,
+errors.SHARE_DELETE_SUCCESS,分享已删除,
+errors.SHARE_FETCH_FAILED,获取分享列表失败,
+errors.SHARE_LIST_IDS_REQUIRED,请至少选择一个分组,
+errors.SHARE_NOT_FOUND,分享不存在,
+errors.SHARE_NO_COLLECTIONS,没有可分享的收藏,
+errors.SHARE_TAG_IDS_REQUIRED,请至少选择一个标签,
+errors.SHARE_TOGGLE_FAILED,更新分享状态失败,
+group.cannotMoveToDescendant,不能将分组拖到自己的子分组下,
+group.collectionCount,{count} 个收藏,{count} 个收藏
+group.continueCreate,,继续创建
+group.createFailed,创建分组失败,创建失败
+group.createFailedShort,,创建失败
+group.defaultGroupNoDelete,默认分组不可删除,默认分组不可删除
+group.defaultName,我的收藏,我的收藏
+group.deleteConfirm,"删除分组""{name}""？其中的收藏将转移到默认分组。","删除分组""{name}""？其中的收藏将转移到默认分组。"
+group.deleteConfirmWithChildren,"删除分组""{name}""？其中的收藏将转移到默认分组，子分组将提升到父级。","删除分组""{name}""？其中的收藏将转移到默认分组，子分组将提升到父级。"
+group.deleteFailed,删除分组失败,删除分组失败
+group.deleteSuccessWithChildren,删除成功，{count} 个子分组已提升到父级。,删除成功，{count} 个子分组已提升到父级。
+group.description,描述（可选）,描述（可选）
+group.directCount,,{count} 个直接
+group.editGroup,编辑分组,编辑分组
+group.fetchFailed,获取分组失败,获取分组失败
+group.groupName,分组名称,分组名称
+group.groupNotFound,分组不存在,分组不存在
+group.includeSubGroups,包含子分组,
+group.loading,,加载中...
+group.management,分组管理,分组管理
+group.nameExists,"分组""{name}""已存在，是否继续创建？（将自动重命名）","分组""{name}""已存在，是否继续创建？（将自动重命名）"
+group.nameExistsAuto,"分组名""{originalName}""已存在，已自动重命名为""{newName}""","分组名""{originalName}""已存在，已自动重命名为""{newName}"""
+group.nameExistsShort,分组名已存在,分组名已存在
+group.nameLength,分组名1-30字符,分组名1-30字符
+group.nameRequired,请输入分组名称,请输入分组名称
+group.newGroup,新建分组,新建分组
+group.newSubGroup,新建子分组,新建子分组
+group.noCollectionsInGroup,,暂无收藏
+group.noGroups,暂无分组,暂无分组
+group.noGroupsHint,创建分组来更好地整理你的收藏内容,点击右下角创建分组
+group.onlyCurrentGroup,只看当前分组,
+group.save,保存,保存
+group.subGroupOf,隶属于,隶属于
+group.updateFailed,更新分组失败,更新失败
+group.viewInCollections,在收藏页查看,在收藏页查看
+login.accountPlaceholder,邮箱,邮箱
+login.badge,91 个平台 · 私人藏馆 · 一键收藏,
+login.codeHint,,验证码将直接显示在弹窗中（当前无短信服务）
+login.codeSent,验证码已发送,验证码已发送
+login.confirmNewPassword,,确认新密码
+login.confirmPassword,确认密码,确认密码
+login.confirmPasswordPlaceholder,再次输入密码,
+login.createAccount,创建账号,
+login.email,邮箱,
+login.emailLogin,,邮箱登录
+login.emailRegister,邮箱注册,邮箱注册
+login.enterAccountAndPassword,请输入账号和密码,请输入邮箱和密码
+login.enterCode,请输入验证码,请输入验证码
+login.enterEmail,请输入邮箱,请输入邮箱
+login.enterEmailAndPassword,,请输入邮箱和密码
+login.enterPassword,请输入密码,请输入密码
+login.feature1Desc,粘贴即保存,
+login.feature1Label,一键收录,
+login.feature2Desc,全网内容聚合,
+login.feature2Label,91+平台,
+login.feature3Desc,一键分享好内容,
+login.feature3Label,链接分享,
+login.fillAllFields,请填写所有字段,请填写所有字段
+login.forgotPassword,忘记密码？,忘记密码？
+login.forgotPasswordHint,功能开发中，请通过邮箱客服找回密码,请输入验证码设置新密码
+login.getCode,获取验证码,获取验证码
+login.goLogin,去登录,
+login.goRegister,去注册,
+login.googleLoginFailed,Google 登录失败，请重试,Google 登录失败，请重试
+login.googleSetPasswordPrompt,检测到您通过 Google 登录，建议设置独立密码，以便日后使用邮箱+密码直接登录,检测到您通过 Google 登录，建议设置独立密码，以便日后使用邮箱+密码直接登录
+login.googleSetPasswordWarning,为了账户安全，建议不要与您的 Google 账户密码一致,为了账户安全，建议不要与您的 Google 账户密码一致
+login.hasAccount,已有账号？,已有账号？去登录
+login.headline,解锁你的宝库,
+login.invalidAccountFormat,请输入有效的邮箱地址,请输入有效的邮箱地址
+login.invalidEmailFormat,请输入有效的邮箱地址,请输入有效的邮箱地址
+login.langZh,中文,
+login.loggingIn,登录中...,
+login.login,登录,登录
+login.loginFailed,登录失败,登录失败
+login.loginRegister,,登录 / 注册
+login.newPassword,,新密码
+login.noAccount,没有账号？,没有账号？去注册
+login.otherLoginMethods,其他登录方式,其他登录方式
+login.password,密码,密码
+login.passwordHint,至少8位，包含英文大小写和数字,
+login.passwordMinLength,密码至少8位，且包含英文大小写和数字,密码至少8位，且包含英文大小写和数字
+login.passwordMismatch,两次密码不一致,两次密码不一致
+login.passwordPlaceholder,输入密码,
+login.privacyLink,《隐私政策》,《隐私政策》
+login.register,注册,注册
+login.registerFailed,注册失败,
+login.registerSuccess,注册成功,
+login.registerTitle,注册,
+login.registering,注册中...,
+login.resetPassword,,重置密码
+login.sendCodeFailed,发送验证码失败,发送验证码失败
+login.subHeadline,把来自抖音、小红书、B站、淘宝等平台的内容，整理成属于你自己的私人收藏馆。,
+login.termsAnd,和,和
+login.termsLink,《服务条款》,《服务条款》
+login.termsNotice,登录即表示同意《服务条款》和《隐私政策》,登录即表示同意《服务条款》和《隐私政策》
+login.termsPrefix,登录即表示同意,登录即表示同意
+login.termsSuffix,,
+login.title,登录,
+login.username,用户名,
+login.usernamePlaceholder,输入用户名,
+login.welcomeBack,欢迎回来,
+login.yourCodeIs,您的验证码是：{code},"您的验证码是：{code}
+（当前无短信服务，验证码直接显示）"
+nav.addCollection,添加收藏,添加收藏
+nav.collectionDetail,,收藏详情
+nav.collections,收藏,收藏
+nav.groups,分组,分组
+nav.lists,,分组
+nav.profile,,我的
+nav.settings,设置,设置
+nav.shareDetail,,分享详情
+nav.shares,分享,分享
+nav.tags,,标签
+platform.distribution,,平台分布
+platform.ecommerce,,电商
+platform.loading,,加载中...
+platform.noData,,暂无收藏数据
+platform.supported,,支持的平台
+privacy.title,隐私政策,隐私政策
+profile.accountSettings,,账号设置
+profile.checkUpdate,,检查更新
+profile.collections,,收藏
+profile.dark,,深色
+profile.darkMode,,深色模式
+profile.dataManagement,,数据管理
+profile.downloadApk,,下载更新
+profile.feedback,,意见反馈
+profile.feedbackDev,,如无法打开邮件客户端，请手动发送反馈至 support@linkchest.net
+profile.followSystem,,跟随系统
+profile.groups,,分组
+profile.language,,语言
+profile.languageEn,,English
+profile.languageFr,,Français
+profile.languageJa,,日本語
+profile.languageKo,,한국어
+profile.languageZh,,中文
+profile.light,,浅色
+profile.lightMode,,浅色模式
+profile.logout,,退出登录
+profile.logoutBtn,,退出
+profile.logoutConfirm,,确定要退出登录吗？
+profile.openDownloadFailed,,无法打开下载页面，请访问 https://linkchest.net/download?lang=zh
+profile.openStoreFailed,,无法打开应用商店，请手动前往 Google Play 搜索 LinkChest
+profile.other,,其他
+profile.platformStats,,平台统计
+profile.shareViews,,分享浏览
+profile.shares,,分享
+profile.tagManagement,,标签管理
+profile.tags,,标签
+profile.updateDesc,,请选择更新方式
+profile.user,,用户
+settings.appDownload,APP 下载,
+settings.appDownloadDesc,下载 链藏 APP，收藏并分享你的宝藏,
+settings.collapse,,收起
+settings.collectionCount,{count} 个收藏,
+settings.collections,收藏,
+settings.createTag,新建标签,
+settings.csvEmptyOrInvalid,CSV 文件为空或格式不正确,
+settings.csvMissingUrl,"CSV 文件缺少""链接""列",
+settings.deleteTagConfirm,确定删除此标签？,
+settings.description,管理你的收藏数据,
+settings.downloadApk,下载 APK,
+settings.ecommerce,电商,电商
+settings.editTag,编辑标签,
+settings.exportCsv,导出 CSV,
+settings.exportFailed,导出失败,
+settings.exportHtml,导出 HTML 书签,
+settings.groups,分组,
+settings.htmlEmptyOrInvalid,HTML 文件为空或格式不正确,
+settings.importComplete,导入完成：成功 {success}，跳过 {skipped}，失败 {error},
+settings.importConfirm,将导入 {count} 条收藏，重复URL将跳过。继续？,
+settings.importCsv,导入 CSV,
+settings.importExport,导入 / 导出,
+settings.importFailed,导入失败,
+settings.importFormatCsv,CSV 格式,
+settings.importFormatHtml,HTML 书签格式,
+settings.importHtml,导入 HTML 书签,
+settings.importNetworkError,导入失败：无法连接到服务器，请检查网络连接或服务器状态。,
+settings.importProgress,导入进度,
+settings.importSelectFile,选择文件,
+settings.language,语言,
+settings.languageEn,English,
+settings.languageFr,Français,
+settings.languageJa,日本語,
+settings.languageKo,한국어,
+settings.languageZh,中文,
+settings.legal,法律信息,
+settings.newTag,新建,
+settings.noStatsHint,暂无平台统计数据,
+settings.noTags,暂无标签,
+settings.noTagsHint,用标签给你的收藏打上关键词吧,
+settings.noValidData,未找到有效的收藏数据,
+settings.platformStats,平台统计,
+settings.shareViews,分享浏览,
+settings.shares,分享,
+settings.stats,数据统计,
+settings.tagExists,"标签""{name}""已存在，是否继续创建？（将自动重命名）",
+settings.tagManagement,标签管理,
+settings.tagName,标签名称,
+settings.tagNameExistsAuto,"标签名""{originalName}""已存在，已自动重命名为""{newName}""",
+settings.tags,标签,
+settings.title,收藏设置,
+settings.viewAll,,查看全部
+share.author,,作者
+share.clipboardDetected,,检测到分享链接
+share.clipboardDetectedDesc,,剪贴板中包含 LinkChest 分享，是否立即查看？
+share.collectionDeleted,,合集已删除
+share.copy,复制,复制
+share.copyFailed,复制失败,复制失败
+share.copyLink,复制链接,
+share.copyPassword,,复制
+share.create.1day,1天,
+share.create.1hour,1小时,1小时
+share.create.1week,1周,
+share.create.24hours,,24小时
+share.create.7days,,7天
+share.create.accessPassword,访问密码（可选）,访问密码（可选）
+share.create.accessPasswordLabel,,访问密码
+share.create.advancedSettings,,高级设置
+share.create.allCollections,全部收藏,全部收藏
+share.create.cancel,取消,
+share.create.collection,收藏,收藏
+share.create.collectionShare,{count}个收藏分享,{count}个收藏分享
+share.create.copyFailed,复制失败，请手动复制链接,
+share.create.copyLink,复制链接,复制链接
+share.create.copyToShare,复制下方链接分享给朋友,
+share.create.createFailed,创建分享失败,创建失败
+share.create.done,完成,完成
+share.create.forever,永久,永久
+share.create.generateLink,生成分享链接,生成分享链接
+share.create.group,分组,分组
+share.create.groupShare,分组分享,分组分享
+share.create.groupsShare,{count}个分组分享,{count}个分组分享
+share.create.linkCopied,链接已复制,
+share.create.linkGenerated,分享链接已生成,分享链接已生成
+share.create.multiSelectCollections,多选收藏,多选收藏
+share.create.multiSelectGroups,多选分组,多选分组
+share.create.multiSelectTags,多选标签,多选标签
+share.create.noCollections,暂无收藏,暂无收藏
+share.create.noGroups,暂无分组,
+share.create.noMatchCollections,未找到匹配的收藏,未找到匹配的收藏
+share.create.noPasswordPublic,不设密码则公开访问,
+share.create.noTags,暂无标签,
+share.create.passwordMinLength,密码至少4个字符,
+share.create.passwordPlaceholder,,4-20位密码
+share.create.passwordSet,,已设置访问密码
+share.create.pleaseSelectCollection,请至少选择一个收藏,请至少选择一个收藏
+share.create.pleaseSelectGroup,请至少选择一个分组,请至少选择一个分组
+share.create.pleaseSelectTag,请至少选择一个标签,请至少选择一个标签
+share.create.remark,备注（可选）,备注说明（可选）
+share.create.remarkPlaceholder,给分享添加说明...,给分享添加备注...
+share.create.searchCollections,搜索收藏...,搜索收藏...
+share.create.selectCollections,选择收藏,选择收藏
+share.create.selectGroups,选择分组,选择分组
+share.create.selectRange,选择分享范围,选择分享范围
+share.create.selectTags,选择标签,选择标签
+share.create.selectedCount,已选 {count} 个,已选 {count} 个
+share.create.settings,分享设置,
+share.create.shareAll,分享所有,分享所有
+share.create.shareName,,分享名称
+share.create.shareNamePlaceholder,,给分享取个名字（可选）
+share.create.shareTitle,分享标题（留空自动生成）,
+share.create.shareTitlePlaceholder,如：我的抖音收藏精选,
+share.create.tag,标签,标签
+share.create.tagShare,标签分享,标签分享
+share.create.tagsShare,{count}个标签分享,{count}个标签分享
+share.create.title,创建分享,创建分享
+share.create.validity,有效期,有效期
+share.create.validityPeriod,,有效期：{period}
+share.create.viewPasswordAnytime,,您可随时在分享管理中查看密码
+share.createFirst,创建第一个分享,
+share.createFirstHint,创建第一个分享链接，将内容分享给其他人,点击右下角创建分享
+share.createShare,创建分享,创建分享
+share.deleteCollection,删除合集,
+share.deleteCollectionConfirm,"删除合集""{name}""及其中的所有收藏？此操作不可撤销。","删除合集""{name}""及其中的所有收藏？此操作不可撤销。"
+share.deleteShareConfirm,确定删除此分享？,"删除后分享链接将失效，确定要删除""{title}""吗？"
+share.disable,停用,停用
+share.disabled,已停用,已停用
+share.enable,启用,启用
+share.encrypted,已加密,
+share.enterShareCode,粘贴 LinkChest 分享链接，如：http://xxx/s/xxx,粘贴 LinkChest 分享链接，即可查看内容
+share.fromShare,来自分享,来自分享
+share.fromShareLabel,,来自分享
+share.iCreated,我创建的,我创建的
+share.iReceived,获取的分享,获取的分享
+share.importShare,,一键导入
+share.itemCount,{count} 个收藏,{count} 个收藏
+share.linkCopied,链接已复制到剪贴板,分享链接已生成
+share.management.deleteFailed,,删除失败
+share.management.passwordAccess,,密码：{password}
+share.management.shareLinkDeleted,,分享链接已删除
+share.newWindow,新窗口打开,
+share.noReceived,暂无获取的分享,暂无获取的分享
+share.noShares,暂无分享链接,暂无分享链接
+share.openBtn,,打开
+share.openShare,打开分享,打开分享
+share.openShareHint,"点击右上角""打开分享""按钮，输入分享码或链接来获取",
+share.openShareLink,打开,打开分享链接
+share.password,访问密码：,密码：{password}
+share.passwordCopied,密码已复制到剪贴板,密码已复制
+share.pasteShareLink,粘贴分享链接,粘贴分享链接
+share.pleaseInputLink,,请输入链接
+share.receivedFromOthers,,从其他用户的分享中保存
+share.selfShareHint,,这是您自己创建的分享，无需在此打开
+share.shareLinkDeleted,,分享链接已删除
+share.shareLinks,分享链接,分享链接
+share.shareNotExist,,该分享不存在或已失效
+share.typeAll,全部收藏,全部收藏
+share.typeCollection,收藏,收藏
+share.typeCollections,收藏,多收藏
+share.typeCustom,自定义收藏,自定义
+share.typeGroup,分组,分组
+share.typeGroups,分组,分组
+share.typeMultiGroup,多分组,多分组
+share.typeMultiTag,多标签,多标签
+share.typeTag,标签,标签
+share.typeTags,标签,标签
+share.unrecognizedShare,无法识别的分享链接,未检测到 LinkChest 分享链接，请输入正确的分享链接
+share.unrecognizedTitle,,无法识别
+share.uvCount,,{count} 次浏览
+share.view.checkFailed,检查失败，请稍后重试,检查失败，请稍后重试
+share.view.clickToOpen,点击打开,点击打开
+share.view.confirmSave,确认保存,确认保存
+share.view.contentLocked,内容已加密,内容已加密
+share.view.enterPassword,输入访问密码,输入访问密码
+share.view.generatedBy,由 LinkChest 生成 · 跨平台收藏聚合工具,由 LinkChest 生成
+share.view.importAlreadyImported,已导入过此分享,已导入过此分享
+share.view.importAlreadyImportedDesc,该分享已保存到「{name}」，不可重复导入。,该分享已保存到「{name}」，不可重复导入。
+share.view.importBtn,确认导入,确认导入
+share.view.importCollectionLimitReached,收藏数量已达上限,收藏数量已达上限
+share.view.importCollectionLimitReachedDesc,继续导入将超过收藏上限（{current}/{limit}）。,继续导入将超过收藏上限（{current}/{limit}）。
+share.view.importConfirmDesc,分享共 {total} 个收藏，其中 {duplicate} 个已存在，{new} 个新增。重复收藏将关联到新分组。,分享共 {total} 个收藏，其中 {duplicate} 个已存在，{new} 个新增。重复收藏将关联到新分组。
+share.view.importConfirmTitle,确认导入收藏,确认导入收藏
+share.view.importListLimitReached,分组数量已达上限,分组数量已达上限
+share.view.importListLimitReachedDesc,当前已有 {current}/{limit} 个分组，请先整理后再导入。,当前已有 {current}/{limit} 个分组，请先整理后再导入。
+share.view.loadFailed,,加载失败
+share.view.loading,加载中...,加载中...
+share.view.loginToSave,登录后保存到我的收藏,
+share.view.needPassword,需要密码才能保存,需要密码才能保存
+share.view.needPasswordDesc,该分享已设置密码，请输入密码后保存,该分享已设置密码，请输入密码后保存
+share.view.noContent,暂无收藏内容,暂无收藏内容
+share.view.noContentHint,,此分享暂无收藏内容
+share.view.noCover,无封面,
+share.view.openFailed,,无法打开此链接，请尝试手动复制打开
+share.view.passwordRequired,此分享需要密码,此分享需要密码
+share.view.passwordRequiredDesc,请输入密码查看完整内容,请输入密码查看完整内容
+share.view.passwordSet,已设置访问密码,已设置密码
+share.view.passwordUsed,已保存过，无需密码,
+share.view.passwordWrong,密码错误，请重新输入,密码错误，请重新输入
+share.view.pleaseEnterPassword,请输入密码,请输入密码
+share.view.saveFailed,保存失败,保存失败
+share.view.saveResultEmpty,没有可保存的收藏,
+share.view.saveResultSaved,保存成功，新增 {count} 个收藏,
+share.view.saveResultSkipped,所有收藏已存在（{count} 个），已关联到分组,
+share.view.saveToMyCollections,一键保存到我的收藏,一键保存到我的收藏
+share.view.savedToGroup,已保存到分组：{name},
+share.view.savedToMyCollections,已保存到我的收藏,
+share.view.savedToNewGroup,,已保存到新分组
+share.view.shareExpired,该分享链接已过期,分享已过期
+share.view.shareExpiredDesc,,该分享链接已超过有效期
+share.view.shareNotFound,分享链接不存在或已失效,分享链接不存在或已失效
+share.view.shareThisLink,,分享此链接
+share.view.undo,,撤销
+share.view.validUntil,有效期至 {date},有效期至 {date}
+share.view.verifyPassword,验证密码,验证密码
+share.viewCount,{count} 次浏览,{count} 次浏览
+share.viewShare,查看分享,查看
+sidebar.account,用户,
+sidebar.accountCenter,个人中心,
+sidebar.addCollection,添加收藏,
+sidebar.appName,链藏,
+sidebar.collapse,收起侧边栏,
+sidebar.collections,收藏,
+sidebar.darkMode,深色模式,
+sidebar.expand,展开侧边栏,
+sidebar.groups,分组,
+sidebar.lightMode,浅色模式,
+sidebar.logout,退出登录,
+sidebar.settings,设置,
+sidebar.shares,分享,
+sidebar.subtitle,跨平台收藏管理,
+sidebar.tags,标签,
+sidebar.tier,等级,
+sidebar.tierManagement,等级管理,
+tag.add,添加,
+tag.allTags,全部标签,
+tag.collectionCount,{count} 个收藏,{count} 个收藏
+tag.confirmDeleteTag,,"删除标签""{name}""？该标签将从所有收藏中移除。"
+tag.continueCreate,,继续创建
+tag.coverPreview,封面预览,
+tag.createFailed,,创建失败
+tag.defaultCover,默认封面,
+tag.deleteConfirm,确定删除此标签？,
+tag.editTag,编辑标签,编辑标签
+tag.enterTagName,,请输入标签名称
+tag.management,标签管理,
+tag.nameDuplicate,,名称重复
+tag.nameExists,,"标签""{name}""已存在，是否继续创建？（将自动重命名）"
+tag.newTag,新建标签,新建标签
+tag.noTags,暂无标签,暂无标签
+tag.noTagsHint,,用标签给你的收藏打上关键词
+tag.save,保存,
+tag.tagExists,"标签""{name}""已存在，是否继续创建？（将自动重命名）",
+tag.tagName,标签名称,标签名称
+tag.tagNameExistsAuto,"标签名""{originalName}""已存在，已自动重命名为""{newName}""","标签名""{originalName}""已存在，已自动重命名为""{name}"""
+tag.updateFailed,,更新失败
+tag.viewInCollections,在收藏页查看,
+terms.title,服务条款,服务条款
+terms.titleAndPrivacy,,服务条款&隐私政策
+tier.backToTier,返回等级详情,
+tier.benefits,权益说明,权益说明
+tier.collections,收藏,收藏数量
+tier.comparePlans,套餐对比,套餐对比
+tier.coverImages,封面,封面数量
+tier.current,当前使用,当前
+tier.currentPlan,当前套餐,当前套餐
+tier.dailyImportLimit,每日导入上限,每日导入上限
+tier.expires,,到期
+tier.free,免费,免费
+tier.limits,配额详情,配额详情
+tier.lists,分组,分组数量
+tier.maxItemsPerShare,单次分享上限,单次分享上限
+tier.monthly,月付,月付
+tier.perMonth,{price}/月,/月
+tier.perYear,{price}/年,/年
+tier.pricing,价格,
+tier.recommended,推荐,
+tier.shareItems,分享项,分享项数量
+tier.shares,分享,分享数量
+tier.tags,标签,标签数量
+tier.tierManagement,,等级管理
+tier.title,我的等级,等级与套餐
+tier.upgrade,升级套餐,升级套餐
+tier.upgradeHint,升级以解锁更多功能,选择适合你的套餐
+tier.yearly,年付,年付

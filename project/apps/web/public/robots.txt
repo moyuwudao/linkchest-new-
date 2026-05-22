@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /s/
+Disallow: /api/
+Disallow: /login
+Disallow: /account
+Disallow: /settings
+
+Sitemap: https://linkchest.net/sitemap.xml

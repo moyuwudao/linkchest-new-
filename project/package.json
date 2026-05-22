@@ -1,0 +1,56 @@
+{
+  "name": "linkchest",
+  "version": "1.1.0",
+  "description": "跨平台收藏聚合工具",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "postinstall": "node scripts/fix-tanstack-rn-entry.js",
+    "dev:api": "cd apps/api && npm run dev",
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:mobile": "cd apps/mobile && npm start",
+    "dev:chrome-extension": "cd apps/chrome-extension && npm run dev",
+    "build": "turbo run build",
+    "build:chrome-extension": "cd apps/chrome-extension && npm run build",
+    "lint": "turbo run lint",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/sharp": "^0.31.1",
+    "bing-translate-api": "^4.2.0",
+    "expo": "~51.0.0",
+    "png-to-ico": "^3.0.1",
+    "turbo": "^1.12.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "14.0.3",
+    "color": "^5.0.3",
+    "cos-nodejs-sdk-v5": "^2.15.4",
+    "hoist-non-react-statics": "^3.3.2",
+    "metro-babel-transformer": "^0.80.12",
+    "metro-cache": "^0.80.12",
+    "metro-cache-key": "^0.80.12",
+    "metro-file-map": "^0.80.12",
+    "metro-minify-terser": "^0.80.12",
+    "metro-resolver": "^0.80.12",
+    "metro-symbolicate": "^0.80.12",
+    "metro-transform-plugins": "^0.80.12",
+    "metro-transform-worker": "^0.80.12",
+    "node-cron": "^4.2.1",
+    "react-freeze": "^1.0.4",
+    "sharp": "^0.34.5",
+    "superstruct": "^2.0.2",
+    "warn-once": "^0.1.1"
+  }
+}

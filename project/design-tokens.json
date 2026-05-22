@@ -1,0 +1,223 @@
+{
+  "meta": {
+    "name": "LinkChest Design Tokens — 古铜宝箱 A",
+    "version": "2.0",
+    "description": "古铜宝箱升级版：优化暗色模式对比度、平滑色阶过渡、补齐 system 主题"
+  },
+  "colors": {
+    "chest": {
+      "50": "#EEF1F6",
+      "100": "#D5DBE7",
+      "200": "#ABB7CF",
+      "300": "#8193B7",
+      "350": "#6C82AB",
+      "400": "#576F9F",
+      "450": "#3A4D75",
+      "500": "#1B2A4A",
+      "600": "#16233D",
+      "700": "#111C31",
+      "750": "#0F1829",
+      "800": "#0D1525",
+      "850": "#0A111E",
+      "900": "#080E18",
+      "950": "#04070C"
+    },
+    "amber": {
+      "50": "#FBF5EE",
+      "100": "#F2E4D4",
+      "200": "#E5C9A9",
+      "300": "#D8AE7E",
+      "350": "#D0A175",
+      "400": "#C8956C",
+      "450": "#BC885D",
+      "500": "#B07A4F",
+      "600": "#8D6240",
+      "700": "#6A4930",
+      "800": "#463120",
+      "900": "#231810",
+      "950": "#120C08"
+    },
+    "paper": {
+      "DEFAULT": "#F7F5F0",
+      "dark": "#0F1419"
+    },
+    "ink": {
+      "DEFAULT": "#0F1419",
+      "light": "#F7F5F0",
+      "50": "#1E2430",
+      "100": "#1A1F2A",
+      "200": "#151A23"
+    },
+    "charcoal": {
+      "DEFAULT": "#2D3142",
+      "light": "#E8E4DC"
+    },
+    "parchment": {
+      "DEFAULT": "#E8E4DC",
+      "dark": "#2D3142",
+      "50": "#F0EDE6",
+      "100": "#D8D4CC"
+    },
+    "taupe": {
+      "DEFAULT": "#8A8175",
+      "light": "#B0A99E"
+    },
+    "sage": {
+      "DEFAULT": "#5B8A72",
+      "light": "#8FB5A0"
+    },
+    "rust": {
+      "DEFAULT": "#B85C5C",
+      "light": "#D48A8A"
+    },
+    "surface": {
+      "DEFAULT": "rgba(255, 255, 255, 0.8)",
+      "dark": "rgba(26, 31, 42, 0.8)",
+      "elevated": "rgba(255, 255, 255, 0.95)",
+      "elevated-dark": "rgba(30, 36, 46, 0.95)"
+    },
+    "glow": {
+      "DEFAULT": "rgba(200, 149, 108, 0.15)",
+      "dark": "rgba(200, 149, 108, 0.25)",
+      "strong": "rgba(200, 149, 108, 0.35)"
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": ["DM Sans", "LXGW WenKai", "PingFang SC", "Microsoft YaHei", "system-ui", "sans-serif"],
+      "display": ["Bodoni Moda", "LXGW WenKai", "PingFang SC", "Microsoft YaHei", "serif"]
+    }
+  },
+  "borderRadius": {
+    "sm": "4px",
+    "DEFAULT": "6px",
+    "md": "8px",
+    "lg": "10px",
+    "xl": "12px",
+    "2xl": "16px",
+    "3xl": "24px"
+  },
+  "boxShadow": {
+    "card": "0 1px 3px rgba(27, 42, 74, 0.04), 0 1px 2px rgba(27, 42, 74, 0.02)",
+    "card-hover": "0 8px 24px rgba(27, 42, 74, 0.08), 0 2px 8px rgba(27, 42, 74, 0.04)",
+    "elevated": "0 4px 12px rgba(27, 42, 74, 0.06), 0 2px 4px rgba(27, 42, 74, 0.03)",
+    "floating": "0 12px 40px rgba(15, 20, 25, 0.12), 0 4px 12px rgba(15, 20, 25, 0.06)",
+    "glow": "0 0 24px rgba(200, 149, 108, 0.2)",
+    "modal": "0 8px 32px rgba(15, 20, 25, 0.12)"
+  },
+  "animation": {
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "durations": {
+      "fast": "0.15s",
+      "normal": "0.2s",
+      "slow": "0.3s",
+      "entrance": "0.4s"
+    }
+  },
+  "theme": {
+    "light": {
+      "background": "#F7F5F0",
+      "card": "#FFFFFF",
+      "cardBorder": "rgba(27,42,74,0.08)",
+      "text": "#2D3142",
+      "textSecondary": "#5A5A5A",
+      "textTertiary": "#8A8175",
+      "textMuted": "#B0A99E",
+      "border": "#E8E4DC",
+      "borderLight": "#F0EDE6",
+      "primary": "#1B2A4A",
+      "primaryBg": "rgba(27,42,74,0.08)",
+      "primaryText": "#1B2A4A",
+      "input": "#FFFFFF",
+      "inputBg": "#FFFFFF",
+      "headerBg": "#1B2A4A",
+      "headerText": "#F7F5F0",
+      "secondaryBg": "#EDEAE3",
+      "danger": "#B85C5C",
+      "dangerBg": "rgba(184,92,92,0.1)",
+      "warning": "#C8956C",
+      "success": "#5B8A72",
+      "tagBg": "rgba(27,42,74,0.06)",
+      "tagText": "#1B2A4A",
+      "listTagBg": "rgba(200,149,108,0.12)",
+      "listTagText": "#8B6914",
+      "selectedBg": "rgba(27,42,74,0.06)",
+      "overlay": "rgba(15,20,25,0.5)",
+      "fabBg": "#1B2A4A",
+      "modalBg": "#FFFFFF",
+      "tabBg": "#1B2A4A",
+      "tabActiveBg": "#C8956C",
+      "tabText": "#8A8175",
+      "tabActiveText": "#F7F5F0",
+      "filterChipBg": "#EDEAE3",
+      "filterChipActiveBg": "#1B2A4A",
+      "filterChipText": "#5A5A5A",
+      "filterChipActiveText": "#F7F5F0",
+      "statDivider": "#E8E4DC",
+      "sectionBg": "#FFFFFF",
+      "menuBg": "#FFFFFF",
+      "menuBorder": "#E8E4DC",
+      "inactiveBg": "rgba(184,92,92,0.1)",
+      "inactiveText": "#B85C5C",
+      "batchBg": "rgba(27,42,74,0.06)",
+      "batchText": "#1B2A4A",
+      "surface": "rgba(255, 255, 255, 0.8)",
+      "surfaceElevated": "rgba(255, 255, 255, 0.95)",
+      "glow": "rgba(200, 149, 108, 0.15)",
+      "glowStrong": "rgba(200, 149, 108, 0.35)",
+      "shimmer": "rgba(27, 42, 74, 0.05)"
+    },
+    "dark": {
+      "background": "#0F1419",
+      "card": "#1A1F2A",
+      "cardBorder": "rgba(232,228,220,0.08)",
+      "text": "#E8E4DC",
+      "textSecondary": "#B0A99E",
+      "textTertiary": "#8A8175",
+      "textMuted": "#6B6560",
+      "border": "#2A303A",
+      "borderLight": "#1E242E",
+      "primary": "#C8956C",
+      "primaryBg": "rgba(200,149,108,0.15)",
+      "primaryText": "#C8956C",
+      "input": "#1A1F2A",
+      "inputBg": "#1A1F2A",
+      "headerBg": "#0F1419",
+      "headerText": "#E8E4DC",
+      "secondaryBg": "#1E242E",
+      "danger": "#E07070",
+      "dangerBg": "rgba(224,112,112,0.15)",
+      "warning": "#D4A574",
+      "success": "#6BA88A",
+      "tagBg": "rgba(200,149,108,0.12)",
+      "tagText": "#D4A574",
+      "listTagBg": "rgba(139,125,179,0.15)",
+      "listTagText": "#A599C8",
+      "selectedBg": "rgba(200,149,108,0.1)",
+      "overlay": "rgba(0,0,0,0.7)",
+      "fabBg": "#C8956C",
+      "modalBg": "#1A1F2A",
+      "tabBg": "#0F1419",
+      "tabActiveBg": "#C8956C",
+      "tabText": "#8A8175",
+      "tabActiveText": "#F7F5F0",
+      "filterChipBg": "#1E242E",
+      "filterChipActiveBg": "#C8956C",
+      "filterChipText": "#B0A99E",
+      "filterChipActiveText": "#0F1419",
+      "statDivider": "#2A303A",
+      "sectionBg": "#1A1F2A",
+      "menuBg": "#1A1F2A",
+      "menuBorder": "#2A303A",
+      "inactiveBg": "rgba(224,112,112,0.15)",
+      "inactiveText": "#E07070",
+      "batchBg": "rgba(200,149,108,0.1)",
+      "batchText": "#C8956C",
+      "surface": "rgba(26, 31, 42, 0.8)",
+      "surfaceElevated": "rgba(30, 36, 46, 0.95)",
+      "glow": "rgba(200, 149, 108, 0.25)",
+      "glowStrong": "rgba(200, 149, 108, 0.45)",
+      "shimmer": "rgba(232, 228, 220, 0.05)"
+    }
+  }
+}

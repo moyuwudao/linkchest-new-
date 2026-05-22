@@ -1,0 +1,161 @@
+链藏 LinkChest WEB端 V1.0
+================================================================================
+第 1 页
+================================================================================
+
+// ============================================================================
+// 文件：layout.tsx
+// 路径：src/app/layout.tsx
+// 说明：WEB端根布局组件，定义全局页面结构、SEO配置、主题和字体加载
+// ============================================================================
+
+import type { Metadata, Viewport } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { Providers } from '@/components/Providers'
+import { GoogleAnalytics } from '@/components/GoogleAnalytics'
+import { FontLoader } from '@/components/FontLoader'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: '链藏 LinkChest - 全网好内容，一键收入链藏',
+  description: '链藏是一款跨平台收藏聚合管理工具，支持抖音、小红书、淘宝、微博、B站、知乎等平台内容的一站式收藏、分类、管理和分享。',
+  keywords: '收藏管理,内容聚合,跨平台收藏,LinkChest,链藏,书签管理',
+  authors: [{ name: 'LinkChest Team' }],
+  openGraph: {
+    title: '链藏 LinkChest - 全网好内容，一键收入链藏',
+    description: '一站式跨平台收藏管理工具',
+    type: 'website',
+    locale: 'zh_CN',
+  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#1B2A4A',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <GoogleAnalytics />
+        <FontLoader />
+      </head>
+      <body className={inter.className}>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
+  )
+}
+
+
+================================================================================
+第 2 页
+================================================================================
+
+// ============================================================================
+// 文件：types.ts
+// 路径：src/lib/types.ts
+// 说明：核心类型定义文件，定义数据模型和接口
+// ============================================================================
+
+export interface AuthUser {
+  id: string
+  username: string
+  nickname?: string
+  email: string
+  avatar?: string
+  role: 'user' | 'admin'
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Collection {
+  id: string
+  url: string
+  title: string
+  coverImage?: string
+  platform: string
+  note?: string
+  rating?: number | null
+  pageType?: string
+  createdAt: string
+  updatedAt: string
+  userId: string
+  tags: CollectionTag[]
+  lists: CollectionList[]
+}
+
+export interface CollectionTag {
+  id: string
+  name: string
+  collectionCount?: number
+}
+
+export interface CollectionList {
+  id: string
+  name: string
+  parentId: string | null
+  collectionCount: number
+  totalCollectionCount?: number
+  isDefault?: boolean
+  depth?: number
+  path?: { id: string; name: string; isDefault?: boolean }[]
+  pathName?: string | null
+  hasChildren?: boolean
+  children?: CollectionList[]
+}
+
+export interface Share {
+  id: string
+  collectionId: string
+  shareCode: string
+  viewCount: number
+  isActive: boolean
+  createdAt: string
+  collection?: Collection
+}
+
+export interface StatsOverview {
+  collectionCount: number
+  listCount: number
+  tagCount: number
+  shareCount: number
+  shareViewCount: number
+}
+
+
+================================================================================
+第 3 页
+================================================================================
+
+// ============================================================================
+// 文件：client.ts
+// 路径：src/lib/api/client.ts
+// 说明：API客户端封装，基于axios，包含请求拦截、响应处理和错误码国际化
+// ============================================================================
+
+import axios from 'axios'
+import { getToken } from '@/lib/auth'
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.linkchest.net'
+
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+export const publicApi = axios.create({
+  baseURL:

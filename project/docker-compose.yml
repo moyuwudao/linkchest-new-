@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: linkchest-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-linkchest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-linkchest}
+    command: postgres -c listen_addresses='*'
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U linkchest"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - linkchest-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: linkchest-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - linkchest-net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  linkchest-net:
+    driver: bridge

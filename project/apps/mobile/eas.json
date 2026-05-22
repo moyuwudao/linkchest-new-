@@ -1,0 +1,42 @@
+{
+  "cli": {
+    "version": ">= 18.11.0",
+    "appVersionSource": "remote",
+    "promptToConfigurePushNotifications": false
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    },
+    "production-global": {
+      "autoIncrement": true,
+      "env": {
+        "MARKET": "global"
+      },
+      "ios": {
+        "podsDirectory": "ios/Pods"
+      }
+    },
+    "production-china": {
+      "autoIncrement": true,
+      "env": {
+        "MARKET": "china"
+      },
+      "ios": {
+        "podsDirectory": "ios/Pods"
+      }
+    }
+  },
+  "submit": {
+    "production": {},
+    "production-global": {},
+    "production-china": {}
+  }
+}

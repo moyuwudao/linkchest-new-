@@ -1,0 +1,414 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'DM Sans', 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Font display swap to avoid FOIT */
+  @font-face {
+    font-family: 'DM Sans';
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Bodoni Moda';
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'LXGW WenKai';
+    font-display: swap;
+  }
+
+  body {
+    @apply bg-paper text-charcoal;
+    position: relative;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 128px 128px;
+  }
+
+  .dark body::before {
+    opacity: 0.02;
+  }
+
+  /* Gradient mesh background */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 80% 50% at 10% 10%, rgba(238, 241, 246, 0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 90%, rgba(251, 245, 238, 0.4) 0%, transparent 50%);
+  }
+
+  .dark body::after {
+    background:
+      radial-gradient(ellipse 80% 50% at 90% 10%, rgba(30, 36, 48, 0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 10% 90%, rgba(26, 31, 42, 0.5) 0%, transparent 50%);
+  }
+
+  .dark body {
+    @apply bg-ink text-parchment;
+  }
+
+  /* 文本选中颜色 */
+  ::selection {
+    @apply bg-amber-200/40 text-chest-800;
+    transition: background-color 0.15s ease;
+  }
+
+  .dark ::selection {
+    @apply bg-amber-500/30 text-amber-100;
+  }
+
+  /* 自定义滚动条 */
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-taupe/30 rounded-full transition-colors duration-200;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-amber-400/50;
+  }
+}
+
+@layer components {
+  /* ========== 按钮系统 ========== */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md font-semibold text-sm transition-all duration-200 cursor-pointer select-none;
+    will-change: transform, box-shadow;
+  }
+
+  .btn-primary {
+    @apply btn bg-chest-500 text-parchment shadow-elevated hover:bg-chest-600 hover:shadow-card-hover hover:scale-[1.02] active:scale-[0.98] active:shadow-card;
+  }
+
+  .dark .btn-primary {
+    @apply bg-amber-400 text-ink shadow-elevated hover:bg-amber-500 hover:shadow-glow active:shadow-card;
+  }
+
+  .btn-accent {
+    @apply btn bg-amber-400 text-ink shadow-elevated hover:bg-amber-500 hover:shadow-card-hover hover:scale-[1.02] active:scale-[0.98] active:shadow-card;
+  }
+
+  .dark .btn-accent {
+    @apply bg-amber-500 text-ink hover:bg-amber-400 hover:shadow-glow;
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-charcoal border border-taupe/20 shadow-card hover:bg-paper hover:shadow-elevated hover:scale-[1.02] active:scale-[0.98] active:shadow-card dark:bg-ink-light dark:text-parchment dark:border-taupe/20 dark:hover:bg-chest-800;
+  }
+
+  .btn-ghost {
+    @apply btn text-taupe hover:bg-chest-50 hover:text-chest-600 hover:scale-[1.02] active:scale-[0.98] dark:hover:bg-chest-800 dark:hover:text-parchment;
+  }
+
+  .btn-danger {
+    @apply btn bg-rust/10 text-rust hover:bg-rust/15 border border-rust/15 hover:shadow-elevated hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .dark .btn-danger {
+    @apply bg-rust-light/15 text-rust-light hover:bg-rust-light/20 border-rust-light/20;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs rounded-sm;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3.5 text-base rounded-md;
+  }
+
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed pointer-events-none scale-100;
+  }
+
+  /* ========== 卡片系统 — 微悬浮质感 ========== */
+  .card {
+    @apply bg-white rounded-lg border border-chest-500/[0.06] shadow-card transition-all duration-200;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .card {
+    @apply bg-ink-100 border-parchment/[0.08];
+  }
+
+  .card-hover {
+    @apply card hover:border-amber-400/20 hover:-translate-y-1 hover:shadow-card-hover;
+  }
+
+  .card-elevated {
+    @apply card shadow-elevated hover:-translate-y-1 hover:shadow-floating hover:border-amber-400/20;
+  }
+
+  /* ========== 表单系统 ========== */
+  .input {
+    @apply w-full px-4 py-2.5 border border-taupe/20 rounded-md text-charcoal bg-white placeholder-taupe/60 focus:outline-none focus:ring-2 focus:ring-chest-500/20 focus:border-chest-500/40 focus:shadow-glow transition-all duration-200;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .input {
+    @apply bg-ink-100 text-parchment border-parchment/10 placeholder-taupe-light/40 focus:ring-amber-400/20 focus:border-amber-400/40 focus:shadow-glow;
+  }
+
+  .input-error {
+    @apply border-rust/50 focus:ring-rust/20 focus:border-rust/40;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-charcoal/80 mb-1.5;
+  }
+
+  .dark .label {
+    @apply text-parchment/80;
+  }
+
+  /* ========== 标签 / Badge ========== */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-sm;
+  }
+
+  .badge-primary {
+    @apply badge bg-chest-500/8 text-chest-600;
+  }
+
+  .dark .badge-primary {
+    @apply bg-amber-400/15 text-amber-300;
+  }
+
+  .badge-accent {
+    @apply badge bg-amber-400/15 text-amber-700;
+  }
+
+  .dark .badge-accent {
+    @apply bg-amber-400/20 text-amber-300;
+  }
+
+  .badge-gray {
+    @apply badge bg-chest-500/[0.04] text-taupe;
+  }
+
+  .dark .badge-gray {
+    @apply bg-parchment/5 text-taupe-light;
+  }
+
+  .badge-success {
+    @apply badge bg-sage/10 text-sage;
+  }
+
+  .dark .badge-success {
+    @apply bg-sage-light/15 text-sage-light;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-400/10 text-amber-600;
+  }
+
+  .dark .badge-warning {
+    @apply bg-amber-400/15 text-amber-300;
+  }
+
+  .badge-danger {
+    @apply badge bg-rust/10 text-rust;
+  }
+
+  .dark .badge-danger {
+    @apply bg-rust-light/15 text-rust-light;
+  }
+
+  /* ========== 模态框 ========== */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 animate-fade-in;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    @apply bg-white rounded-2xl border border-chest-500/[0.06] w-full max-w-lg max-h-[85vh] overflow-hidden shadow-floating;
+    animation: scaleIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  .dark .modal-content {
+    @apply bg-ink-100 border-parchment/[0.08];
+  }
+
+  /* ========== Toast ========== */
+  .toast {
+    @apply fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-chest-500 text-parchment px-5 py-3 rounded-xl shadow-floating;
+    animation: toastSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .dark .toast {
+    @apply bg-amber-400 text-ink;
+  }
+
+  @keyframes toastSlideUp {
+    0% { opacity: 0; transform: translateX(-50%) translateY(24px) scale(0.95); }
+    70% { transform: translateX(-50%) translateY(-4px) scale(1.01); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  }
+
+  /* ========== 工具类 ========== */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glass {
+    @apply bg-white/90;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .dark .glass {
+    @apply bg-ink-50/90;
+  }
+
+  .grain-overlay {
+    position: relative;
+  }
+
+  .grain-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 128px 128px;
+    border-radius: inherit;
+  }
+
+  .gradient-mesh {
+    background:
+      radial-gradient(ellipse 80% 50% at 10% 10%, rgba(238, 241, 246, 0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 90%, rgba(251, 245, 238, 0.4) 0%, transparent 50%);
+  }
+
+  .dark .gradient-mesh {
+    background:
+      radial-gradient(ellipse 80% 50% at 90% 10%, rgba(30, 36, 48, 0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 10% 90%, rgba(26, 31, 42, 0.5) 0%, transparent 50%);
+  }
+
+  .stagger-children > * {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: staggerFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+  .stagger-children > *:nth-child(7) { animation-delay: 300ms; }
+  .stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+  .stagger-children > *:nth-child(9) { animation-delay: 400ms; }
+  .stagger-children > *:nth-child(10) { animation-delay: 450ms; }
+  .stagger-children > *:nth-child(11) { animation-delay: 500ms; }
+  .stagger-children > *:nth-child(12) { animation-delay: 550ms; }
+
+  @keyframes staggerFadeIn {
+    0% { opacity: 0; transform: translateY(16px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .nav-item-hover {
+    @apply transition-all duration-200;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-item-hover:hover {
+    @apply text-amber-500 translate-x-0.5;
+  }
+
+  /* ========== 骨架屏动画 ========== */
+  .skeleton {
+    @apply relative overflow-hidden bg-chest-500/[0.04] rounded-lg;
+  }
+
+  .dark .skeleton {
+    @apply bg-parchment/[0.08];
+  }
+
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(27, 42, 74, 0.05) 40%,
+      rgba(27, 42, 74, 0.08) 50%,
+      rgba(27, 42, 74, 0.05) 60%,
+      transparent 100%
+    );
+    animation: skeleton-shimmer 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  .dark .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(232, 228, 220, 0.05) 40%,
+      rgba(232, 228, 220, 0.08) 50%,
+      rgba(232, 228, 220, 0.05) 60%,
+      transparent 100%
+    );
+  }
+
+  @keyframes skeleton-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* ========== 收藏卡片悬浮效果 ========== */
+  .card-elevate {
+    @apply transition-all duration-200;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card-elevate:hover {
+    @apply border-amber-400/20 -translate-y-1 shadow-card-hover;
+  }
+  .card-elevate:active {
+    @apply scale-[0.99] shadow-card translate-y-0;
+  }
+}
+
+/* ========== 全局暗色模式配置 ========== */
+.dark {
+  color-scheme: dark;
+}
+
+/* ========== 专注模式 ========== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
