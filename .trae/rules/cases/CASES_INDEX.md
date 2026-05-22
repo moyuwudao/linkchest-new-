@@ -148,10 +148,10 @@ status: resolved                # 状态：resolved/mitigating/ongoing
 | 文件 | 案例数量 | 最后更新 |
 |------|----------|----------|
 | [apk-build-errors.md](apk-build-errors.md) | 8 个 | 2026-05-15 |
-| [service-build-errors.md](service-build-errors.md) | 9 个 | 2026-05-15 |
+| [service-build-errors.md](service-build-errors.md) | 11 个 | 2026-05-22 |
 | [env-dependency-errors.md](env-dependency-errors.md) | 8 个 | 2026-05-15 |
 
 ---
 
-*最后更新：2026-05-15*
-*版本：v1.0*
+*最后更新：2026-05-22*
+*版本：v1.1*

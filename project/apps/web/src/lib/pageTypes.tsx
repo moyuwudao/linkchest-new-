@@ -2,14 +2,14 @@ import { Home, FileText, List, Search, Compass, BookOpen, Download, CircleDot } 
 import React from 'react'
 
 export const PAGE_TYPES = [
-  { value: 'home', icon: Home, labelKey: 'collection.pageType.home' },
-  { value: 'detail', icon: FileText, labelKey: 'collection.pageType.detail' },
-  { value: 'list', icon: List, labelKey: 'collection.pageType.list' },
-  { value: 'search', icon: Search, labelKey: 'collection.pageType.search' },
-  { value: 'navigation', icon: Compass, labelKey: 'collection.pageType.navigation' },
-  { value: 'document', icon: BookOpen, labelKey: 'collection.pageType.document' },
-  { value: 'download', icon: Download, labelKey: 'collection.pageType.download' },
-  { value: 'other', icon: CircleDot, labelKey: 'collection.pageType.other' },
+  { value: 'home', icon: Home, labelKey: 'collection.pageTypeHome' },
+  { value: 'detail', icon: FileText, labelKey: 'collection.pageTypeDetail' },
+  { value: 'list', icon: List, labelKey: 'collection.pageTypeList' },
+  { value: 'search', icon: Search, labelKey: 'collection.pageTypeSearch' },
+  { value: 'navigation', icon: Compass, labelKey: 'collection.pageTypeNavigation' },
+  { value: 'document', icon: BookOpen, labelKey: 'collection.pageTypeDocument' },
+  { value: 'download', icon: Download, labelKey: 'collection.pageTypeDownload' },
+  { value: 'other', icon: CircleDot, labelKey: 'collection.pageTypeOther' },
 ] as const
 
 export const DEFAULT_PAGE_TYPE = 'detail'

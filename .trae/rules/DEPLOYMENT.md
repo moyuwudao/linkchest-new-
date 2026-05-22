@@ -484,7 +484,7 @@ NEXT_PUBLIC_MARKET=china
 **首次设置**:
 ```bash
 # 1. 克隆仓库
-git clone git@github.com:moyuwudao/linkchest.git d:\trae_projects\linkchest
+git clone git@github.com:moyuwudao/linkchest_new_.git d:\trae_projects\linkchest
 
 # 2. 进入项目目录
 cd d:\trae_projects\linkchest

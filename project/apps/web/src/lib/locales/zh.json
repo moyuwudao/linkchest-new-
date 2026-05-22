@@ -107,6 +107,13 @@
     "pageTypeDownload": "下载页",
     "pageTypeOther": "其他"
   },
+  "manage": {
+    "title": "管理",
+    "lists": "分组管理",
+    "tags": "标签管理",
+    "shares": "分享管理",
+    "trash": "回收站管理"
+  },
   "group": {
     "management": "分组管理",
     "newGroup": "新建分组",
@@ -377,6 +384,7 @@
     "subtitle": "跨平台收藏管理",
     "addCollection": "添加收藏",
     "collections": "收藏",
+    "manage": "管理",
     "groups": "分组",
     "tags": "标签",
     "shares": "分享",
@@ -538,6 +546,7 @@
     "noStatsHint": "暂无平台统计数据",
     "ecommerce": "电商",
     "importExport": "导入 / 导出",
+    "exportJson": "导出 JSON",
     "exportCsv": "导出 CSV",
     "exportHtml": "导出 HTML 书签",
     "exportFailed": "导出失败",

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { BarChart3, ExternalLink, Upload } from 'lucide-react';
+import { BarChart3, ExternalLink, Upload, Code } from 'lucide-react';
 import { api, type ApiError } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
@@ -21,7 +21,24 @@ export default function ImportExportSection() {
       </div>
       <div className="px-5 py-4 space-y-3">
         {/* Export buttons */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            onClick={async () => {
+              try {
+                const res = await api.get('/collections/export?format=json');
+                const exportData = res.data?.data || res.data;
+                const content = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'linkchest-export.json'; a.click();
+                URL.revokeObjectURL(url);
+              } catch { showAlert(t('settings.exportFailed'), 'error'); }
+            }}
+            className="py-2.5 bg-chest-500 text-white rounded-lg hover:bg-chest-600 flex items-center justify-center gap-2 text-sm"
+          >
+            <Code size={16} /> {t('settings.exportJson')}
+          </button>
           <button
             onClick={async () => {
               try {
@@ -32,7 +49,7 @@ export default function ImportExportSection() {
                 URL.revokeObjectURL(url);
               } catch { showAlert(t('settings.exportFailed'), 'error'); }
             }}
-            className="py-2.5 bg-chest-500 text-white rounded-lg hover:bg-chest-600 flex items-center justify-center gap-2 text-sm"
+            className="py-2.5 bg-parchment/20 dark:bg-chest-700/40 text-charcoal/80 dark:text-parchment/80 border-2 border-solid border-chest-200 dark:border-chest-600/40 rounded-lg hover:bg-chest-500/5 dark:hover:bg-chest-700/60 flex items-center justify-center gap-2 text-sm transition-colors"
           >
             <BarChart3 size={16} /> {t('settings.exportCsv')}
           </button>

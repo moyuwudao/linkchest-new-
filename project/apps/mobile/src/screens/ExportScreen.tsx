@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Share as RNShare,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
@@ -60,10 +61,20 @@ export default function ExportScreen() {
 
       const fileInfo = await FileSystem.getInfoAsync(filePath);
       if (fileInfo.exists) {
-        await RNShare.share({
-          message: format === 'csv' ? content : content.substring(0, 60000),
+        const shareOptions: any = {
           title: t('export.shareTitle'),
-        });
+          message: `${t('export.shareTitle')} (${opt.ext.toUpperCase()})`,
+        };
+
+        // Android 使用 file:// URI 通过 url 字段分享文件
+        // iOS 也使用 url 字段分享文件，系统会自动识别 MIME 类型
+        if (Platform.OS === 'android') {
+          shareOptions.url = 'file://' + filePath;
+        } else {
+          shareOptions.url = filePath;
+        }
+
+        await RNShare.share(shareOptions);
 
         Alert.alert(
           t('common.success'),

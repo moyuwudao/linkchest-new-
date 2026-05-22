@@ -65,8 +65,20 @@ export default function AutoBackupScreen() {
       );
     } catch (error: any) {
       const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || t('common.operationFailed');
-      if (msg.includes('云端存储暂不可用')) {
-        Alert.alert(t('common.hint'), '云端存储暂不可用，请稍后重试');
+      const status = error?.response?.status;
+      if (status === 503 || msg.includes('云端存储暂不可用')) {
+        Alert.alert(
+          t('common.hint'),
+          '云端备份功能暂不可用，服务器存储服务未配置。请使用「数据导出」功能手动导出数据到本地。',
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: '去导出', onPress: () => {
+              const { useNavigation } = require('@react-navigation/native');
+              const nav = useNavigation();
+              nav.navigate('Export' as never);
+            }},
+          ]
+        );
       } else {
         Alert.alert(t('common.error'), msg);
       }

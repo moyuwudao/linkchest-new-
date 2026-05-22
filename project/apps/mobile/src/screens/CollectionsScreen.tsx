@@ -96,6 +96,7 @@ interface Collection {
   id: string;
   title: string;
   coverImage: string | null;
+  coverStrategy?: string | null;
   platform: string;
   note: string | null;
   tags?: { id: string; name: string }[];
@@ -156,7 +157,12 @@ const CardItem = React.memo(function CardItem({ item, colors, editMode, selected
         )}
         {ef.has('cover') && (
           <TouchableOpacity onPress={onImagePress} onLongPress={onLongPress} onPressIn={onPressIn} onPressOut={onPressOut} activeOpacity={0.9}>
-            <LazyImage uri={item.coverImage} style={{ width: '100%', aspectRatio: 1 }} fallbackPlatform={item.platform} />
+            <LazyImage
+              uri={item.coverStrategy === 'brand' ? null : item.coverImage}
+              style={{ width: '100%', aspectRatio: 1 }}
+              fallbackPlatform={item.platform}
+              showGradientFallback={item.coverStrategy === 'brand'}
+            />
           </TouchableOpacity>
         )}
         <View style={{ padding: 10, gap: 4 }}>
@@ -230,7 +236,12 @@ const GridItem = React.memo(function GridItem({ item, colors, editMode, selected
         )}
         {ef.has('cover') && (
           <TouchableOpacity onPress={onImagePress} onLongPress={onLongPress} onPressIn={onPressIn} onPressOut={onPressOut} activeOpacity={0.9}>
-            <LazyImage uri={item.coverImage} style={{ width: 120, height: 100 }} fallbackPlatform={item.platform} />
+            <LazyImage
+              uri={item.coverStrategy === 'brand' ? null : item.coverImage}
+              style={{ width: 120, height: 100 }}
+              fallbackPlatform={item.platform}
+              showGradientFallback={item.coverStrategy === 'brand'}
+            />
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={onPress} onLongPress={onLongPress} onPressIn={onPressIn} onPressOut={onPressOut} activeOpacity={0.9} style={{ flex: 1, padding: 12, flexDirection: 'column', gap: 4 }}>
@@ -741,7 +752,12 @@ export default function CollectionsScreen() {
       activeOpacity={0.7}
     >
       <Ionicons name={modalSelectedIds.has(item.id) ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={modalSelectedIds.has(item.id) ? colors.primary : colors.textTertiary} />
-      <LazyImage uri={item.coverImage} style={{ width: 60, height: 40, borderRadius: 4 }} fallbackPlatform={item.platform} />
+      <LazyImage
+        uri={item.coverStrategy === 'brand' ? null : item.coverImage}
+        style={{ width: 60, height: 40, borderRadius: 4 }}
+        fallbackPlatform={item.platform}
+        showGradientFallback={item.coverStrategy === 'brand'}
+      />
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }} numberOfLines={2}>{item.title}</Text>
       </View>

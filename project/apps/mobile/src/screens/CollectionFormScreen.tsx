@@ -82,6 +82,7 @@ export default function CollectionFormScreen() {
   const [url, setUrl] = useState(isEdit ? '' : initialUrl);
   const [title, setTitle] = useState(isEdit ? '' : initialTitle);
   const [coverImage, setCoverImage] = useState('');
+  const [coverStrategy, setCoverStrategy] = useState<'url' | 'brand' | 'ai'>('brand');
   const [platform, setPlatform] = useState('other');
   const [note, setNote] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>(
@@ -147,6 +148,7 @@ export default function CollectionFormScreen() {
       setUrl(collection.url || '');
       setTitle(collection.title || '');
       setCoverImage(collection.coverImage || '');
+      setCoverStrategy(collection.coverStrategy || 'brand');
       setPlatform(collection.platform || 'other');
       setNote(collection.note || '');
       setSelectedTags(collection.tags?.map((tg: Tag) => tg.id) || []);
@@ -289,7 +291,10 @@ export default function CollectionFormScreen() {
 
       if (data.url) setUrl(data.url);
       if (data.title) setTitle(data.title);
-      if (data.coverImage) setCoverImage(data.coverImage);
+      if (data.coverImage) {
+        setCoverImage(data.coverImage);
+        setCoverStrategy(data.coverStrategy || 'url');
+      }
       if (data.platform) setPlatform(data.platform);
 
       if (data.url) {
@@ -431,6 +436,7 @@ export default function CollectionFormScreen() {
       tagIds: selectedTags,
       listIds: [selectedList],
       pageType: selectedPageType,
+      coverStrategy,
     };
 
     if (coverImage && coverImage.trim()) data.coverImage = coverImage.trim();
@@ -629,7 +635,20 @@ export default function CollectionFormScreen() {
       {/* 封面 */}
       <CoverEditor
         value={coverImage}
-        onChange={setCoverImage}
+        onChange={(val, mode) => {
+          setCoverImage(val);
+          // 将 CoverEditor 的 mode 映射为后端的 coverStrategy
+          // CoverEditor: url | gradient | library | ai
+          // 后端: url | brand | ai
+          if (mode === 'gradient') {
+            setCoverStrategy('brand');
+          } else if (mode === 'library') {
+            // library 映射为 url（因为都是具体图片URL）
+            setCoverStrategy('url');
+          } else {
+            setCoverStrategy(mode as 'url' | 'ai');
+          }
+        }}
         platform={platform}
         title={title}
         url={url}
@@ -808,7 +827,7 @@ export default function CollectionFormScreen() {
 
       {/* 页面类型 - 展开式选择 */}
       {renderExpandableSection(
-        t('collection.filter.pageType'),
+        t('collection.pageType'),
         pageTypeSectionExpanded,
         () => setPageTypeSectionExpanded(!pageTypeSectionExpanded),
         t(getPageTypeConfig(selectedPageType).labelKey),

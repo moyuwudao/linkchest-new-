@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
-import { useI18n } from '@/lib/i18n'
+import { useI18n, getListDisplayName } from '@/lib/i18n'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { getPlatformName, getPlatformColor, getPlatformIcon, isPlatformValid } from '@/lib/platforms'
@@ -497,7 +497,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
-            {list.name}
+            {getListDisplayName(list, t)}
           </button>
         </div>
         {list.hasChildren && expandedListIds.has(list.id) && list.children && (
@@ -619,41 +619,6 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
             placeholder={t('add.enterTitle')}
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </div>
-
-        {/* 平台选择 */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            {t('add.platformField')}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              key="other"
-              onClick={() => setPlatform('other')}
-              className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${
-                platform === 'other'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-            >
-              {getPlatformIcon('other')} {getPlatformName('other')}
-            </button>
-            {['douyin', 'xiaohongshu', 'taobao', 'weibo', 'bilibili', 'zhihu', 'twitter', 'instagram', 'youtube', 'tiktok', 'amazon', 'jd', 'pdd', 'wechat', 'zhihu', 'bilibili', 'weibo', 'xiaohongshu', 'douyin'].slice(0, 12).map((p) => (
-              p !== 'other' && (
-                <button
-                  key={p}
-                  onClick={() => setPlatform(p)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${
-                    platform === p
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {getPlatformIcon(p)} {getPlatformName(p)}
-                </button>
-              )
-            ))}
-          </div>
         </div>
 
         {/* 封面编辑器 */}

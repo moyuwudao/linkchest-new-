@@ -66,9 +66,10 @@ model Collection {
   userId      String
   url         String
   title       String
-  coverImage  String?
-  platform    String    // 平台来源：douyin, xiaohongshu, bilibili, youtube等
-  pageType    String?   @default("detail") // 页面类型: home, detail, list, search, navigation, document, download, other
+  coverImage    String?
+  coverStrategy String?   @default("url") // 封面策略: url, brand(平台色), ai
+  platform      String    // 平台来源：douyin, xiaohongshu, bilibili, youtube等
+  pageType      String?   @default("detail") // 页面类型: home, detail, list, search, navigation, document, download, other
   note        String?
   rating      Decimal?  @db.Decimal(2, 1) // 评分: 0.5-5.0, null 表示未评分
   deletedAt   DateTime? // 软删除标记：非null表示在回收站中，30天后自动清理

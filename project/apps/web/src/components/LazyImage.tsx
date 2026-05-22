@@ -14,6 +14,7 @@ interface LazyImageProps {
   aspectRatio?: string;
   onError?: () => void;
   eager?: boolean;
+  title?: string;
 }
 
 export default function LazyImage({
@@ -26,6 +27,7 @@ export default function LazyImage({
   aspectRatio,
   onError,
   eager = false,
+  title,
 }: LazyImageProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -143,11 +145,11 @@ export default function LazyImage({
   }, []);
 
   const handleError = useCallback(() => {
-    setDisplaySrc(generateDefaultCover(platform));
+    setDisplaySrc(generateDefaultCover(platform, title));
     onError?.();
-  }, [platform, onError]);
+  }, [platform, title, onError]);
 
-  const fallbackSvg = generateDefaultCover(platform);
+  const fallbackSvg = generateDefaultCover(platform, title);
 
   const style: React.CSSProperties = aspectRatio ? { aspectRatio } : {};
 

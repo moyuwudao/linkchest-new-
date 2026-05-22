@@ -440,6 +440,7 @@ router.post('/', authenticate, [
         url,
         title,
         coverImage,
+        coverStrategy: coverStrategy || 'url',
         platform,
         pageType,
         note,
@@ -1485,6 +1486,7 @@ router.put('/:id', authenticate, [
     if (url !== undefined) updateData.url = url
     if (platform !== undefined) updateData.platform = platform
     if (coverImage !== undefined) updateData.coverImage = coverImage
+    if (coverStrategy !== undefined) updateData.coverStrategy = coverStrategy
     if (note !== undefined) updateData.note = note
     if (pageType !== undefined) updateData.pageType = pageType
     if (rating !== undefined) {

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
-import { Search, X, LayoutGrid, LayoutTemplate, Filter, ChevronDown, Tag as TagIcon, Move, Check, CheckSquare, MinusCircle, ArrowLeft, XCircle, Archive, Inbox, Loader2, FolderOpen, Trash2, Edit2, ExternalLink, ArrowUpDown, Settings } from 'lucide-react';
+import { Search, X, LayoutGrid, LayoutTemplate, Filter, ChevronDown, Tag as TagIcon, Move, Check, CheckSquare, MinusCircle, ArrowLeft, XCircle, Archive, Inbox, Loader2, FolderOpen, Trash2, Edit2, ExternalLink, ArrowUpDown } from 'lucide-react';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 import { getToken } from '@/lib/auth';
@@ -513,16 +513,7 @@ export default function CollectionList() {
             </button>
           )}
 
-          {/* 视图设置 */}
-          {!editMode && (
-            <Link
-              href="/settings"
-              className="p-2 rounded-lg bg-parchment/20 dark:bg-charcoal/30 text-taupe dark:text-parchment/60 hover:bg-parchment/30 dark:hover:bg-charcoal/40 transition-all duration-150 cursor-pointer"
-              title="视图设置"
-            >
-              <Settings size={15} />
-            </Link>
-          )}
+
         </div>
 
         {/* Filter panel */}
@@ -779,6 +770,7 @@ export default function CollectionList() {
                         src={item.coverImage}
                         alt={item.title}
                         platform={item.platform}
+                        title={item.title}
                         collectionId={item.id}
                         containerClassName="w-full h-full"
                         className="transition-transform duration-300 group-hover:scale-105"
@@ -809,7 +801,7 @@ export default function CollectionList() {
                       <div className="flex items-center gap-1 mt-0.5">
                         <PageTypeIcon type={item.pageType} size={10} />
                         <span className="text-[10px] text-taupe/50 dark:text-parchment/40">
-                          {t(`pageType.${item.pageType}`)}
+                          {t(`collection.pageType${item.pageType.charAt(0).toUpperCase() + item.pageType.slice(1)}`)}
                         </span>
                       </div>
                     )}
@@ -952,6 +944,7 @@ export default function CollectionList() {
                         src={item.coverImage}
                         alt={item.title}
                         platform={item.platform}
+                        title={item.title}
                         collectionId={item.id}
                         containerClassName="w-full h-full"
                         className="group-hover:scale-105 transition-transform duration-500 ease-out"

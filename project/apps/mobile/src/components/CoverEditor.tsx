@@ -15,7 +15,7 @@ type CoverMode = 'url' | 'gradient' | 'library' | 'ai';
 
 interface CoverEditorProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, mode: CoverMode) => void;
   platform?: string;
   title?: string;
   url?: string;
@@ -27,6 +27,11 @@ function inferModeFromValue(val: string): CoverMode {
   if (!val) return 'gradient';
   if (val.startsWith('data:image/') || val.includes('cos.') || val.includes('myqcloud.com')) return 'library';
   return 'url';
+}
+
+/** 判断 value 是否为 gradient（空值表示使用平台色渐变） */
+function isGradientValue(val: string): boolean {
+  return !val || val.trim() === '';
 }
 
 /** 判断 value 是否为系统 AI 封面 */
@@ -94,7 +99,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
 
   // URL 封面是否可用
   const urlCoverAvailable = useMemo(() => {
-    return !!value && !value.startsWith('data:image/svg') && !isLibraryCoverValue(value) && !isSystemCoverValue(value, systemCovers);
+    return !!value && !value.startsWith('data:image/svg') && !isLibraryCoverValue(value) && !isSystemCoverValue(value, systemCovers) && !isGradientValue(value);
   }, [value, systemCovers]);
 
   useEffect(() => {
@@ -118,7 +123,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
 
   const handleUrlChange = (text: string) => {
     setUrlValue(text);
-    onChange(text);
+    onChange(text, 'url');
   };
 
   const handleUpload = useCallback(async () => {
@@ -157,7 +162,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
       if (uploadedUrl) {
         internalChangeRef.current = true;
         setUrlValue(uploadedUrl);
-        onChange(uploadedUrl);
+        onChange(uploadedUrl, 'library');
         setMode('library');
         await cacheCoverFromUri(fileUri, uploadedUrl);
       } else {
@@ -172,7 +177,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
 
   const handleGradientSelect = useCallback(() => {
     setUrlValue('');
-    onChange('');
+    onChange('', 'gradient');
   }, [onChange]);
 
   const handleRefreshOrSyncCover = useCallback(async () => {
@@ -184,7 +189,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
           const syncData = syncResponse.data?.data;
           if (syncData?.synced && syncData.coverImage) {
             setUrlValue(syncData.coverImage);
-            onChange(syncData.coverImage);
+            onChange(syncData.coverImage, 'url');
             setMode('url');
             Alert.alert(t('common.success'), t('edit.syncCoverSuccess'));
             return;
@@ -198,7 +203,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
         const data = response.data?.data;
         if (data?.coverImage) {
           setUrlValue(data.coverImage);
-          onChange(data.coverImage);
+          onChange(data.coverImage, 'url');
           setMode('url');
           Alert.alert(t('common.success'), t('edit.refreshCoverSuccess'));
         } else {
@@ -232,19 +237,19 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
       handleGradientSelect();
     } else if (newMode === 'url') {
       if (urlValue) {
-        onChange(urlValue);
+        onChange(urlValue, 'url');
       }
     } else if (newMode === 'ai') {
       if (randomAiCover) {
         internalChangeRef.current = true;
         setUrlValue(randomAiCover.cosUrl);
-        onChange(randomAiCover.cosUrl);
+        onChange(randomAiCover.cosUrl, 'ai');
       }
     } else if (newMode === 'library') {
       if (latestLibraryCover) {
         internalChangeRef.current = true;
         setUrlValue(latestLibraryCover.cosUrl);
-        onChange(latestLibraryCover.cosUrl);
+        onChange(latestLibraryCover.cosUrl, 'library');
       }
     }
   }, [handleGradientSelect, urlValue, randomAiCover, latestLibraryCover, onChange]);
@@ -602,22 +607,22 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
                   }
                   return (
                     <TouchableOpacity
-                      style={{
-                        flex: 1,
-                        margin: 4,
-                        aspectRatio: 3 / 4,
-                        borderRadius: 6,
-                        overflow: 'hidden',
-                        borderWidth: value === item.cosUrl ? 2 : 0,
-                        borderColor: colors.primary,
-                      }}
-                      onPress={() => {
-                        internalChangeRef.current = true;
-                        setUrlValue(item.cosUrl);
-                        onChange(item.cosUrl);
-                      }}
-                      activeOpacity={0.7}
-                    >
+                    style={{
+                      flex: 1,
+                      margin: 4,
+                      aspectRatio: 3 / 4,
+                      borderRadius: 6,
+                      overflow: 'hidden',
+                      borderWidth: value === item.cosUrl ? 2 : 0,
+                      borderColor: colors.primary,
+                    }}
+                    onPress={() => {
+                      internalChangeRef.current = true;
+                      setUrlValue(item.cosUrl);
+                      onChange(item.cosUrl, 'library');
+                    }}
+                    activeOpacity={0.7}
+                  >
                       <LazyImage uri={item.cosUrl} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                     </TouchableOpacity>
                   );
@@ -717,7 +722,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
                       internalChangeRef.current = true;
                       setRandomAiCover(item);
                       setUrlValue(item.cosUrl);
-                      onChange(item.cosUrl);
+                      onChange(item.cosUrl, 'ai');
                     }}
                     activeOpacity={0.7}
                   >

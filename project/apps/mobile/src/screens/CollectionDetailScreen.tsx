@@ -44,6 +44,7 @@ interface Collection {
   url: string;
   title: string;
   coverImage: string | null;
+  coverStrategy?: string | null;
   platform: string;
   note: string | null;
   tags?: { id: string; name: string }[];
@@ -207,7 +208,12 @@ export default function CollectionDetailScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* 封面 */}
-      <LazyImage uri={collection.coverImage} style={{ width: '100%', aspectRatio: 16 / 9 }} fallbackPlatform={collection.platform} />
+      <LazyImage
+        uri={collection.coverStrategy === 'brand' ? null : collection.coverImage}
+        style={{ width: '100%', aspectRatio: 16 / 9 }}
+        fallbackPlatform={collection.platform}
+        showGradientFallback={collection.coverStrategy === 'brand'}
+      />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}>
         {/* 标题 */}
