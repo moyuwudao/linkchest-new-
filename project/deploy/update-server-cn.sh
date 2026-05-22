@@ -80,6 +80,15 @@ DATABASE_URL="$DATABASE_URL" npx prisma migrate deploy 2>/dev/null || {
 }
 echo "数据库迁移完成 ✓"
 
+# ===== 4.5 MARKET 环境变量验证 =====
+echo ""
+echo "[4.5/8] MARKET 环境变量验证..."
+if [ -z "$MARKET" ]; then
+  echo "  ⚠️ MARKET 未设置，自动设置为 china"
+  export MARKET=china
+fi
+echo "  MARKET=$MARKET ✓"
+
 # ===== 5. 重启 API 服务 =====
 echo ""
 echo "[5/8] 重启 API 服务..."
@@ -89,7 +98,7 @@ sleep 1
 pm2 start "$BASE_DIR/deploy/ecosystem.config.js" --only "$PM2_API" 2>/dev/null || {
   echo "  ecosystem.config.js 中未找到 $PM2_API，使用直接启动..."
   cd "$API_DIR"
-  DATABASE_URL="$DATABASE_URL" REDIS_URL="redis://localhost:6379" NODE_ENV=production \
+  DATABASE_URL="$DATABASE_URL" REDIS_URL="redis://localhost:6379" NODE_ENV=production MARKET=china \
     pm2 start npx --name "$PM2_API" -- tsx src/index.ts
 }
 

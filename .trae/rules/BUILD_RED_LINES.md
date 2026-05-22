@@ -1,13 +1,17 @@
 ---
-alwaysApply: true
-description: 构建红线规则 - APK构建时绝对禁止的行为，任何Agent必须遵守
+alwaysApply: false
+description: "构建红线规则 - APK构建时绝对禁止的行为，构建操作时自动加载"
 ---
 # BUILD_RED_LINES.md — 构建红线规则
 
 > 本文档定义构建APK时绝对禁止的行为。
-> **本规则 alwaysApply: true，任何Agent在任何场景下都必须遵守。**
+> **本规则 alwaysApply: false，构建操作时自动加载。构建红线任何Agent必须遵守。**
 >
 > **部署相关红线**：请查阅 [HIGH_RISK.md](HIGH_RISK.md)
+
+---
+
+> **🔧 关联 Skill**：构建失败时请使用 `build-error-diagnose` Skill（自动匹配案例集锦并给出修复方案）。
 
 ---
 
@@ -24,6 +28,7 @@ description: 构建红线规则 - APK构建时绝对禁止的行为，任何Agen
 | **使用 EAS 构建** | 服务器未安装 eas-cli，且无需 Expo 账号 | 构建失败，浪费时间 |
 | **从官方地址下载 Gradle** | 网络极慢或超时 | 构建卡住或失败 |
 | **未阅读 BUILD.md 直接构建** | 不了解镜像配置、缓存配置、WSL要求 | 构建失败或配置丢失 |
+| **未设置 MARKET 环境变量构建 APK** | 高 | 构建的 APK 市场配置错误，用户看到错误的支付/登录选项 |
 
 ### 1.2 强制检查清单
 
@@ -89,8 +94,9 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 - `expo prebuild`、`eas build`
 - `android/app/build`
 - `clean` + `gradle`/`build`（禁止 clean 相关命令）
+- `.env.market` 缺失或 MARKET 值错误
 
-> **部署相关阻断**：由 [DEPLOY_RED_LINES.md](DEPLOY_RED_LINES.md) 处理
+> **部署相关阻断**：由 [HIGH_RISK.md](HIGH_RISK.md) 处理
 
 ### 2.2 阻断后的强制流程
 
@@ -197,6 +203,7 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 | `500` + `database`/`prisma` | CASE-S009 相关 | 执行 prisma db push | ✅ 需确认 |
 | `heap out of memory` | CASE-S007 | 增加 Node.js 内存限制 | ❌ 自动 |
 | `port` + `already in use` | CASE-S008 | 更换端口或关闭占用进程 | ❌ 自动 |
+| `.env.market` 缺失 / MARKET 错误 | CASE-016 | 检查并创建 .env.market 文件 | ❌ 自动 |
 
 ### 4.3 自动修复执行标准
 
@@ -251,4 +258,4 @@ fi
 
 *最后更新：2026-05-21*
 *版本：v3.0 — 双 WSL 架构（linkchest-global + linkchest-cn）*
-*优先级：alwaysApply - 任何Agent任何场景必须遵守*
+*优先级：任务触发 - 构建操作时自动加载*

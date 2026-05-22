@@ -102,6 +102,15 @@ echo "[5/7] 安装 API 依赖..."
 cd "$API_DIR"
 npm install --production 2>/dev/null || true
 
+# ===== 5.5 MARKET 环境变量验证 =====
+echo ""
+echo "[5.5/7] MARKET 环境变量验证..."
+if [ -z "$MARKET" ]; then
+  echo "  MARKET 未设置，使用默认值 global"
+  export MARKET=global
+fi
+echo "  MARKET=$MARKET ✓"
+
 # ===== 6. 重启 API 服务 =====
 echo ""
 echo "[6/7] 重启 API 服务..."
@@ -111,7 +120,7 @@ chmod +x "$BASE_DIR/deploy/start-api.sh"
 # 删除旧进程并使用 ecosystem.config.js 重建，避免残留错误配置
 pm2 delete linkchest-api 2>/dev/null || true
 sleep 1
-pm2 start "$BASE_DIR/deploy/ecosystem.config.js" --only linkchest-api
+pm2 start "$BASE_DIR/deploy/ecosystem.config.js" --only linkchest-api --env MARKET=global
 
 # ===== 7. 更新和构建 Web =====
 echo ""

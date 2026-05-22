@@ -1,292 +1,80 @@
 ---
 alwaysApply: false
-description: Git工作流规范 - 分支策略、Commit规范、PR流程
+description: Git工作流规范 - Trunk-Based分支策略、Commit规范、推送规范
 ---
 
 # GIT_WORKFLOW.md — Git 工作流规范
 
-> 本文档定义 LinkChest 项目中的 Git 分支策略、Commit 规范和 PR 流程。
+> 本文档定义 LinkChest 项目的 Git 分支策略、Commit 规范和推送规范。
+> 项目采用 **Trunk-Based Development**，直接在 master 上开发。
 
 ---
 
 ## 1. 分支策略
 
-### 1.1 分支类型
+### 1.1 实际工作流：Trunk-Based
 
-| 分支类型 | 命名格式 | 用途 | 示例 |
-|----------|----------|------|------|
-| **main** | `main` | 主分支，生产代码 | - |
-| **develop** | `develop` | 开发分支，集成功能 | - |
-| **feature** | `feature/{功能名}` | 新功能开发 | `feature/add-sharing` |
-| **bugfix** | `bugfix/{bug描述}` | 修复线上bug | `bugfix/fix-login-error` |
-| **hotfix** | `hotfix/{紧急修复}` | 紧急修复生产问题 | `hotfix/security-patch` |
-| **release** | `release/{版本号}` | 发布准备 | `release/v1.0.0` |
+| 分支 | 用途 | 说明 |
+|------|------|------|
+| **master** | 主分支 = 生产代码 | 直接推送，保持可部署状态 |
 
-### 1.2 分支流转图
+- 不使用 develop/release 分支
+- 功能开发直接在 master 上 commit + push
+- 大功能使用 feature 分支，完成后 merge 回 master
 
-```
-main
-  ↓ (merge)
-develop ←─── feature/* ←─── bugfix/*
-  ↓ (merge)
-release/*
-  ↓ (merge)
-main
-  ↓ (cherry-pick)
-hotfix/*
-  ↓ (merge)
-main & develop
-```
+### 1.2 分支使用场景
 
-### 1.3 分支管理规则
-
-| 操作 | 规则 |
-|------|------|
-| 创建 feature | 从 develop 分支创建 |
-| 创建 bugfix | 从 develop 分支创建 |
-| 创建 hotfix | 从 main 分支创建 |
-| 创建 release | 从 develop 分支创建 |
-| 合并到 develop | 通过 PR 合并 |
-| 合并到 main | 通过 PR 合并 |
+| 场景 | 分支 | 操作 |
+|------|------|------|
+| 日常开发 | master | 直接 commit + push |
+| 大功能开发 | feature/{名称} | 开发完成后 merge 回 master |
+| 紧急修复 | master | 直接修复 + push |
+| 实验性代码 | experiment/{名称} | 验证后决定 merge 或删除 |
 
 ---
 
 ## 2. Commit 规范
 
-### 2.1 Commit 消息格式
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-### 2.2 Type 类型
-
-| Type | 说明 | 示例 |
+| 类型 | 格式 | 示例 |
 |------|------|------|
-| **feat** | 新功能 | `feat(auth): add OAuth2 login` |
-| **fix** | 修复 bug | `fix(api): fix 404 error for collections` |
-| **docs** | 文档更新 | `docs(readme): update installation guide` |
-| **style** | 代码格式调整 | `style: format code with prettier` |
-| **refactor** | 重构代码 | `refactor(utils): simplify URL parser` |
-| **test** | 添加/修改测试 | `test(api): add unit tests for auth` |
-| **chore** | 构建/工具更新 | `chore(deps): update react to v18` |
-| **perf** | 性能优化 | `perf: optimize database queries` |
-| **ci** | CI/CD 配置 | `ci: add GitHub Actions workflow` |
+| feat | `feat: 描述` | `feat: 添加用户头像上传` |
+| fix | `fix: 描述` | `fix: 修复登录超时问题` |
+| deploy | `deploy: 描述` | `deploy: 更新海外服务器` |
+| docs | `docs: 描述` | `docs: 更新部署文档` |
+| refactor | `refactor: 描述` | `refactor: 重构认证中间件` |
+| chore | `chore: 描述` | `chore: 更新依赖版本` |
+| build | `build: 描述` | `build: APK v1.2.0` |
 
-### 2.3 Scope 说明
+### 2.1 Commit 消息规则
 
-| Scope | 说明 |
-|-------|------|
-| `api` | 后端 API |
-| `web` | Web 前端 |
-| `mobile` | 移动端 |
-| `chrome-extension` | Chrome 扩展 |
-| `shared` | 共享模块 |
-| `docs` | 文档 |
-| `infra` | 基础设施 |
-| 空 | 通用变更 |
-
-### 2.4 示例
-
-```
-feat(web): add collection sharing feature
-
-- Add share button to collection card
-- Generate unique share URL
-- Add share modal with copy functionality
-
-Closes #123
-```
+- 使用中文描述
+- 类型前缀 + 冒号 + 空格 + 描述
+- 描述不超过 50 个字符
+- 不添加空行
 
 ---
 
-## 3. PR 流程
+## 3. 推送规范
 
-### 3.1 PR 创建规范
-
-| 要求 | 说明 |
+| 规则 | 说明 |
 |------|------|
-| **标题** | 清晰描述改动内容 |
-| **描述** | 说明改动目的和影响 |
-| **关联 Issue** | 使用 `Closes #xxx` 关联 |
-| **检查清单** | 完成所有检查项 |
-
-### 3.2 PR 模板
-
-```markdown
-## 描述
-请简要描述本次改动的目的和内容。
-
-## 改动类型
-- [ ] 新功能 (Feature)
-- [ ] Bug 修复 (Bug Fix)
-- [ ] 代码重构 (Refactor)
-- [ ] 文档更新 (Documentation)
-- [ ] 构建/工具 (Build/Tooling)
-- [ ] 测试 (Testing)
-
-## 相关 Issue
-Closes #xxx
-
-## 改动内容
-- 列出主要改动点
-
-## 测试方法
-请描述如何测试这些改动。
-
-## 检查清单
-- [ ] 代码已通过 lint 检查
-- [ ] 代码已通过 typecheck
-- [ ] 添加了必要的测试
-- [ ] 测试全部通过
-- [ ] 文档已更新
-```
-
-### 3.3 PR 审查流程
-
-| 步骤 | 操作 |
-|------|------|
-| **创建 PR** | 开发者创建 PR 并请求审查 |
-| **自动检查** | CI 自动运行 lint、typecheck、tests |
-| **代码审查** | 至少 1 人审查通过 |
-| **合并** | 通过后由作者合并 |
-| **删除分支** | 合并后删除功能分支 |
+| 推送前确认 | `git status` 检查工作区干净 |
+| 部署前推送 | 部署前必须确保代码已 push 到 master |
+| 禁止 force push | `git push --force` 绝对禁止 |
+| 服务器端拉取 | 服务器上只用 `git pull`，不用 `git reset --hard` |
 
 ---
 
-## 4. 版本发布
+## 4. 服务器代码同步
 
-### 4.1 版本号规则
+所有服务器通过 `git pull` 从 GitHub master 获取最新代码：
 
-遵循语义化版本（Semantic Versioning）：
+- 海外：`ssh ubuntu@43.133.44.232 "cd /opt/linkchest/api && git pull"`
+- 国内：`ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull"`
 
-```
-vMAJOR.MINOR.PATCH
-```
-
-| 部分 | 说明 |
-|------|------|
-| **MAJOR** | 不兼容的 API 变更 |
-| **MINOR** | 向后兼容的新功能 |
-| **PATCH** | 向后兼容的 bug 修复 |
-
-### 4.2 发布流程
-
-```bash
-# 1. 创建 release 分支
-git checkout -b release/v1.0.0 develop
-
-# 2. 更新版本号
-# 修改 package.json、CHANGELOG.md 等
-
-# 3. 合并到 main
-git checkout main
-git merge --no-ff release/v1.0.0
-
-# 4. 添加 tag
-git tag -a v1.0.0 -m "Release v1.0.0"
-
-# 5. 合并到 develop
-git checkout develop
-git merge --no-ff release/v1.0.0
-
-# 6. 删除 release 分支
-git branch -d release/v1.0.0
-
-# 7. 推送
-git push origin main
-git push origin develop
-git push origin v1.0.0
-```
-
-### 4.3 CHANGELOG 规范
-
-每次发布更新 `CHANGELOG.md`：
-
-```markdown
-## [1.0.0] - 2024-01-15
-
-### Added
-- 新增收藏分享功能
-- 新增标签管理
-
-### Fixed
-- 修复登录页面样式问题
-- 修复 API 响应超时问题
-
-### Changed
-- 优化首页加载性能
-```
+详见 [HIGH_RISK.md §2.0](HIGH_RISK.md) Git-Only 策略。
 
 ---
 
-## 5. 常见操作
-
-### 5.1 创建功能分支
-
-```bash
-# 从 develop 创建功能分支
-git checkout develop
-git pull origin develop
-git checkout -b feature/add-sharing
-```
-
-### 5.2 更新分支
-
-```bash
-# 从 develop 更新当前分支
-git checkout feature/add-sharing
-git merge develop
-```
-
-### 5.3 撤销提交
-
-```bash
-# 撤销最近一次提交（保留更改）
-git reset HEAD~1
-
-# 撤销最近一次提交（丢弃更改）
-git reset --hard HEAD~1
-```
-
-### 5.4 强制推送
-
-```bash
-# 仅在本地分支重写后使用
-git push -f origin feature/add-sharing
-```
-
----
-
-## 6. 最佳实践
-
-| 实践 | 说明 |
-|------|------|
-| **小批量提交** | 每个 commit 只做一件事 |
-| **频繁推送** | 定期 push 到远程仓库 |
-| **编写有意义的消息** | Commit 消息清晰描述改动 |
-| **及时合并** | 功能完成后尽快合并到 develop |
-| **代码审查** | 所有代码提交前必须经过审查 |
-| **保持分支清洁** | 定期删除已合并的分支 |
-
----
-
-## 7. 检查清单
-
-| 检查项 | 说明 |
-|--------|------|
-| **分支命名** | 符合命名规范 |
-| **Commit 消息** | 符合格式规范 |
-| **PR 描述** | 清晰完整 |
-| **自动检查** | 全部通过 |
-| **代码审查** | 至少 1 人通过 |
-| **版本更新** | 版本号已更新 |
-
----
-
-*最后更新：2026-05-11*
-*版本：v1.0*
+*最后更新：2026-05-22*
+*版本：v2.0*

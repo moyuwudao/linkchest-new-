@@ -136,8 +136,8 @@ description: 安全红线规则 - 绝对不能碰的安全禁区（Zero Toleranc
 | 文件 | 用途 | 加载方式 |
 |------|------|----------|
 | [HIGH_RISK.md](HIGH_RISK.md) | 高风险操作（部署安全、构建安全） | alwaysApply: true |
-| [CAUTION_ZONE.md](CAUTION_ZONE.md) | 警告区域（应急响应、Web安全） | alwaysApply: true |
-| [BUILD_RED_LINES.md](BUILD_RED_LINES.md) | 构建红线（APK构建） | alwaysApply: true |
+| [CAUTION_ZONE.md](CAUTION_ZONE.md) | 警告区域（应急响应、Web安全） | alwaysApply: false（任务触发） |
+| [BUILD_RED_LINES.md](BUILD_RED_LINES.md) | 构建红线（APK构建） | alwaysApply: false（任务触发） |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | 部署详细流程 | 任务触发 |
 | [cases/service-build-errors.md](cases/service-build-errors.md) | 服务构建异常案例 | 按需查阅 |
 

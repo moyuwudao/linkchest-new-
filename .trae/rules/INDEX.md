@@ -16,8 +16,7 @@ description: 规则体系总览 - 快速查找指南和规则层次结构
 │  USER.md          │ 用户信息和偏好                      │
 │  INTERACTION.md   │ 交互规则（何时问、何时做）           │
 │  RED_LINES.md     │ 安全红线（含部署安全，绝对不能做的）  │
-│  BUILD_RED_LINES.md│ 构建红线（绝对不能违反的）         │
-│  CONTEXT.md       │ 上下文保持规则                       │
+│  HIGH_RISK.md     │ 高风险操作（部署+构建安全）          │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -31,13 +30,11 @@ description: 规则体系总览 - 快速查找指南和规则层次结构
 │                      通用规则                            │
 │  (基础层 - 适用于所有项目)                               │
 ├─────────────────────────────────────────────────────────┤
-│  security.md         │ 通用安全指南                     │
-│  code-review.md      │ 代码审查标准                     │
-│  development-workflow.md │ 开发工作流（Research→Deploy）│
-│  hooks.md            │ Hooks 系统配置                   │
-│  agents.md           │ Agents 使用指南                  │
-│  performance.md      │ 性能优化、模型选择               │
-│  patterns.md         │ 通用设计模式                     │
+│  CODE_REVIEW.md        │ 代码审查标准                   │
+│  DEVELOPMENT_WORKFLOW.md │ 开发工作流（Research→Deploy）│
+│  HOOKS.md              │ Hooks 系统配置                 │
+│  AGENTS.md             │ Agents 使用指南                │
+│  PERFORMANCE.md        │ 性能优化、模型选择             │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -67,30 +64,27 @@ description: 规则体系总览 - 快速查找指南和规则层次结构
 
 | 需求 | 查看规则 |
 |-----|---------|
-| **写代码** | `CODE_STYLE.md` → `common/patterns.md` |
+| **写代码** | `CODE_STYLE.md` |
 | **写测试** | `TESTING.md` |
 | **提交代码** | `GIT_WORKFLOW.md` |
 | **代码审查** | `common/CODE_REVIEW.md` |
-| **安全检查** | `RED_LINES.md` → `common/security.md` |
-| **架构设计** | `common/patterns.md` |
+| **安全检查** | `RED_LINES.md` → `CAUTION_ZONE.md` |
 | **使用 Agents** | `common/AGENTS.md` |
 | **配置 Hooks** | `common/HOOKS.md` |
 | **性能优化** | `common/PERFORMANCE.md` |
 | **开发流程** | `common/DEVELOPMENT_WORKFLOW.md` |
 | **构建APK** | `BUILD_RED_LINES.md` → `BUILD.md` |
-| **部署更新** | `BUILD_RED_LINES.md` → `DEPLOYMENT.md` |
+| **部署更新** | `HIGH_RISK.md` → `DEPLOYMENT.md` |
 | **国内外运营** | `MARKET-OPS.md` |
-| **基础信息查询** | `BASE-INFO.md` |
-| **开发调试** | `DEBUG.md` |
 
 ### 安全问题优先级
 
 **安全相关规则优先级最高**：
 
 1. `RED_LINES.md` - 绝对不能做的（数据库、认证、密钥）
-2. `BUILD_RED_LINES.md` - 构建部署绝对不能做的
-3. `common/security.md` - 通用安全
-4. `common/code-review.md` - 安全检查清单
+2. `HIGH_RISK.md` - 部署和构建安全
+3. `CAUTION_ZONE.md` - 应急响应和 Web 安全（任务触发）
+4. `common/CODE_REVIEW.md` - 安全检查清单
 
 ---
 
@@ -124,7 +118,7 @@ description: 规则体系总览 - 快速查找指南和规则层次结构
 
 ## 规则文件清单
 
-### LinkChest 项目特定（20 个）
+### LinkChest 项目特定（15 个）
 
 ```
 .trae/rules/
@@ -134,31 +128,19 @@ description: 规则体系总览 - 快速查找指南和规则层次结构
 ├── INTERACTION.md           ✅ 交互规则
 ├── RED_LINES.md             ✅ 安全红线（Zero Tolerance）
 ├── HIGH_RISK.md             ✅ 高风险操作（部署+构建）
-├── CAUTION_ZONE.md          ✅ 警告区域（应急+Web安全）
-├── BUILD_RED_LINES.md       ✅ 构建红线
-├── CONTEXT.md               ✅ 上下文保持
+├── CAUTION_ZONE.md          ✅ 警告区域（应急+Web安全）[任务触发]
+├── BUILD_RED_LINES.md       ✅ 构建红线 [任务触发]
 ├── PROJECT_SENSE.md         ✅ 项目感知
-├── NAMING_CONVENTIONS.md    ✅ 命名约定
-├── CODE_STYLE.md            ✅ 代码风格
+├── CODE_STYLE.md            ✅ 代码风格（含命名约定）
 ├── TESTING.md               ✅ 测试规范
 ├── LINT.md                  ✅ Lint 检查
 ├── GIT_WORKFLOW.md          ✅ Git 规范
-├── DEPENDENCY.md            ✅ 依赖管理
 ├── BUILD.md                 ✅ 构建规范（含APK）
-├── DEBUG.md                 ✅ 开发调试
 ├── DEPLOYMENT.md            ✅ 部署更新
-├── MARKET-OPS.md            ✅ 国内外分运营
-└── BASE-INFO.md             ✅ 基础信息规则
+└── MARKET-OPS.md            ✅ 国内外分运营
 ```
 
-### TypeScript/React 特定（1 个）
-
-```
-.trae/rules/typescript/
-└── README.md                ✅ TypeScript 说明
-```
-
-### 通用规则（7 个）
+### 通用规则（5 个）
 
 ```
 .trae/rules/common/
@@ -166,9 +148,7 @@ description: 规则体系总览 - 快速查找指南和规则层次结构
 ├── CODE_REVIEW.md           ✅ 代码审查标准
 ├── HOOKS.md                 ✅ Hooks 系统
 ├── AGENTS.md                ✅ Agents 指南
-├── PERFORMANCE.md           ✅ 性能优化
-├── patterns.md              ✅ 通用设计模式
-└── security.md              ✅ 通用安全指南
+└── PERFORMANCE.md           ✅ 性能优化
 ```
 
 ### 案例集锦（3 个）
@@ -234,50 +214,25 @@ bash .trae/rules-consistency-check.sh
 
 ## 更新日志
 
-### 2026-05-20 - 新增基础信息规则
+### 2026-05-22 - 第二轮深度优化
 
-**新增：**
-- ✅ `BASE-INFO.md` - 基础信息规则文档，规范信息录入、获取、更新与维护流程
+- ✅ 修复 BUILD_RED_LINES.md / CAUTION_ZONE.md / RED_LINES.md 的 alwaysApply 矛盾
+- ✅ 重写 AGENTS.md（397→97行），反映实际 4 Skill + 7 ECC Skill
+- ✅ 精简 HOOKS.md（498→46行），移除虚构的 Hooks 实现
+- ✅ 更新 GIT_WORKFLOW.md 为 trunk-based（匹配实际工作流）
+- ✅ 更新 PROJECT_SENSE.md（移除 Vercel/eas.json，加入双 WSL + Git-Only）
+- ✅ INTERACTION.md 注册 ECC Skill 触发条件
+- ✅ 创建 deploy-linkchest / build-error-diagnose / check-servers 三个 Skill
+- ✅ 强制 Git-Only 部署策略（HIGH_RISK.md §2.0）
+- ✅ 删除 9 个低价值文件 + 归档 6 个旧部署脚本
+- ✅ BUILD.md §7 去重，DEPLOYMENT.md §11-12 精简
 
-### 2026-05-19 - 规则体系全面优化
+### 2026-05-22 - 第一轮精简
 
-**修复：**
-- ✅ 修复 INTERACTION.md 章节编号错误（3.5重复、11.2层级断裂）
-- ✅ 提取构建/部署内容至 BUILD_RED_LINES.md，消除重复
-- ✅ 注册遗漏文件：DEPLOYMENT.md、CONTEXT.md、DEBUG.md
-- ✅ 移除过时引用：RIVERPOD.md（不存在）、typescript/CODING_STYLE.md（不存在）
-- ✅ INDEX.md 与实际文件完全同步
-
-**优化：**
-- ✅ 构建/部署规则从4个文件缩减为2个（BUILD_RED_LINES.md + BUILD.md）
-- ✅ INTERACTION.md 从568行精简至375行
-- ✅ rule-index.json 新增 deployment、debugging 两个组
-- ✅ INTERACTION.md 删除 linkchest-build-apk.md 引用
-
-### 2026-05-18 - 国内外分运营规则
-
-**新增**：
-- ✅ `MARKET-OPS.md` - 国内外分运营配置方案
-- ✅ `BUILD_RED_LINES.md` - 构建红线规则
-- ✅ `DEPLOY_RED_LINES.md` - 部署红线规则（后合并至 RED_LINES.md）
-
-### 2026-05-18 - 规则验证机制
-
-**新增**：
-- ✅ `rule-validator` Skill - 自动规则验证
-- ✅ 规则质量门禁 - 创建/修改规则时的强制检查
-
-### 2026-05-11 - 规则体系优化
-
-**新增**：
-- ✅ `common/patterns.md` - 通用设计模式
-- ✅ `common/security.md` - 通用安全指南
-- ✅ `INDEX.md` - 规则体系总览
-- ✅ `DEPLOYMENT.md` - 部署更新规则
-
-**优化**：
-- ✅ 完善规则层次结构
-- ✅ 明确规则优先级关系
+- ✅ 删除 9 个文件（DEBUG/DEPENDENCY/CONTEXT/BASE-INFO/common-security-patterns-README/typescript-README/NAMING_CONVENTIONS）
+- ✅ BUILD_RED_LINES.md + CAUTION_ZONE.md 降为 alwaysApply: false
+- ✅ 合并 NAMING_CONVENTIONS.md → CODE_STYLE.md
+- ✅ 服务器信息去重（仅保留 HIGH_RISK.md）
 
 ---
 
@@ -306,11 +261,10 @@ bash .trae/rules-consistency-check.sh
 ## 维护
 
 - **通用规则** - 定期同步 `.trae-cn/rules/common/`
-- **TypeScript 规则** - 定期同步 `.trae-cn/rules/typescript/`
 - **项目规则** - 根据项目进展更新
 - **月度审计** - 每月执行 `rules-consistency-check.sh` 验证完整性
 
 ---
 
-*最后更新：2026-05-19*
-*版本：v2.3*
+*最后更新：2026-05-22*
+*版本：v2.5*

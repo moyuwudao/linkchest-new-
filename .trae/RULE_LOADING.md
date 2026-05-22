@@ -7,7 +7,7 @@
 ## 1. 设计原理
 
 ### 1.1 问题背景
-- **问题**：12 个规则文档一次性加载会消耗约 15,000+ tokens
+- **问题**：规则文档一次性加载会消耗大量 tokens
 - **影响**：上下文空间不足，影响 AI 助手响应质量
 - **目标**：根据任务类型动态加载相关规则，控制在 8,000 tokens 以内
 
@@ -33,10 +33,10 @@ SOUL.md               - 身份定位、行为基调
 USER.md               - 开发者画像与偏好
 INTERACTION.md        - 交互方式、确认机制、构建/部署阻断
 RED_LINES.md          - 安全红线、禁区
-BUILD_RED_LINES.md    - 构建和部署红线、强制检查清单
+HIGH_RISK.md          - 高风险操作（部署+构建安全）
 ```
 
-**Token 消耗**：~3500 tokens（新增 BUILD_RED_LINES.md 约 500 tokens）
+**Token 消耗**：~3500 tokens
 
 ### 2.2 Context 规则（按需加载）
 
@@ -44,15 +44,13 @@ BUILD_RED_LINES.md    - 构建和部署红线、强制检查清单
 
 ```
 PROJECT_SENSE.md      - 项目结构、技术栈
-NAMING_CONVENTIONS.md - 命名规范
 ```
 
-**Token 消耗**：~3000 tokens
+**Token 消耗**：~2000 tokens
 
 **触发条件**：
 - 用户提到"项目结构"、"技术栈"
 - 首次访问项目文件
-- 需要了解命名规范时
 
 ### 2.3 Task 规则（动态加载）
 
@@ -64,8 +62,10 @@ NAMING_CONVENTIONS.md - 命名规范
 | `TESTING.md` | 测试、单元测试、jest、playwright | ~2000 tokens |
 | `LINT.md` | lint、typecheck、ESLint、类型错误 | ~1500 tokens |
 | `GIT_WORKFLOW.md` | git、commit、分支、PR、merge | ~2000 tokens |
-| `DEPENDENCY.md` | 依赖、npm install、依赖更新 | ~1800 tokens |
-| `BUILD.md` | 构建、build、APK、Android、iOS | ~2500 tokens |
+| `BUILD.md` + `BUILD_RED_LINES.md` | 构建、build、APK、Android、iOS | ~3000 tokens |
+| `CAUTION_ZONE.md` | 安全、CSP、XSS、应急响应、安全头 | ~1500 tokens |
+| `DEPLOYMENT.md` | 部署、deploy、ssh、pm2 | ~2000 tokens |
+| `MARKET-OPS.md` | 国内、海外、支付、登录 | ~2000 tokens |
 
 ---
 
@@ -85,8 +85,8 @@ NAMING_CONVENTIONS.md - 命名规范
 
 | 规则类型 | Token 预算 | 说明 |
 |----------|------------|------|
-| Always 规则 | ~3500 | 固定消耗（含 BUILD_RED_LINES.md） |
-| Context 规则 | ~3000 | 按需消耗 |
+| Always 规则 | ~3500 | 固定消耗 |
+| Context 规则 | ~2000 | 按需消耗 |
 | Task 规则 | ~1500-2500 | 单个任务消耗 |
 | **总安全限制** | **~8000** | 确保不超限 |
 
@@ -290,5 +290,5 @@ AI 助手会实时监控 token 消耗：
 
 ---
 
-*最后更新：2026-05-11*
-*版本：v1.0*
+*最后更新：2026-05-22*
+*版本：v1.1*

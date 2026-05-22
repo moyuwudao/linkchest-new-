@@ -487,6 +487,7 @@ rm -rf ../node_modules/expo-constants/android/build
 | API 地址 | `https://linkchest.net/api` | `http://43.136.82.88/api` |
 | 登录按钮 | Google, Apple | 微信, 支付宝 |
 | 登录功能 | 可用 | 可用 |
+| `.env.market` 文件 | 存在，内容为 `global` | 存在，内容为 `china` |
 
 **验证命令：**
 ```bash
@@ -501,11 +502,22 @@ aapt dump badging linkchest-china-release.apk | grep application-label
 
 #### 5.1.9 项目特定配置
 
-> **详细规范请参考 `BUILD_RED_LINES.md`（alwaysApply: true）。**
+> **详细规范请参考 `BUILD_RED_LINES.md`（构建时自动加载）。**
 >
 > 包含 WSL 实例配置（`linkchest-global` / `linkchest-cn`）、环境变量持久化设置（`.bashrc`）、增量构建命令、注意事项和故障排除。
 
-#### 5.1.10 APK 输出位置
+#### 5.1.10 MARKET 环境变量验证
+
+构建完成后，验证 `.env.market` 文件内容是否正确：
+
+```bash
+cat project/apps/mobile/.env.market
+# 应输出: global 或 china
+```
+
+如果 `.env.market` 不存在或内容错误，APK 将使用默认配置（global），导致国内市场 APK 显示海外市场内容。
+
+#### 5.1.11 APK 输出位置
 
 构建成功后，APK 位于：
 
@@ -595,146 +607,7 @@ apps/chrome-extension/
 
 ## 7. 服务器部署
 
-### 7.0 部署前置强制检查
-
-> **🔴 执行任何部署操作前，必须完成以下检查！**
-
-| 检查项 | 说明 | 状态 |
-|--------|------|------|
-| **阅读 BUILD.md** | 已阅读本节了解部署流程和服务器信息 | ⬜ |
-| **确认服务器** | IP: 43.133.44.232, 用户: ubuntu | ⬜ |
-| **确认部署方式** | API拷贝部署 / WEB服务器构建部署 | ⬜ |
-| **确认目录结构** | 源码目录 `/project/` vs 运行目录 `/apps/` | ⬜ |
-| **查阅案例集锦** | 已查阅 [服务构建异常案例集锦](cases/service-build-errors.md) | ⬜ |
-| **确认数据库迁移** | 明确使用 `db push` 还是 `migrate deploy` | ⬜ |
-
-**未勾选所有检查项前，禁止执行部署命令！**
-
-### 7.1 服务器信息
-
-| 项目 | 值 |
-|------|-----|
-| **IP** | 43.133.44.232 |
-| **用户** | ubuntu |
-| **项目目录** | /opt/linkchest/api |
-| **进程管理** | PM2 |
-| **API 进程名** | linkchest-api |
-| **WEB 进程名** | linkchest-web |
-
-### 7.2 部署流程
-
-> **⚠️ 核心原则：WEB 端必须在服务器上构建，不能从本地复制 `.next` 目录**
->
-> Next.js 构建产物与 `node_modules` 强绑定，本地 Windows 构建的 `.next` 无法在 Linux 服务器上运行。
-
-#### 7.2.1 API 部署
-
-```bash
-# 1. 同步 API 构建产物到服务器
-scp -r project/apps/api/dist ubuntu@43.133.44.232:/opt/linkchest/api/apps/api/
-
-# 2. 同步 Prisma schema（如有数据库变更）
-scp -r project/apps/api/prisma ubuntu@43.133.44.232:/opt/linkchest/api/apps/api/
-
-# 3. 同步 API 源码（如有新增文件，如 services/）
-scp -r project/apps/api/src ubuntu@43.133.44.232:/opt/linkchest/api/apps/api/
-
-# 4. SSH 到服务器，同步数据库并重启
-ssh ubuntu@43.133.44.232
-cd /opt/linkchest/api/apps/api
-npx prisma db push          # 同步 schema 到数据库（比 migrate deploy 更可靠）
-npx prisma generate         # 生成 Prisma Client
-pm2 restart linkchest-api   # 重启 API 服务
-```
-
-#### 7.2.2 WEB 部署（推荐方式）
-
-> **⚠️ 重要：服务器存在两个 Web 目录，必须使用部署脚本同步！**
->
-> 参考：[CASE-S009 部署后功能回退](cases/service-build-errors.md#case-s009-部署后功能回退到旧版本)
-
-**目录结构说明：**
-| 目录 | 说明 |
-|------|------|
-| `/opt/linkchest/api/project/apps/web/` | monorepo 源码目录（git pull 更新位置） |
-| `/opt/linkchest/api/apps/web/` | Next.js 运行目录（实际构建和运行位置） |
-
-**使用标准部署脚本（推荐）：**
-```bash
-# 方式一：SSH 到服务器执行脚本
-ssh ubuntu@43.133.44.232 "cd /opt/linkchest/api && bash deploy/deploy-web.sh"
-
-# 方式二：一键命令（本地执行）
-ssh ubuntu@43.133.44.232 "cd /opt/linkchest/api && git pull origin master && bash deploy/deploy-web.sh"
-```
-
-**脚本功能：**
-1. ✅ 部署前校验（代码推送状态、关键文件版本）
-2. ✅ 自动备份当前构建产物
-3. ✅ 同步源码到运行目录
-4. ✅ 清理缓存并重新构建
-5. ✅ 重启服务并验证结果
-6. ✅ 构建失败时自动回滚到备份
-
-#### 7.2.3 手动部署（不推荐）
-
-```bash
-# 仅在脚本不可用时使用，必须手动同步两个目录
-ssh ubuntu@43.133.44.232 << 'EOF'
-cd /opt/linkchest/api
-git pull origin master
-cp -rf project/apps/web/src apps/web/
-rm -rf apps/web/.next
-cd apps/web && npm run build
-pm2 restart linkchest-web
-EOF
-```
-
-#### 7.2.3 一键部署命令（合并）
-
-```bash
-# API + WEB 全量部署
-scp -r project/apps/api/dist project/apps/api/prisma project/apps/api/src ubuntu@43.133.44.232:/opt/linkchest/api/apps/api/ && scp -r project/apps/web/src ubuntu@43.133.44.232:/opt/linkchest/api/apps/web/ && scp project/apps/web/next.config.js project/apps/web/tsconfig.json project/apps/web/tailwind.config.ts project/apps/web/postcss.config.js ubuntu@43.133.44.232:/opt/linkchest/api/apps/web/ && ssh ubuntu@43.133.44.232 "cd /opt/linkchest/api/apps/api && npx prisma db push && npx prisma generate && pm2 restart linkchest-api && cd /opt/linkchest/api/apps/web && rm -rf .next && npm run build && pm2 restart linkchest-web"
-```
-
-### 7.3 数据库迁移注意事项
-
-| 方式 | 命令 | 适用场景 |
-|------|------|----------|
-| `prisma db push` | 直接将 schema 同步到数据库 | **推荐**：开发阶段、紧急修复 |
-| `prisma migrate deploy` | 执行迁移文件 | 正式发布、需要迁移历史记录 |
-
-> **⚠️ 常见陷阱**：`prisma migrate resolve --applied` 只标记迁移为"已应用"，**不会执行 SQL**。如果数据库实际缺少列，必须用 `prisma db push` 同步。
-
-### 7.4 部署验证
-
-```bash
-# 检查服务状态
-ssh ubuntu@43.133.44.232 "pm2 status"
-
-# 检查 API 健康状态
-curl https://linkchest.net/api/collections?page=1&limit=1
-
-# 检查 WEB 页面
-curl -s https://linkchest.net/ | head -5
-
-# 查看错误日志
-ssh ubuntu@43.133.44.232 "tail -50 /home/ubuntu/.pm2/logs/linkchest-api-error.log"
-ssh ubuntu@43.133.44.232 "tail -50 /home/ubuntu/.pm2/logs/linkchest-web-error.log"
-
-# 查看运行日志
-ssh ubuntu@43.133.44.232 "tail -50 /home/ubuntu/.pm2/logs/linkchest-api-out.log"
-```
-
-### 7.5 常见部署问题
-
-| 问题 | 原因 | 解决方案 |
-|------|------|----------|
-| **API 500 错误** | 数据库缺少新字段 | `npx prisma db push` 同步 schema |
-| **WEB 500 / MODULE_NOT_FOUND** | 本地构建的 `.next` 复制到服务器 | 在服务器上 `npm run build` |
-| **I18N 显示键名** | 翻译 key 嵌套路径不匹配 | 检查 JSON 嵌套层级与 `t()` 调用是否一致 |
-| **迁移冲突** | 表已存在但迁移未标记 | `npx prisma migrate resolve --applied <name>` |
-| **浏览器缓存旧版本** | 强缓存了旧 JS | `Ctrl+Shift+R` 强制刷新 |
+> **部署流程详见 [DEPLOYMENT.md](DEPLOYMENT.md)**，服务器信息和红线详见 [HIGH_RISK.md](HIGH_RISK.md)。
 
 ---
 

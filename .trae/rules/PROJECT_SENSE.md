@@ -83,7 +83,7 @@ linkchest/
 | 样式 | Tailwind CSS | ^3.4.0 | CSS 框架 |
 | 图标 | Lucide React | ^0.303.0 | 图标库 |
 | 状态管理 | TanStack Query | ^5.17.0 | 数据获取与缓存 |
-| 构建 | Vercel | - | 部署平台 |
+| 部署 | 自托管 | - | PM2 + Nginx |
 
 ### 3.3 移动端技术栈 (mobile)
 
@@ -187,7 +187,7 @@ npm run dev:mobile
 | `.env` | 环境变量 | `apps/api/.env` |
 | `schema.prisma` | 数据库 schema | `apps/api/prisma/schema.prisma` |
 | `turbo.json` | Turbo 构建配置 | `project/turbo.json` |
-| `eas.json` | Expo EAS 构建配置 | `apps/mobile/eas.json` |
+| `build-gradle.sh` | APK Gradle 构建脚本 | `apps/mobile/build-gradle.sh` |
 | `vite.config.ts` | Chrome 扩展构建配置 | `apps/chrome-extension/vite.config.ts` |
 
 ---
@@ -213,6 +213,27 @@ npm run build        # 构建
 npm run start        # 生产模式运行
 npm run test         # 运行测试
 npm run lint         # ESLint 检查
+```
+
+### 7.5 构建与部署命令
+
+#### APK 构建（WSL）
+```bash
+.\project\apps\mobile\build-apk.ps1           # 并行构建双版本（推荐）
+.\project\apps\mobile\build-apk.ps1 global    # 只构建国际版
+.\project\apps\mobile\build-apk.ps1 china     # 只构建国内版
+```
+
+#### 双 WSL 架构
+| WSL 实例 | 用途 | Flavor |
+|----------|------|--------|
+| linkchest-global | 国际版 APK | global |
+| linkchest-cn | 国内版 APK | china |
+
+#### 部署（Git-Only）
+```bash
+bash deploy/deploy.sh global    # 部署海外
+bash deploy/deploy.sh china     # 部署国内
 ```
 
 ---
@@ -317,4 +338,4 @@ interface PaginatedResponse<T> {
 ---
 
 *最后更新：2026-05-11*
-*版本：v1.0*
+*版本：v1.1 — 更新构建部署信息*

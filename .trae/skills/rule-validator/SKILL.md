@@ -248,32 +248,29 @@ bash .trae/rules-consistency-check.sh --verbose
 bash .trae/rules-consistency-check.sh --json
 ```
 
-## 规则文件清单（当前）v2.2
+## 规则文件清单（当前）v2.3
 
 ### Always 规则（始终加载）
 - `SOUL.md`
 - `USER.md`
 - `INTERACTION.md`
 - `RED_LINES.md`
-- `BUILD_RED_LINES.md`
-- `DEPLOY_RED_LINES.md`
+- `HIGH_RISK.md`
 
 ### Context 规则（上下文触发）
 - `PROJECT_SENSE.md`
-- `NAMING_CONVENTIONS.md`
-- `CONTEXT.md`
 - `INDEX.md`
 
 ### Task 规则（任务触发）
 - `BUILD.md`（含 APK 构建 + 时间戳命名）
+- `BUILD_RED_LINES.md`（构建红线，build 组）
 - `CODE_STYLE.md`
 - `TESTING.md`
 - `LINT.md`
 - `GIT_WORKFLOW.md`
-- `DEPENDENCY.md`
 - `DEPLOYMENT.md`
-- `DEBUG.md`
 - `MARKET-OPS.md`
+- `CAUTION_ZONE.md`（安全/应急响应，security 组）
 
 ### 通用规则（common/）
 - `DEVELOPMENT_WORKFLOW.md`
@@ -281,33 +278,25 @@ bash .trae/rules-consistency-check.sh --json
 - `HOOKS.md`
 - `AGENTS.md`
 - `PERFORMANCE.md`
-- `patterns.md`
-- `security.md`
-- `coding-style.md`
-- `testing.md`
 
 ### 已删除文件（禁止引用）
 - `linkchest-build-apk.md` — 已合并至 BUILD.md（2026-05-19）
 - `RIVERPOD.md` — 不存在的文件，禁止引用
+- `DEBUG.md` — 已移除（2026-05-22）
+- `DEPENDENCY.md` — 已移除（2026-05-22）
+- `CONTEXT.md` — 已移除（2026-05-22）
+- `BASE-INFO.md` — 已移除（2026-05-22）
+- `NAMING_CONVENTIONS.md` — 已合并至 CODE_STYLE.md（2026-05-22）
+- `common/security.md` — 已移除（2026-05-22）
+- `common/patterns.md` — 已移除（2026-05-22）
+- `common/README.md` — 已移除（2026-05-22）
+- `typescript/README.md` — 已移除（2026-05-22）
 
 ### 案例集锦
 - `cases/CASES_INDEX.md`
 - `cases/apk-build-errors.md`
 - `cases/service-build-errors.md`
 - `cases/env-dependency-errors.md`
-
-### 通用规则
-- `common/README.md`
-- `common/AGENTS.md`
-- `common/CODE_REVIEW.md`
-- `common/DEVELOPMENT_WORKFLOW.md`
-- `common/HOOKS.md`
-- `common/PERFORMANCE.md`
-- `common/patterns.md`
-- `common/security.md`
-
-### TypeScript 规则
-- `typescript/README.md`
 
 ## 常见问题
 

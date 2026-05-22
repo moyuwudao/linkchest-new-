@@ -1,5 +1,5 @@
 {
-  "version": "2.2",
+  "version": "2.4",
   "description": "LinkChest 规则智能加载索引 - 根据任务类型动态加载相关规则",
   "rules": {
     "core": {
@@ -15,32 +15,34 @@
       "priority": "always",
       "files": [
         "RED_LINES.md",
-        "HIGH_RISK.md",
-        "CAUTION_ZONE.md",
-        "BUILD_RED_LINES.md"
+        "HIGH_RISK.md"
       ],
-      "description": "安全红线（Zero Tolerance）、高风险操作、警告区域和构建红线，始终加载"
+      "description": "安全红线（Zero Tolerance）和高风险操作，始终加载"
+    },
+    "security": {
+      "priority": "task",
+      "files": [
+        "CAUTION_ZONE.md"
+      ],
+      "description": "警告区域（应急响应、Web安全），安全相关任务时加载",
+      "triggers": [
+        "安全",
+        "CSP",
+        "XSS",
+        "应急响应",
+        "安全头"
+      ]
     },
     "project": {
       "priority": "context",
       "files": [
-        "PROJECT_SENSE.md",
-        "NAMING_CONVENTIONS.md",
-        "CONTEXT.md"
+        "PROJECT_SENSE.md"
       ],
-      "description": "项目感知、命名约定和上下文保持，需要项目上下文时加载",
+      "description": "项目感知，需要项目上下文时加载",
       "triggers": [
         "项目结构",
         "技术栈",
-        "快速入门",
-        "命名规范",
-        "文件命名",
-        "变量命名",
-        "函数命名",
-        "上下文",
-        "记忆",
-        "会话",
-        "状态保持"
+        "快速入门"
       ]
     },
     "workflow": {
@@ -133,27 +135,13 @@
         "版本发布"
       ]
     },
-    "dependency": {
-      "priority": "task",
-      "files": [
-        "DEPENDENCY.md"
-      ],
-      "description": "依赖管理，依赖操作时加载",
-      "triggers": [
-        "依赖",
-        "npm install",
-        "依赖更新",
-        "依赖删除",
-        "安全漏洞",
-        "npm audit"
-      ]
-    },
     "build": {
       "priority": "task",
       "files": [
-        "BUILD.md"
+        "BUILD.md",
+        "BUILD_RED_LINES.md"
       ],
-      "description": "构建流程，构建相关操作时加载（含APK构建详细流程）",
+      "description": "构建流程和构建红线，构建相关操作时加载（含APK构建详细流程）",
       "triggers": [
         "构建",
         "build",
@@ -184,23 +172,6 @@
         "scp",
         "prisma db push",
         "migrate"
-      ]
-    },
-    "debugging": {
-      "priority": "task",
-      "files": [
-        "DEBUG.md"
-      ],
-      "description": "开发调试，调试/排查问题时加载",
-      "triggers": [
-        "调试",
-        "debug",
-        "排查",
-        "日志",
-        "报错",
-        "异常",
-        "DevTools",
-        "断点"
       ]
     },
     "hooks": {
@@ -245,33 +216,6 @@
         "数据库查询"
       ]
     },
-    "patterns": {
-      "priority": "task",
-      "files": [
-        "common/patterns.md"
-      ],
-      "description": "通用设计模式，架构设计时加载",
-      "triggers": [
-        "设计模式",
-        "架构",
-        "Repository",
-        "Clean Architecture",
-        "API 响应"
-      ]
-    },
-    "security-guide": {
-      "priority": "task",
-      "files": [
-        "common/security.md"
-      ],
-      "description": "通用安全指南，安全检查时加载",
-      "triggers": [
-        "安全检查",
-        "秘密管理",
-        "输入验证",
-        "安全测试"
-      ]
-    },
     "market-ops": {
       "priority": "task",
       "files": [
@@ -307,30 +251,6 @@
         "marketGuard"
       ]
     },
-    "base-info": {
-      "priority": "task",
-      "files": [
-        "BASE-INFO.md"
-      ],
-      "description": "基础信息规则，涉及信息查询/录入/更新/维护时加载",
-      "triggers": [
-        "基础信息",
-        "查询信息",
-        "信息录入",
-        "国内运营",
-        "海外运营",
-        "运营方案",
-        "部署情况",
-        "服务器配置",
-        "环境配置",
-        "信息更新",
-        "维护机制",
-        "时效性",
-        "权限管理",
-        "信息查询",
-        "配置确认"
-      ]
-    },
     "index": {
       "priority": "context",
       "files": [
@@ -342,6 +262,11 @@
         "快速查找",
         "规则结构"
       ]
+    },
+    "ecc-skills": {
+      "files": ["ECC_SKILLS.md"],
+      "priority": "task",
+      "triggers": ["ECC Skill", "backend-patterns", "database-migrations", "security-review", "frontend-patterns", "git-workflow", "docker-patterns", "deployment-patterns"]
     }
   },
   "agents": {
@@ -428,5 +353,39 @@
         "agent": "refactor-cleaner"
       }
     ]
+  },
+  "skills": {
+    "deploy-linkchest": {
+      "description": "部署自动化引导",
+      "triggers": ["部署", "deploy", "上线", "发布", "ssh ubuntu@", "pm2 restart"],
+      "bound_rules": ["HIGH_RISK.md", "DEPLOYMENT.md", "BUILD_RED_LINES.md", "ECC_SKILLS.md"]
+    },
+    "build-error-diagnose": {
+      "description": "构建错误自动诊断",
+      "triggers": ["构建失败", "编译错误", "build error", "gradle", "MODULE_NOT_FOUND"],
+      "bound_rules": ["BUILD_RED_LINES.md", "BUILD.md", "ECC_SKILLS.md"]
+    },
+    "check-servers": {
+      "description": "服务器健康检查",
+      "triggers": ["检查服务器", "服务器状态", "健康检查", "服务是否正常"],
+      "bound_rules": ["HIGH_RISK.md", "ECC_SKILLS.md"]
+    },
+    "rule-validator": {
+      "description": "规则文件验证",
+      "triggers": ["验证规则", "创建规则", "检查规则"],
+      "bound_rules": ["INDEX.md"]
+    }
+  },
+  "mcp": {
+    "github": {
+      "status": "connected",
+      "primary_uses": ["PR管理", "Issue追踪", "代码搜索", "部署前commit检查"],
+      "integrated_skills": ["deploy-linkchest"]
+    },
+    "playwright": {
+      "status": "connected",
+      "primary_uses": ["部署后页面验证", "E2E测试", "WEB渲染检查"],
+      "integrated_skills": ["deploy-linkchest", "check-servers"]
+    }
   }
 }

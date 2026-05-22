@@ -716,7 +716,7 @@ npx expo prebuild --platform android --clean
 ### 根因
 
 1. **未阅读 BUILD.md 规则**：不知道必须使用 WSL 构建
-2. **未识别构建规则加载**：`BUILD.md` 为 `alwaysApply: false`，SOLO Agent 未识别构建场景；构建红线由 `BUILD_RED_LINES.md`（alwaysApply: true）兜底保护
+2. **未识别构建规则加载**：`BUILD.md` 为 `alwaysApply: false`，SOLO Agent 未识别构建场景；构建红线由 `BUILD_RED_LINES.md`（alwaysApply: false，构建时自动加载）兜底保护
 3. **试图使用云构建服务**：EAS 需要 Expo 账号和 eas-cli，项目环境不满足
 
 ### 解决

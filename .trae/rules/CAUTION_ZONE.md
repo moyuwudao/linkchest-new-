@@ -1,12 +1,12 @@
 ---
-alwaysApply: true
-description: 警告区域规则 - 应急响应与Web安全（黄色区域）
+alwaysApply: false
+description: 警告区域规则 - 应急响应与Web安全，安全事件或Web配置时自动加载
 ---
 
 # CAUTION_ZONE.md — 警告区域（黄色区域）
 
 > 本文档定义安全事件的应急响应流程和Web安全配置要求。
-> **本规则 alwaysApply: true，任何Agent在任何场景下都必须遵守。**
+> **本规则 alwaysApply: false，安全事件或Web配置时自动加载。安全底线任何Agent必须遵守。**
 
 ---
 

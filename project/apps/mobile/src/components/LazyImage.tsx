@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Image, Animated, StyleProp, ImageStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getCachedCoverPath, cacheCover } from '../lib/coverCache';
-import { getDefaultCoverStyle, GradientCoverStyle } from '../lib/platforms';
+import { getDefaultCoverStyle, GradientCoverStyle, getPlatformColor, getPlatformName } from '../lib/platforms';
 
 /** 增强版封面 Fallback：纯色背景 + 图标 + 首字 + 平台名 */
 function CoverFallback({ style, coverStyle }: { style?: StyleProp<ImageStyle>; coverStyle: GradientCoverStyle }) {
@@ -63,6 +63,82 @@ function CoverFallback({ style, coverStyle }: { style?: StyleProp<ImageStyle>; c
   );
 }
 
+/** 品牌色封面 Fallback：使用平台品牌色作为背景 */
+function BrandCoverFallback({ style, platformColor, title, platformName }: {
+  style?: StyleProp<ImageStyle>;
+  platformColor: string;
+  title?: string;
+  platformName?: string;
+}) {
+  // 计算颜色亮度，决定文字颜色
+  const hex = platformColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  const textColor = luminance > 0.6 ? '#333333' : '#ffffff';
+  const secondaryTextColor = luminance > 0.6 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)';
+
+  // 获取首字
+  const initial = title?.trim()?.charAt(0) || platformName?.trim()?.charAt(0) || '?';
+
+  return (
+    <View
+      style={[
+        {
+          backgroundColor: platformColor,
+          justifyContent: 'center',
+          alignItems: 'center',
+          overflow: 'hidden',
+        },
+        style,
+      ]}
+    >
+      {/* 半透明装饰圆 */}
+      <View
+        style={{
+          position: 'absolute',
+          width: 80,
+          height: 80,
+          borderRadius: 40,
+          backgroundColor: luminance > 0.6 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          borderColor: luminance > 0.6 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Ionicons name="globe-outline" size={22} color={secondaryTextColor} />
+      </View>
+      {/* 首字 */}
+      <Text
+        style={{
+          fontSize: 36,
+          fontWeight: '700',
+          color: textColor,
+          marginTop: 48,
+          textShadowColor: luminance > 0.6 ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.3)',
+          textShadowOffset: { width: 0, height: 1 },
+          textShadowRadius: 3,
+        }}
+      >
+        {initial}
+      </Text>
+      {/* 平台名 */}
+      <Text
+        style={{
+          fontSize: 11,
+          color: secondaryTextColor,
+          marginTop: 4,
+        }}
+        numberOfLines={1}
+      >
+        {platformName || ''}
+      </Text>
+    </View>
+  );
+}
+
 interface LazyImageProps {
   uri: string | null;
   style?: StyleProp<ImageStyle>;
@@ -88,6 +164,9 @@ export default function LazyImage({
   const coverStyle = fallbackPlatform
     ? getDefaultCoverStyle(fallbackPlatform, fallbackTitle)
     : null;
+
+  // 获取平台品牌色（用于 brand 封面模式）
+  const platformColor = fallbackPlatform ? getPlatformColor(fallbackPlatform) : '#999999';
 
   const resolveUri = useCallback(async (sourceUri: string) => {
     const cached = await getCachedCoverPath(sourceUri);
@@ -148,7 +227,17 @@ export default function LazyImage({
   }, [fadeAnim, localUri, uri]);
 
   if (!localUri || hasError) {
-    if (showGradientFallback && coverStyle) {
+    if (showGradientFallback && fallbackPlatform) {
+      return (
+        <BrandCoverFallback
+          style={style}
+          platformColor={platformColor}
+          title={fallbackTitle}
+          platformName={getPlatformName(fallbackPlatform)}
+        />
+      );
+    }
+    if (coverStyle) {
       return <CoverFallback style={style} coverStyle={coverStyle} />;
     }
     return (
