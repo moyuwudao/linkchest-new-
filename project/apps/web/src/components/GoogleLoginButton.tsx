@@ -5,11 +5,19 @@ import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oau
 interface GoogleLoginButtonProps {
   onSuccess: (credentialResponse: CredentialResponse) => void;
   onError: () => void;
+  clientId?: string;
 }
 
-export default function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps) {
+export default function GoogleLoginButton({ onSuccess, onError, clientId }: GoogleLoginButtonProps) {
+  const googleClientId = clientId || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  
+  if (!googleClientId) {
+    console.warn('[GoogleLoginButton] No clientId provided');
+    return null;
+  }
+  
   return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+    <GoogleOAuthProvider clientId={googleClientId}>
       <GoogleLogin
         onSuccess={onSuccess}
         onError={onError}

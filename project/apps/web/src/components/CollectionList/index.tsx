@@ -584,7 +584,7 @@ export default function CollectionList() {
       )}
 
       {detailItem && (
-        <CollectionDetailModal item={detailItem} onClose={() => setDetailItem(null)} onDelete={handleDelete} />
+        <CollectionDetailModal item={detailItem} onClose={() => setDetailItem(null)} onDelete={handleDelete} editMode={editMode} />
       )}
 
       {moveModal && (

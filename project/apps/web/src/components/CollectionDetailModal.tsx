@@ -26,9 +26,10 @@ interface CollectionDetailModalProps {
   item: CollectionItem;
   onClose: () => void;
   onDelete: (item: CollectionItem) => void;
+  editMode?: boolean;
 }
 
-export default function CollectionDetailModal({ item, onClose, onDelete }: CollectionDetailModalProps) {
+export default function CollectionDetailModal({ item, onClose, onDelete, editMode = false }: CollectionDetailModalProps) {
   const { t } = useI18n();
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -132,32 +133,34 @@ export default function CollectionDetailModal({ item, onClose, onDelete }: Colle
             </div>
           )}
 
-          {/* Action buttons */}
-          <div className="flex gap-3 pt-4 border-t border-parchment/20 dark:border-charcoal/40">
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 py-2.5 bg-chest-500 text-white rounded-lg hover:bg-chest-600 text-center text-sm font-medium flex items-center justify-center gap-1.5"
-            >
-              <ExternalLink size={14} />
-              {t('collection.detail.openLink')}
-            </a>
-            <Link
-              href={`/edit/${item.id}`}
-              className="flex-1 py-2.5 border border-parchment/30 dark:border-charcoal/40 text-charcoal dark:text-parchment/80 rounded-lg hover:bg-parchment/10 dark:hover:bg-charcoal/30 text-center text-sm font-medium flex items-center justify-center gap-1.5"
-            >
-              <Edit2 size={14} />
-              {t('collection.detail.edit')}
-            </Link>
-            <button
-              onClick={() => onDelete(item)}
-              className="flex-1 py-2.5 border border-rust/20 dark:border-rust/30 text-rust rounded-lg hover:bg-rust/5 dark:hover:bg-rust/10 text-sm font-medium flex items-center justify-center gap-1.5"
-            >
-              <Trash2 size={14} />
-              {t('collection.detail.delete')}
-            </button>
-          </div>
+          {/* Action buttons - 仅在非多选模式下显示 */}
+          {!editMode && (
+            <div className="flex gap-3 pt-4 border-t border-parchment/20 dark:border-charcoal/40">
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2.5 bg-chest-500 text-white rounded-lg hover:bg-chest-600 text-center text-sm font-medium flex items-center justify-center gap-1.5"
+              >
+                <ExternalLink size={14} />
+                {t('collection.detail.openLink')}
+              </a>
+              <Link
+                href={`/edit/${item.id}`}
+                className="flex-1 py-2.5 border border-parchment/30 dark:border-charcoal/40 text-charcoal dark:text-parchment/80 rounded-lg hover:bg-parchment/10 dark:hover:bg-charcoal/30 text-center text-sm font-medium flex items-center justify-center gap-1.5"
+              >
+                <Edit2 size={14} />
+                {t('collection.detail.edit')}
+              </Link>
+              <button
+                onClick={() => onDelete(item)}
+                className="flex-1 py-2.5 border border-rust/20 dark:border-rust/30 text-rust rounded-lg hover:bg-rust/5 dark:hover:bg-rust/10 text-sm font-medium flex items-center justify-center gap-1.5"
+              >
+                <Trash2 size={14} />
+                {t('collection.detail.delete')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

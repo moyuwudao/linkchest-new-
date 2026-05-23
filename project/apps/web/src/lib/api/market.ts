@@ -31,6 +31,12 @@ export interface MarketConfig {
     twitter: boolean;
     instagram: boolean;
   };
+  clientIds: {
+    google: string | null;
+    facebook: string | null;
+    wechat: string | null;
+    alipay: string | null;
+  };
 }
 
 export async function getMarketConfig(): Promise<MarketConfig> {

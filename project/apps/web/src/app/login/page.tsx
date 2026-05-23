@@ -13,9 +13,8 @@ import { getErrorMessage } from '@linkchest/i18n';
 import { getMarketConfig, MarketConfig } from '@/lib/api/market';
 
 // 动态导入 Google 组件，避免服务端渲染问题
-const GoogleLoginButton = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-  ? lazy(() => import('@/components/GoogleLoginButton'))
-  : null;
+// 不再在模块级别判断，改为在组件内根据市场配置动态渲染
+const GoogleLoginButton = lazy(() => import('@/components/GoogleLoginButton'));
 
 import type { CredentialResponse } from '@react-oauth/google';
 
@@ -597,11 +596,12 @@ function LoginForm() {
                       <div className="flex-1 border-t border-taupe/15 dark:border-parchment/10" />
                     </div>
                     <div className="flex justify-center gap-3 pt-2">
-                      {GoogleLoginButton && marketConfig.authProviders.google && (
+                      {marketConfig.authProviders.google && (
                         <Suspense fallback={<div className="w-10 h-10" />}>
                           <GoogleLoginButton
                             onSuccess={handleGoogleSuccess}
                             onError={handleGoogleError}
+                            clientId={marketConfig.clientIds?.google || undefined}
                           />
                         </Suspense>
                       )}
