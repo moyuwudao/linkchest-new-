@@ -474,7 +474,8 @@
     "processing": "处理中...",
     "paypal": "PayPal",
     "paypalError": "PayPal 支付失败，请重试",
-    "paypalCaptureFailed": "PayPal 支付确认失败"
+    "paypalCaptureFailed": "PayPal 支付确认失败",
+    "monthlyBilling": "月付"
   },
   "pricing": {
     "title": "套餐定价",

@@ -160,7 +160,12 @@ find src -name '*.tsx' -o -name '*.ts' | while read f; do
   fi
 done
 
-npx next build
+echo "  开始构建 Web (超时 10 分钟)..."
+timeout 600 npx next build || {
+    echo "  ❌ Web 构建失败或超时"
+    echo "  检查日志: pm2 logs $PM2_WEB --lines 50 --nostream"
+    exit 1
+}
 
 echo "  重启 Web 服务..."
 pm2 delete "$PM2_WEB" 2>/dev/null || true

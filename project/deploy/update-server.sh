@@ -174,7 +174,12 @@ find src -name '*.tsx' -o -name '*.ts' | while read f; do
 done
 
 # 先构建，再重启 — 减少旧 chunk 被删除但新服务未启动的窗口
-npx next build
+echo "  开始构建 Web (超时 10 分钟)..."
+timeout 600 npx next build || {
+    echo "  ❌ Web 构建失败或超时"
+    echo "  检查日志: pm2 logs linkchest-web --lines 50 --nostream"
+    exit 1
+}
 
 # 构建成功后先彻底删除旧进程，再全新启动
 # 确保 --cwd 配置真正生效，避免旧进程缓存旧的构建路径

@@ -671,6 +671,16 @@
     "langZh": "中文",
     "referralCode": "Referral Code (optional)"
   },
+  "payment": {
+    "success": "Payment successful! Plan upgraded",
+    "canceled": "Payment canceled",
+    "checkoutFailed": "Payment checkout failed",
+    "processing": "Processing...",
+    "paypal": "PayPal",
+    "paypalError": "PayPal payment failed, please try again",
+    "paypalCaptureFailed": "PayPal payment capture failed",
+    "monthlyBilling": "Monthly"
+  },
   "terms": {
     "title": "Terms of Service"
   },
