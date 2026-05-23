@@ -1,11 +1,15 @@
 #!/bin/bash
 # ============================================================
-# LinkChest Git-Only 统一部署入口
+# LinkChest Git-Only 统一部署入口 (MCP 优先版本)
 # 所有代码通过服务器端 git pull 更新，不从本地推送
 #
 # 使用方式:
 #   bash deploy/deploy.sh global   # 部署海外版
 #   bash deploy/deploy.sh china    # 部署国内版
+#
+# MCP 连接方式（优先）:
+#   通过 aliyun-servers MCP 连接服务器，避免 SSH 命令
+#   降级方案: 传统 SSH 命令
 # ============================================================
 
 set -e
@@ -76,18 +80,68 @@ else
 fi
 echo ""
 
-# [2/4] 测试 SSH 连接
-echo -e "[2/4] ${BLUE}测试 SSH 连接...${NC}"
-if ! ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} "echo OK" 2>/dev/null | grep -q "OK"; then
-    echo -e "  ${RED}❌ SSH 连接失败: ubuntu@${SERVER_IP}${NC}"
-    exit 1
+# [2/4] 测试服务器连接 (MCP 优先，降级 SSH)
+echo -e "[2/4] ${BLUE}测试服务器连接...${NC}"
+
+# 检测是否支持 MCP 方式
+USE_MCP=false
+CONNECTION_ID=""
+
+# 检查 mcp_aliyun-servers_ssh_connect 是否可用
+if command -v mcp_aliyun-servers_ssh_connect >/dev/null 2>&1; then
+    echo -e "  ${BLUE}尝试 MCP 连接...${NC}"
+    # MCP 连接
+    CONNECTION_OUTPUT=$(mcp_aliyun-servers_ssh_connect host="$SERVER_IP" username="ubuntu" 2>&1) || true
+    CONNECTION_ID=$(echo "$CONNECTION_OUTPUT" | grep -oE 'connectionId["'\''"'\'']?\s*[:=]\s*["'\''"'\'']?[^"'\''"'\''\s]+' | sed 's/.*[=:]\s*//' | tr -d '"'\''"'\'' \t' | head -1)
+    
+    if [ -n "$CONNECTION_ID" ]; then
+        echo -e "  ${GREEN}✓ MCP 连接成功 (connectionId: ${CONNECTION_ID:0:8}...)${NC}"
+        USE_MCP=true
+    else
+        echo -e "  ${YELLOW}⚠ MCP 连接未返回 connectionId，降级到 SSH${NC}"
+    fi
+else
+    echo -e "  ${YELLOW}⚠ MCP 工具不可用，使用 SSH${NC}"
 fi
-echo "  ✓ SSH 连接正常"
+
+# SSH 降级方案
+if [ "$USE_MCP" = false ]; then
+    if ! ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} "echo OK" 2>/dev/null | grep -q "OK"; then
+        echo -e "  ${RED}❌ SSH 连接失败: ubuntu@${SERVER_IP}${NC}"
+        exit 1
+    fi
+    echo -e "  ${GREEN}✓ SSH 连接正常${NC}"
+fi
 echo ""
 
 # [3/4] 服务器端 git pull + 执行更新脚本
 echo -e "[3/4] ${BLUE}服务器端更新代码并执行 ${UPDATE_SCRIPT}...${NC}"
-ssh -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} << ENDSSH
+
+if [ "$USE_MCP" = true ] && [ -n "$CONNECTION_ID" ]; then
+    # MCP 方式执行
+    echo -e "  ${BLUE}使用 MCP 执行...${NC}"
+    
+    # 执行 git pull
+    echo -e "  ${BLUE}  → git pull${NC}"
+    mcp_aliyun-servers_ssh_exec connectionId="$CONNECTION_ID" command="cd $REMOTE_DIR && git pull" || {
+        echo -e "  ${RED}❌ MCP git pull 失败${NC}"
+        mcp_aliyun-servers_ssh_disconnect connectionId="$CONNECTION_ID" >/dev/null 2>&1 || true
+        exit 1
+    }
+    
+    # 执行更新脚本
+    echo -e "  ${BLUE}  → bash ${UPDATE_SCRIPT}${NC}"
+    mcp_aliyun-servers_ssh_exec connectionId="$CONNECTION_ID" command="cd $REMOTE_DIR && bash $UPDATE_SCRIPT" || {
+        echo -e "  ${RED}❌ MCP 执行 ${UPDATE_SCRIPT} 失败${NC}"
+        mcp_aliyun-servers_ssh_disconnect connectionId="$CONNECTION_ID" >/dev/null 2>&1 || true
+        exit 1
+    }
+    
+    # 断开 MCP 连接
+    mcp_aliyun-servers_ssh_disconnect connectionId="$CONNECTION_ID" >/dev/null 2>&1 || true
+else
+    # SSH 方式执行
+    ssh -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} << ENDSSH
 set -e
 cd ${REMOTE_DIR}
 
@@ -98,6 +152,8 @@ echo ""
 echo ">>> bash ${UPDATE_SCRIPT}"
 bash ${UPDATE_SCRIPT}
 ENDSSH
+fi
+
 echo ""
 echo -e "  ${GREEN}✓ 服务器更新完成${NC}"
 echo ""

@@ -886,32 +886,7 @@ export default function CollectionList() {
                   )}
                 </div>
 
-                {/* Actions - only show in non-edit mode on hover */}
-                {!editMode && (
-                  <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-parchment/10 dark:border-charcoal/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setMoveModal({ type: 'list', item }); }}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-charcoal dark:text-parchment hover:bg-parchment/10 dark:hover:bg-charcoal/30 rounded-lg transition-colors"
-                    >
-                      <Move size={14} />
-                      {t('collection.moveToGroup')}
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setMoveModal({ type: 'tag', item }); }}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-charcoal dark:text-parchment hover:bg-parchment/10 dark:hover:bg-charcoal/30 rounded-lg transition-colors"
-                    >
-                      <TagIcon size={14} />
-                      {t('collection.addTag')}
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(item); }}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-rust hover:bg-rust/5 dark:hover:bg-rust/10 rounded-lg transition-colors"
-                    >
-                      <Trash2 size={14} />
-                      {t('collection.delete')}
-                    </button>
-                  </div>
-                )}
+
               </div>
               );
               });
