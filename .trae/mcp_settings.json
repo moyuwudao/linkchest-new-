@@ -1,9 +1,8 @@
 {
   "mcpServers": {
-    "tencent-servers": {
-      "command": "node",
-      "args": ["dist/index.js"],
-      "cwd": "d:/trae_projects/linkchest/project/mcp-tencent-servers"
+    "aliyun-servers": {
+      "type": "builtin",
+      "serverName": "aliyun-servers"
     }
   }
 }

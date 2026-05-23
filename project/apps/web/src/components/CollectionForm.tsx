@@ -561,10 +561,20 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <div className="flex items-center justify-center mb-6">
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={() => router.back()}
+          className="p-2 hover:bg-chest-100 dark:hover:bg-chest-700/50 rounded-lg transition-colors"
+          aria-label="back"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-charcoal dark:text-parchment">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+        </button>
         <h1 className="text-2xl font-bold text-charcoal dark:text-parchment">
           {isAdd ? t('add.title') : t('edit.title')}
         </h1>
+        <div className="w-10" />
       </div>
 
       <div className="space-y-6">

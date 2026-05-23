@@ -213,13 +213,13 @@ DB_CHECK=$(nc -zv "$DB_HOST" "$DB_PORT" -w 3 2>&1 && echo "OK" || echo "FAILED")
 if echo "$API_HEALTH" | grep -q "ok"; then
   echo "✅ API 正常 (localhost:3001)"
 else
-  echo "❌ API 异常 - pm2 logs $PM2_API"
+  echo "❌ API 异常 - pm2 logs $PM2_API --lines 50 --nostream"
 fi
 
 if [ "$WEB_STATUS" = "200" ] || [ "$WEB_STATUS" = "307" ]; then
   echo "✅ Web 正常 (HTTP $WEB_STATUS)"
 else
-  echo "❌ Web 异常 (HTTP $WEB_STATUS) - pm2 logs $PM2_WEB"
+  echo "❌ Web 异常 (HTTP $WEB_STATUS) - pm2 logs $PM2_WEB --lines 50 --nostream"
 fi
 
 if echo "$DB_CHECK" | grep -q "OK"; then

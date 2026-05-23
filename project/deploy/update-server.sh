@@ -276,13 +276,13 @@ STATIC_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3003/_ne
 if echo "$API_HEALTH" | grep -q "ok"; then
     echo "✅ API 正常 (http://localhost:3001)"
 else
-    echo "❌ API 异常 - 检查日志: pm2 logs linkchest-api"
+    echo "❌ API 异常 - 检查日志: pm2 logs linkchest-api --lines 50 --nostream"
 fi
 
 if [ "$WEB_STATUS" = "200" ] || [ "$WEB_STATUS" = "307" ]; then
     echo "✅ Web 服务运行中 (HTTP $WEB_STATUS)"
 else
-    echo "❌ Web 异常 (HTTP $WEB_STATUS) - 检查日志: pm2 logs linkchest-web"
+    echo "❌ Web 异常 (HTTP $WEB_STATUS) - 检查日志: pm2 logs linkchest-web --lines 50 --nostream"
 fi
 
 if [ "$STATIC_STATUS" = "200" ] || [ "$STATIC_STATUS" = "403" ] || [ "$STATIC_STATUS" = "404" ]; then
