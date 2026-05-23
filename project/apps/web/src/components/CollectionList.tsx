@@ -9,7 +9,8 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 import { getToken } from '@/lib/auth';
 import { useI18n, getListDisplayName, getListPathDisplayName } from '@/lib/i18n';
-import { platformNames, getContrastTextColor, PLATFORMS, generateDefaultCover } from '@/lib/platforms';
+import { platformNames, PLATFORMS, generateDefaultCover } from '@/lib/platforms';
+import { PlatformBadge } from './PlatformBadge';
 import { PAGE_TYPES, PageTypeIcon, getPageTypeConfig } from '@/lib/pageTypes';
 import LazyImage from './LazyImage';
 import UndoToast from './UndoToast';
@@ -737,7 +738,7 @@ export default function CollectionList() {
               const rowItems = collections.slice(rowStart, rowStart + COLS);
               return rowItems.map((item, colIdx) => {
                 if (!item) return null;
-                const platformColor = PLATFORMS.find(p => p.key === item.platform)?.color || '#6b7280';
+
                 const isLeft = colIdx === 0;
                 const itemWidth = COLS === 1 ? '100%' : isLeft ? 'calc(50% - 8px)' : 'calc(50% - 8px)';
                 const itemLeft = COLS === 1 ? 0 : isLeft ? 0 : 'calc(50% + 8px)';
@@ -777,11 +778,8 @@ export default function CollectionList() {
                       />
                       {/* Platform badge on cover */}
                       {enabledFields.has('platform') && (
-                        <div
-                          className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-white text-[10px] font-semibold z-10 backdrop-blur-sm"
-                          style={{ backgroundColor: platformColor + 'cc' }}
-                        >
-                          {platformNames[item.platform] || item.platform}
+                        <div className="absolute bottom-1.5 left-1.5 z-10">
+                          <PlatformBadge platform={item.platform} size="sm" />
                         </div>
                       )}
                     </div>
@@ -896,7 +894,6 @@ export default function CollectionList() {
           /* Card masonry view - Pinterest style */
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 stagger-children">
             {collections.map((item) => {
-              const platformColor = PLATFORMS.find(p => p.key === item.platform)?.color || '#6b7280';
               return (
                 <div
                   key={item.id}
@@ -932,12 +929,7 @@ export default function CollectionList() {
                           </span>
                         )}
                         {enabledFields.has('platform') && (
-                          <span
-                            className={`px-2 py-0.5 text-[10px] font-medium rounded-full shadow-sm backdrop-blur-sm ${getContrastTextColor(platformColor)}`}
-                            style={{ backgroundColor: platformColor + 'dd' }}
-                          >
-                            {platformNames[item.platform] || item.platform}
-                          </span>
+                          <PlatformBadge platform={item.platform} size="sm" />
                         )}
                       </div>
                       {/* Hover overlay with quick actions */}

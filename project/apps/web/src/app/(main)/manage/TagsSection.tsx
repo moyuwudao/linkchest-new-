@@ -7,7 +7,8 @@ import Link from 'next/link';
 import { api, ApiError } from '@/lib/api';
 import StarRating from '@/components/StarRating';
 import { useI18n } from '@/lib/i18n';
-import { platformNames, PLATFORMS, getContrastTextColor, generateDefaultCover } from '@/lib/platforms';
+import { generateDefaultCover } from '@/lib/platforms';
+import { PlatformBadge } from '@/components/PlatformBadge';
 import { EmptyState } from '@/components/ui';
 import { useToast } from '@/components/Toast';
 import LazyImage from '@/components/LazyImage';
@@ -69,10 +70,7 @@ function TagDetailModal({ tagId, tagName, onClose }: { tagId: string; tagName: s
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-charcoal dark:text-parchment text-sm line-clamp-2">{item.title}</p>
                     <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                      <span className={`px-1.5 py-0.5 text-xs rounded ${getContrastTextColor(PLATFORMS.find(p => p.key === item.platform)?.color || '#999999')}`}
-                        style={{ backgroundColor: PLATFORMS.find(p => p.key === item.platform)?.color || '#6b7280' }}>
-                        {platformNames[item.platform] || item.platform}
-                      </span>
+                      <PlatformBadge platform={item.platform} size="sm" />
                       {item.rating != null && <StarRating value={item.rating} size={12} readonly ariaLabel={t('collection.filter.rating')} />}
                       {item.lists.slice(0, 2).map(list => (
                         <span key={list.id} className="px-1.5 py-0.5 text-xs bg-parchment/20 dark:bg-chest-700/40 text-taupe dark:text-parchment/60 rounded">

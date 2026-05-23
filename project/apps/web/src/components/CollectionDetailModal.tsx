@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { X, Globe, ExternalLink, Edit2, Trash2, FolderOpen } from 'lucide-react';
 import { useI18n, getListDisplayName } from '@/lib/i18n';
-import { platformNames, getContrastTextColor, PLATFORMS } from '@/lib/platforms';
+import { PlatformBadge } from './PlatformBadge';
 import { PageTypeIcon, getPageTypeConfig } from '@/lib/pageTypes';
 import LazyImage from './LazyImage';
 import StarRating from './StarRating';
@@ -59,10 +59,7 @@ export default function CollectionDetailModal({ item, onClose, onDelete, editMod
 
           {/* Platform badge & Page Type */}
           <div className="flex items-center gap-2 mb-4">
-            <span className={`px-2.5 py-1 text-xs rounded font-medium ${getContrastTextColor(PLATFORMS.find(p => p.key === item.platform)?.color || '#999999')}`}
-              style={{ backgroundColor: PLATFORMS.find(p => p.key === item.platform)?.color || '#6b7280' }}>
-              {platformNames[item.platform] || item.platform}
-            </span>
+            <PlatformBadge platform={item.platform} size="md" />
             {item.pageType && (
               <span className="px-2.5 py-1 text-xs rounded font-medium bg-parchment/30 dark:bg-charcoal/40 text-taupe dark:text-parchment/60 flex items-center gap-1">
                 <PageTypeIcon type={item.pageType} size={12} />

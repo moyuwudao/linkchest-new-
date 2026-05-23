@@ -5,7 +5,8 @@ import { X, ExternalLink, Loader2, Lock, Clock, FileText, Calendar, Copy, Bookma
 import StarRating from '@/components/StarRating';
 import { api, recordShareView, type ApiError } from '@/lib/api';
 import { getToken } from '@/lib/auth';
-import { platformNames, PLATFORMS, getContrastTextColor, generateDefaultCover } from '@/lib/platforms';
+import { generateDefaultCover } from '@/lib/platforms';
+import { PlatformBadge } from './PlatformBadge';
 import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 import LazyImage from '@/components/LazyImage';
@@ -347,10 +348,7 @@ export default function ShareViewModal({ shareId, onClose, showSaveButton }: { s
                   <div className={`flex-1 min-w-0 ${isLocked ? 'opacity-30 blur-sm select-none' : ''}`}>
                     <p className="font-medium text-charcoal dark:text-parchment text-sm line-clamp-2">{item.title}</p>
                     <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                      <span className={`px-1.5 py-0.5 text-xs rounded ${getContrastTextColor(PLATFORMS.find(p => p.key === item.platform)?.color || '#999999')}`}
-                        style={{ backgroundColor: PLATFORMS.find(p => p.key === item.platform)?.color || '#6b7280' }}>
-                        {platformNames[item.platform] || item.platform}
-                      </span>
+                      <PlatformBadge platform={item.platform} size="sm" />
                       {item.rating != null && (
                         <StarRating value={item.rating} size={12} readonly ariaLabel={t('collection.filter.rating')} />
                       )}

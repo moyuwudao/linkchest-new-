@@ -6,6 +6,7 @@ import { useI18n, getListDisplayName } from '@/lib/i18n'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { getPlatformName, getPlatformColor, getPlatformIcon, isPlatformValid } from '@/lib/platforms'
+import { PlatformBadge } from './PlatformBadge'
 import { isValidUrl, parseShareText, parseUrlPlatform } from '@/lib/utils'
 import CoverEditor from '@/components/CoverEditor'
 import StarRating from '@/components/StarRating'
@@ -638,9 +639,12 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
 
         {/* 封面编辑器 */}
         <div className="p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-xl">
-          <label className="block text-sm font-medium mb-2 text-charcoal dark:text-parchment">
-            {t('add.coverImage')}
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-charcoal dark:text-parchment">
+              {t('add.coverImage')}
+            </label>
+            <PlatformBadge platform={platform} size="sm" />
+          </div>
           <CoverEditor
             value={coverImage}
             onChange={setCoverImage}

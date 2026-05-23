@@ -7,7 +7,8 @@ import StarRating from '@/components/StarRating';
 import { getToken } from '@/lib/auth';
 import { api, recordShareView, type ApiError } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
-import { platformNames as platformNamesLib, getContrastTextColor, PLATFORMS, generateDefaultCover } from '@/lib/platforms';
+import { generateDefaultCover } from '@/lib/platforms';
+import { PlatformBadge } from '@/components/PlatformBadge';
 import { useToast } from '@/components/Toast';
 import LazyImage from '@/components/LazyImage';
 
@@ -39,7 +40,7 @@ interface SharePageClientProps {
   initialData?: ShareData;
 }
 
-const platformNames = platformNamesLib;
+
 
 export default function SharePageClient({ initialData }: SharePageClientProps) {
   const params = useParams();
@@ -465,14 +466,9 @@ export default function SharePageClient({ initialData }: SharePageClientProps) {
                 />
 
                 {/* Platform Badge */}
-                <span
-                  className={`absolute top-2 left-2 px-2 py-0.5 text-xs rounded ${
-                    getContrastTextColor(PLATFORMS.find(p => p.key === item.platform)?.color || '#999999')
-                  }`}
-                  style={{ backgroundColor: PLATFORMS.find(p => p.key === item.platform)?.color || '#6b7280' }}
-                >
-                  {platformNames[item.platform] || item.platform}
-                </span>
+                <div className="absolute top-2 left-2">
+                  <PlatformBadge platform={item.platform} size="sm" />
+                </div>
               </div>
 
                 {/* Info */}

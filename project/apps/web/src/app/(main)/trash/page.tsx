@@ -8,7 +8,8 @@ import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 import { cn } from '@/lib/utils';
 import LazyImage from '@/components/LazyImage';
-import { getPlatformInfo } from '@/lib/platforms';
+
+import { PlatformBadge } from '@/components/PlatformBadge';
 
 interface TrashItem {
   id: string;
@@ -194,7 +195,6 @@ export default function TrashPage() {
           <>
             <div className="space-y-3">
               {items.map((item) => {
-                const platform = getPlatformInfo(item.platform);
                 const isSelected = selectedIds.has(item.id);
 
                 return (
@@ -238,15 +238,7 @@ export default function TrashPage() {
                         {item.title}
                       </p>
                       <div className="flex items-center gap-1.5 mt-1.5">
-                        {platform && (
-                          <span
-                            className="w-3 h-3 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: platform.color }}
-                          />
-                        )}
-                        <span className="text-xs text-chest-400 dark:text-parchment/40 truncate">
-                          {platform?.name || item.platform}
-                        </span>
+                        <PlatformBadge platform={item.platform} size="sm" />
                         <span className="text-xs text-chest-300 dark:text-parchment/30">
                           · {t('collection.trash.deletedAt', {
                             date: new Date(item.deletedAt).toLocaleDateString(),

@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { getToken } from '@/lib/auth';
 import { useI18n, getListDisplayName, getListPathDisplayName } from '@/lib/i18n';
 import { platformNames, PLATFORMS, getContrastTextColor } from '@/lib/platforms';
+import { PlatformBadge } from '../PlatformBadge';
 import { PAGE_TYPES, PageTypeIcon } from '@/lib/pageTypes';
 import LazyImage from '../LazyImage';
 import UndoToast from '../UndoToast';
@@ -438,8 +439,8 @@ export default function CollectionList() {
                 <div className="flex gap-4">
                   <div className="w-28 h-20 rounded-xl flex-shrink-0 overflow-hidden relative group shadow-sm">
                     <LazyImage src={item.coverImage} alt={item.title} platform={item.platform} collectionId={item.id} containerClassName="w-full h-full" className="transition-transform duration-300 group-hover:scale-105" />
-                    <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-white text-[10px] font-semibold z-10 backdrop-blur-sm" style={{ backgroundColor: platformColor + 'cc' }}>
-                      {platformNames[item.platform] || item.platform}
+                    <div className="absolute bottom-1.5 left-1.5 z-10">
+                      <PlatformBadge platform={item.platform} size="sm" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -513,9 +514,7 @@ export default function CollectionList() {
                       {item.pageType && item.pageType !== 'other' && (
                         <span className="p-1 rounded-full bg-black/50 text-white backdrop-blur-sm"><PageTypeIcon type={item.pageType} size={10} /></span>
                       )}
-                      <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full shadow-sm backdrop-blur-sm ${getContrastTextColor(platformColor)}`} style={{ backgroundColor: platformColor + 'dd' }}>
-                        {platformNames[item.platform] || item.platform}
-                      </span>
+                      <PlatformBadge platform={item.platform} size="sm" />
                     </div>
                     {!editMode && (
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3 gap-2">
