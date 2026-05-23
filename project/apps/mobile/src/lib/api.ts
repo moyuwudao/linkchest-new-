@@ -15,7 +15,7 @@ const androidPackage = Constants.expoConfig?.android?.package || '';
 const isChinaMarket = extraMarket === 'china' || androidPackage === 'cn.linkchest.app';
 
 const DEFAULT_API_URL = isChinaMarket
-  ? 'http://43.136.82.88/api'
+  ? 'https://43.136.82.88/api'
   : 'https://linkchest.net/api';
 const API_URL_STORAGE_KEY = 'linkchest_api_url';
 

@@ -462,7 +462,7 @@ NEXT_PUBLIC_MARKET=china
 
 | 项目 | 值 |
 |------|-----|
-| 远程仓库 | `git@github.com:moyuwudao/linkchest.git` |
+| 远程仓库 | `git@github.com:moyuwudao/linkchest-new-.git` |
 | 默认分支 | `master` |
 | 本地路径 | `d:\trae_projects\linkchest` |
 | 服务器路径 | `/opt/linkchest/api` |

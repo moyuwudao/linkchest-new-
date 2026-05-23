@@ -35,7 +35,7 @@ export default function ImportExportSection() {
                 URL.revokeObjectURL(url);
               } catch { showAlert(t('settings.exportFailed'), 'error'); }
             }}
-            className="py-2.5 bg-chest-500 text-white rounded-lg hover:bg-chest-600 flex items-center justify-center gap-2 text-sm"
+            className="py-2.5 bg-parchment/20 dark:bg-chest-700/40 text-charcoal/80 dark:text-parchment/80 border-2 border-solid border-chest-200 dark:border-chest-600/40 rounded-lg hover:bg-chest-500/5 dark:hover:bg-chest-700/60 flex items-center justify-center gap-2 text-sm transition-colors"
           >
             <Code size={16} /> {t('settings.exportJson')}
           </button>

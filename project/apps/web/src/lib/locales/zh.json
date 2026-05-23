@@ -26,7 +26,8 @@
     "loadMore": "加载全部收藏",
     "showCount": "已显示 {shown} / {total} 条收藏",
     "batchManage": "批量管理",
-    "selected": "已选 {count}",
+    "selected": "已选",
+    "selectedCount": "已选 {count}",
     "selectAll": "全选",
     "deselectAll": "全不选",
     "selectedItems": "已选 {count} 项",
@@ -49,6 +50,7 @@
     "noGroupFilter": "当前未按分组筛选",
     "removeFromGroupConfirm": "确定将 {count} 个收藏从当前分组移除？",
     "detail": {
+      "rating": "评分",
       "note": "备注",
       "tags": "标签",
       "groups": "分组",
@@ -378,7 +380,8 @@
     "uploadingPreview": "上传中...",
     "urlNotAvailable": "未识别到封面",
     "urlNeedParse": "粘贴链接后自动获取",
-    "dragToUpload": "拖拽图片到此处"
+    "dragToUpload": "拖拽图片到此处",
+    "loadingCovers": "加载封面中..."
   },
   "sidebar": {
     "appName": "链藏",
@@ -858,7 +861,8 @@
     "quickSelectPlatform": "快速选择平台",
     "viewMorePlatforms": "查看更多平台",
     "collapseMorePlatforms": "收起更多平台",
-    "levelPlatforms": "级平台"
+    "levelPlatforms": "级平台",
+    "reParse": "解析"
   },
   "tag": {
     "management": "标签管理",

@@ -9,8 +9,12 @@
 set -e
 
 BASE_DIR="/opt/linkchest/api"
-API_DIR="$BASE_DIR/apps/api"
-WEB_DIR="$BASE_DIR/apps/web"
+# 统一使用 project/ 下的源码目录，消除双目录不同步问题
+SRC_API_DIR="$BASE_DIR/project/apps/api"
+SRC_WEB_DIR="$BASE_DIR/project/apps/web"
+# 运行目录（与源码目录统一，通过符号链接或直接使用）
+API_DIR="$SRC_API_DIR"
+WEB_DIR="$SRC_WEB_DIR"
 DB_HOST="114.132.81.246"
 DB_PORT="5432"
 DB_NAME="linkchest"
@@ -55,6 +59,14 @@ git pull origin main || git pull origin master
 echo ""
 echo "[3/8] 安装 API 依赖..."
 cd "$API_DIR"
+
+# 目录同步校验：确保运行目录与源码目录一致
+if [ "$API_DIR" != "$SRC_API_DIR" ]; then
+  echo "  ⚠️ API 运行目录与源码目录不一致，同步中..."
+  cp -rf "$SRC_API_DIR/src" "$API_DIR/" 2>/dev/null || true
+  cp -f "$SRC_API_DIR/package.json" "$API_DIR/" 2>/dev/null || true
+fi
+
 dos2unix "$BASE_DIR/deploy/start-api.sh" 2>/dev/null || sed -i 's/\r$//' "$BASE_DIR/deploy/start-api.sh"
 dos2unix "$BASE_DIR/deploy/start-web.sh" 2>/dev/null || sed -i 's/\r$//' "$BASE_DIR/deploy/start-web.sh"
 chmod +x "$BASE_DIR/deploy/start-api.sh" "$BASE_DIR/deploy/start-web.sh"
@@ -126,10 +138,18 @@ echo "  .env.production: API_URL=$NEXT_PUBLIC_API_URL"
 cd "$BASE_DIR"
 npm install 2>/dev/null || true
 echo "  编译共享包 @linkchest/i18n..."
-cd "$BASE_DIR/packages/i18n"
+cd "$BASE_DIR/project/packages/i18n"
 npm run build
 cd "$WEB_DIR"
 npm install 2>/dev/null || true
+
+# 目录同步校验：确保 Web 运行目录与源码目录一致
+if [ "$WEB_DIR" != "$SRC_WEB_DIR" ]; then
+  echo "  ⚠️ Web 运行目录与源码目录不一致，同步中..."
+  cp -rf "$SRC_WEB_DIR/src" "$WEB_DIR/" 2>/dev/null || true
+  cp -f "$SRC_WEB_DIR/package.json" "$WEB_DIR/" 2>/dev/null || true
+  cp -f "$SRC_WEB_DIR/next.config.*" "$WEB_DIR/" 2>/dev/null || true
+fi
 
 rm -rf .next
 

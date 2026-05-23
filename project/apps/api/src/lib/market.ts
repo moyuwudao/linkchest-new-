@@ -84,10 +84,10 @@ const CHINA_FEATURES: MarketFeatures = {
   authProviders: {
     email: true,
     google: false,
-    apple: false,
+    apple: true,
     facebook: false,
     wechat: true,
-    alipay_auth: true,
+    alipay_auth: false,
   },
   compliance: {
     contentModeration: true,

@@ -68,14 +68,53 @@ git log origin/master..HEAD --oneline
 
 ### Step 4: 执行部署
 
-**统一入口（推荐）**：
+**优先使用 aliyun-servers MCP 执行（推荐）**：
 
-```bash
-bash deploy/deploy.sh global    # 海外
-bash deploy/deploy.sh china     # 国内
+当 `aliyun-servers` MCP 可用时，使用 MCP 工具执行部署，避免使用 `RunCommand` + `ssh` 命令。
+
+**海外部署（MCP 方式）**：
+
+```
+# 1. 连接海外服务器
+mcp_aliyun-servers_ssh_connect(host="43.133.44.232", username="ubuntu")
+→ 获取 connectionId
+
+# 2. 执行更新
+mcp_aliyun-servers_ssh_exec(connectionId="xxx", command="cd /opt/linkchest/api && git pull")
+mcp_aliyun-servers_ssh_exec(connectionId="xxx", command="cd /opt/linkchest/api && bash deploy/update-server.sh")
+
+# 3. 验证
+mcp_aliyun-servers_ssh_exec(connectionId="xxx", command="pm2 status")
+
+# 4. 断开连接
+mcp_aliyun-servers_ssh_disconnect(connectionId="xxx")
 ```
 
-**直接 SSH（适合已登录服务器时）**：
+**国内部署（MCP 方式）**：
+
+```
+# 1. 连接应用层服务器
+mcp_aliyun-servers_ssh_connect(host="43.136.82.88", username="ubuntu")
+→ 获取 connectionId
+
+# 2. 执行更新
+mcp_aliyun-servers_ssh_exec(connectionId="xxx", command="cd /opt/linkchest/api && git pull")
+mcp_aliyun-servers_ssh_exec(connectionId="xxx", command="cd /opt/linkchest/api && bash deploy/update-server-cn.sh")
+
+# 3. 连接数据层执行迁移
+mcp_aliyun-servers_ssh_connect(host="114.132.81.246", username="ubuntu")
+→ 获取 connectionId2
+mcp_aliyun-servers_ssh_exec(connectionId2="xxx", command="cd /opt/linkchest/api/apps/api && npx prisma migrate deploy")
+
+# 4. 验证
+mcp_aliyun-servers_ssh_exec(connectionId="xxx", command="pm2 status")
+
+# 5. 断开连接
+mcp_aliyun-servers_ssh_disconnect(connectionId="xxx")
+mcp_aliyun-servers_ssh_disconnect(connectionId2="xxx")
+```
+
+**降级方案（MCP 不可用时）**：
 
 ```bash
 # 海外
@@ -184,7 +223,7 @@ ssh ubuntu@43.136.82.88 "pm2 status"
 ```
 用户触发部署 → 加载本 Skill
     ↓
-加载 HIGH_RISK.md（服务器信息 + 红线）
+加载 HIGH_RISK.md（服务器信息 + 红线 + MCP 连接参数）
     ↓
 GitHub MCP 检查（远程 commit 对比 + 待合并 PR）
     ↓
@@ -192,6 +231,8 @@ Git 状态检查（未提交？未推送？）
     ↓
 加载 DEPLOYMENT.md（详细流程）
     ↓
+aliyun-servers MCP 连接服务器（优先）
+    ↓  若 MCP 不可用，降级到 SSH 命令
 执行 Git-Only 部署
     ↓
 数据库变更？→ 加载 `database-migrations` ECC Skill
@@ -199,6 +240,8 @@ Git 状态检查（未提交？未推送？）
 验证：curl 健康检查 + Playwright MCP 页面验证
     ↓
 异常时查案例集锦
+    ↓
+断开 MCP 连接
 ```
 
 ## 使用示例

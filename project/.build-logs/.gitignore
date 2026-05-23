@@ -1,0 +1,3 @@
+# Build logs are local-only, do not commit
+*
+!.gitignore

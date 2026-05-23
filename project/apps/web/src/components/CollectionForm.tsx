@@ -392,18 +392,18 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
     <div className="mb-6">
       <button
         onClick={() => setTagSectionExpanded(!tagSectionExpanded)}
-        className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="w-full flex items-center justify-between py-3 px-4 bg-chest-50 dark:bg-chest-800/50 rounded-lg hover:bg-chest-100 dark:hover:bg-chest-700/50 transition-colors"
       >
-        <span className="font-medium">
+        <span className="font-medium text-charcoal dark:text-parchment">
           {t('add.tags')} ({selectedTags.length})
         </span>
-        <span className="text-gray-500">
+        <span className="text-taupe dark:text-parchment/60">
           {tagSectionExpanded ? '▼' : '▶'}
         </span>
       </button>
 
       {tagSectionExpanded && (
-        <div className="mt-3 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="mt-3 p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-lg">
           <div className="flex flex-wrap gap-2 mb-4">
             {(tagsData || []).map((tag: Tag) => (
               <button
@@ -417,8 +417,8 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                 }}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   selectedTags.includes(tag.id)
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-chest-500 text-white'
+                    : 'bg-chest-100 dark:bg-chest-700 text-charcoal dark:text-parchment hover:bg-chest-200 dark:hover:bg-chest-600'
                 }`}
               >
                 {tag.name}
@@ -427,7 +427,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
           </div>
           <button
             onClick={() => setNewTagModalVisible(true)}
-            className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+            className="text-chest-500 hover:text-chest-600 dark:text-amber-400 dark:hover:text-amber-300 text-sm font-medium"
           >
             + {t('add.createTag')}
           </button>
@@ -441,12 +441,12 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
     <div className="mb-6">
       <button
         onClick={() => setGroupSectionExpanded(!groupSectionExpanded)}
-        className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="w-full flex items-center justify-between py-3 px-4 bg-chest-50 dark:bg-chest-800/50 rounded-lg hover:bg-chest-100 dark:hover:bg-chest-700/50 transition-colors"
       >
-        <span className="font-medium">
+        <span className="font-medium text-charcoal dark:text-parchment">
           {t('add.addToGroup')}{' '}
           {selectedListIds.length > 0 && listsData && (
-            <span className="text-blue-500 ml-1">
+            <span className="text-chest-500 dark:text-amber-400 ml-1">
               ({(() => {
                 const foundList = listsData.find((l: ListItem) => selectedListIds.includes(l.id))
                 return foundList ? getListDisplayName(foundList, t) : ''
@@ -454,19 +454,19 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
             </span>
           )}
         </span>
-        <span className="text-gray-500">
+        <span className="text-taupe dark:text-parchment/60">
           {groupSectionExpanded ? '▼' : '▶'}
         </span>
       </button>
 
       {groupSectionExpanded && (
-        <div className="mt-3 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="mt-3 p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-lg">
           <div className="space-y-1">
             {renderListTree(listsData || [])}
           </div>
           <button
             onClick={() => setNewListModalVisible(true)}
-            className="mt-4 text-blue-500 hover:text-blue-600 text-sm font-medium"
+            className="mt-4 text-chest-500 hover:text-chest-600 dark:text-amber-400 dark:hover:text-amber-300 text-sm font-medium"
           >
             + {t('add.createGroup')}
           </button>
@@ -496,8 +496,8 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
             onClick={() => setSelectedListIds([list.id])}
             className={`flex-1 text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               selectedListIds.includes(list.id)
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                ? 'bg-chest-500 text-white'
+                : 'bg-chest-100 dark:bg-chest-700 text-charcoal dark:text-parchment hover:bg-chest-200 dark:hover:bg-chest-600'
             }`}
           >
             {getListDisplayName(list, t)}
@@ -515,18 +515,18 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
     <div className="mb-6">
       <button
         onClick={() => setPageTypeSectionExpanded(!pageTypeSectionExpanded)}
-        className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="w-full flex items-center justify-between py-3 px-4 bg-chest-50 dark:bg-chest-800/50 rounded-lg hover:bg-chest-100 dark:hover:bg-chest-700/50 transition-colors"
       >
-        <span className="font-medium">
+        <span className="font-medium text-charcoal dark:text-parchment">
           {t('collection.pageType')} - {t(`collection.pageType${selectedPageType.charAt(0).toUpperCase() + selectedPageType.slice(1)}`)}
         </span>
-        <span className="text-gray-500">
+        <span className="text-taupe dark:text-parchment/60">
           {pageTypeSectionExpanded ? '▼' : '▶'}
         </span>
       </button>
 
       {pageTypeSectionExpanded && (
-        <div className="mt-3 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="mt-3 p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-lg">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {PAGE_TYPES.map((pt) => {
               const label = t(`collection.pageType${pt.value.charAt(0).toUpperCase() + pt.value.slice(1)}`)
@@ -536,8 +536,8 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                   onClick={() => setSelectedPageType(pt.value)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     selectedPageType === pt.value
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      ? 'bg-chest-500 text-white'
+                      : 'bg-chest-100 dark:bg-chest-700 text-charcoal dark:text-parchment hover:bg-chest-200 dark:hover:bg-chest-600'
                   }`}
                 >
                   <PageTypeIcon type={pt.value} size={20} className="w-5 h-5" />
@@ -554,33 +554,23 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
   if (isEdit && isLoadingCollection) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-chest-500"></div>
       </div>
     )
   }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
-        <button 
-          onClick={() => router.back()} 
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          {t('common.back')}
-        </button>
-        <h1 className="text-2xl font-bold">
+      <div className="flex items-center justify-center mb-6">
+        <h1 className="text-2xl font-bold text-charcoal dark:text-parchment">
           {isAdd ? t('add.title') : t('edit.title')}
         </h1>
-        <div className="w-20"></div>
       </div>
 
       <div className="space-y-6">
         {/* URL输入 */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
+        <div className="p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-xl">
+          <label className="block text-sm font-medium mb-2 text-charcoal dark:text-parchment">
             {t('add.linkOrShareText')}
           </label>
           <div className="flex gap-2">
@@ -589,33 +579,33 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder={t('add.pasteLinkPlaceholder')}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border border-chest-200 dark:border-chest-600 rounded-lg bg-parchment/20 dark:bg-chest-700/30 text-charcoal dark:text-parchment focus:outline-none focus:ring-2 focus:ring-chest-500"
               disabled={parsing}
             />
             <button
               onClick={() => parseUrl(url)}
               disabled={parsing || !url.trim()}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-chest-500 text-white rounded-lg hover:bg-chest-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {parsing ? t('common.loading') : t('add.reParse')}
             </button>
           </div>
           {parsing && (
-            <p className="text-sm text-gray-500 mt-2">{parsePhase}</p>
+            <p className="text-sm text-taupe dark:text-parchment/60 mt-2">{parsePhase}</p>
           )}
           {parseError && (
-            <p className="text-sm text-red-500 mt-2">{parseError}</p>
+            <p className="text-sm text-rust mt-2">{parseError}</p>
           )}
           {duplicateWarning && (
-            <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg">
-              <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+            <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/50 rounded-lg">
+              <p className="text-amber-800 dark:text-amber-200 text-sm">
                 {t('add.duplicateWarning', { title: duplicateWarning.title })}
               </p>
             </div>
           )}
           {titleDuplicateWarning && (
-            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg">
-              <p className="text-blue-800 dark:text-blue-200 text-sm">
+            <div className="mt-3 p-3 bg-chest-500/5 dark:bg-amber-400/10 border border-chest-200 dark:border-amber-400/30 rounded-lg">
+              <p className="text-chest-700 dark:text-amber-200 text-sm">
                 {t('add.titleDuplicateWarning', { title: titleDuplicateWarning.title })}
               </p>
             </div>
@@ -623,8 +613,8 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         </div>
 
         {/* 标题输入 */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
+        <div className="p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-xl">
+          <label className="block text-sm font-medium mb-2 text-charcoal dark:text-parchment">
             {t('add.titleField')}
           </label>
           <input
@@ -632,13 +622,13 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t('add.enterTitle')}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-chest-200 dark:border-chest-600 rounded-lg bg-parchment/20 dark:bg-chest-700/30 text-charcoal dark:text-parchment focus:outline-none focus:ring-2 focus:ring-chest-500"
           />
         </div>
 
         {/* 封面编辑器 */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
+        <div className="p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-xl">
+          <label className="block text-sm font-medium mb-2 text-charcoal dark:text-parchment">
             {t('add.coverImage')}
           </label>
           <CoverEditor
@@ -651,8 +641,8 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         </div>
 
         {/* 备注 */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
+        <div className="p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-xl">
+          <label className="block text-sm font-medium mb-2 text-charcoal dark:text-parchment">
             {t('add.noteField')}
           </label>
           <textarea
@@ -661,24 +651,22 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
             placeholder={t('add.addNote')}
             maxLength={100}
             rows={3}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-4 py-2 border border-chest-200 dark:border-chest-600 rounded-lg bg-parchment/20 dark:bg-chest-700/30 text-charcoal dark:text-parchment focus:outline-none focus:ring-2 focus:ring-chest-500 resize-none"
           />
-          <p className="text-xs text-gray-500 text-right mt-1">{note.length}/100</p>
+          <p className="text-xs text-taupe/60 dark:text-parchment/40 text-right mt-1">{note.length}/100</p>
         </div>
 
-        {/* 评分（仅编辑模式） */}
-        {isEdit && (
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              {t('collection.detail.rating')}
-            </label>
-            <StarRating
-              value={rating}
-              onChange={setRating}
-              size={24}
-            />
-          </div>
-        )}
+        {/* 评分 */}
+        <div className="p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-xl">
+          <label className="block text-sm font-medium mb-2 text-charcoal dark:text-parchment">
+            {t('collection.detail.rating')}
+          </label>
+          <StarRating
+            value={rating}
+            onChange={setRating}
+            size={24}
+          />
+        </div>
 
         {/* 标签选择 */}
         {renderTagSelector()}
@@ -695,7 +683,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
             <button
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
-              className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-6 py-3 bg-rust text-white rounded-lg hover:bg-rust/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {deleteMutation.isPending ? t('common.loading') : t('edit.delete')}
             </button>
@@ -703,14 +691,14 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
           <div className="flex-1"></div>
           <button
             onClick={() => router.back()}
-            className="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="px-6 py-3 bg-chest-100 dark:bg-chest-700 text-charcoal dark:text-parchment rounded-lg hover:bg-chest-200 dark:hover:bg-chest-600 transition-colors"
           >
             {t('common.cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={createMutation.isPending || updateMutation.isPending}
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 bg-chest-500 text-white rounded-lg hover:bg-chest-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {createMutation.isPending || updateMutation.isPending
               ? t('common.loading')
@@ -722,14 +710,14 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       {/* 新建标签模态框 */}
       {newTagModalVisible && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-sm mx-4">
-            <h3 className="text-lg font-medium mb-4">{t('add.createTag')}</h3>
+          <div className="bg-white dark:bg-chest-800 rounded-xl p-6 w-full max-w-sm mx-4">
+            <h3 className="text-lg font-medium mb-4 text-charcoal dark:text-parchment">{t('add.createTag')}</h3>
             <input
               type="text"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               placeholder={t('add.tagNamePlaceholder')}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-chest-200 dark:border-chest-600 rounded-lg mb-4 bg-parchment/20 dark:bg-chest-700/30 text-charcoal dark:text-parchment focus:outline-none focus:ring-2 focus:ring-chest-500"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -746,7 +734,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                   setNewTagModalVisible(false)
                   setNewTagName('')
                 }}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 bg-chest-100 dark:bg-chest-700 text-charcoal dark:text-parchment rounded-lg hover:bg-chest-200 dark:hover:bg-chest-600 transition-colors"
               >
                 {t('common.cancel')}
               </button>
@@ -755,7 +743,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                   if (newTagName.trim()) createTagMutation.mutate(newTagName.trim())
                 }}
                 disabled={!newTagName.trim()}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-chest-500 text-white rounded-lg hover:bg-chest-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {t('common.save')}
               </button>
@@ -767,14 +755,14 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       {/* 新建分组模态框 */}
       {newListModalVisible && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-sm mx-4">
-            <h3 className="text-lg font-medium mb-4">{t('add.createGroup')}</h3>
+          <div className="bg-white dark:bg-chest-800 rounded-xl p-6 w-full max-w-sm mx-4">
+            <h3 className="text-lg font-medium mb-4 text-charcoal dark:text-parchment">{t('add.createGroup')}</h3>
             <input
               type="text"
               value={newListName}
               onChange={(e) => setNewListName(e.target.value)}
               placeholder={t('add.groupNamePlaceholder')}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-chest-200 dark:border-chest-600 rounded-lg mb-4 bg-parchment/20 dark:bg-chest-700/30 text-charcoal dark:text-parchment focus:outline-none focus:ring-2 focus:ring-chest-500"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -791,7 +779,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                   setNewListModalVisible(false)
                   setNewListName('')
                 }}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 bg-chest-100 dark:bg-chest-700 text-charcoal dark:text-parchment rounded-lg hover:bg-chest-200 dark:hover:bg-chest-600 transition-colors"
               >
                 {t('common.cancel')}
               </button>
@@ -800,7 +788,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                   if (newListName.trim()) createListMutation.mutate(newListName.trim())
                 }}
                 disabled={!newListName.trim()}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-chest-500 text-white rounded-lg hover:bg-chest-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {t('common.save')}
               </button>

@@ -324,11 +324,13 @@ export default function AccountPage() {
             </div>
             <div className="px-5 py-5 flex items-center gap-5">
               <div className="relative">
-                <div className="w-20 h-20 rounded-full overflow-hidden bg-chest-100 dark:bg-chest-700/50 flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-chest-400 to-chest-600 flex items-center justify-center">
                   {user?.avatar ? (
                     <img src={user.avatar as string} alt="avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
-                    <User size={32} className="text-taupe/40 dark:text-parchment/30" />
+                    <span className="text-2xl font-bold text-white">
+                      {((user?.username as string) || (user?.nickname as string) || (user?.email as string) || 'U').charAt(0).toUpperCase()}
+                    </span>
                   )}
                 </div>
                 {avatarUploading && (

@@ -29,6 +29,7 @@ description: "构建红线规则 - APK构建时绝对禁止的行为，构建操
 | **从官方地址下载 Gradle** | 网络极慢或超时 | 构建卡住或失败 |
 | **未阅读 BUILD.md 直接构建** | 不了解镜像配置、缓存配置、WSL要求 | 构建失败或配置丢失 |
 | **未设置 MARKET 环境变量构建 APK** | 高 | 构建的 APK 市场配置错误，用户看到错误的支付/登录选项 |
+| **并行构建时 .env.market 未隔离** | 高 | 两个 WSL 实例竞争写入同一文件，导致 APK 配置混乱 |
 
 ### 1.2 强制检查清单
 
@@ -39,6 +40,9 @@ description: "构建红线规则 - APK构建时绝对禁止的行为，构建操
 - [ ] **验证镜像配置** — Gradle Wrapper 和 Maven 仓库使用国内镜像
 - [ ] **启用缓存** — 确认 `org.gradle.caching=true`
 - [ ] **禁止 clean** — 确认不使用 `clean` 命令
+- [ ] **MARKET 隔离** — 确认 `.env.market` 已写入实例隔离路径（`/tmp/.env.market.{WSL_DISTRO_NAME}`）
+- [ ] **Metro 缓存隔离** — 确认 `REACT_NATIVE_METRO_CACHE_DIR` 已设置为实例特定目录
+- [ ] **构建后验证** — 国内版构建完成后验证 bundle 不包含 `linkchest.net`
 
 ### 1.3 唯一允许的构建方式
 

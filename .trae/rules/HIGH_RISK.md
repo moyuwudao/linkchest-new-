@@ -17,11 +17,59 @@ description: 高风险操作规则 - 部署与构建安全（橙色区域）
 
 ## 1. 服务器信息速查表
 
+### 1.0 服务器连接方式（优先使用 MCP）
+
+**优先方式：`aliyun-servers` MCP**
+
+| 操作 | MCP 工具 | 说明 |
+|------|---------|------|
+| 连接服务器 | `mcp_aliyun-servers_ssh_connect` | 建立持久 SSH 连接，返回 connectionId |
+| 执行命令 | `mcp_aliyun-servers_ssh_exec` | 在已连接服务器上执行命令 |
+| 文件读取 | `mcp_aliyun-servers_sftp_read` | 通过 SFTP 读取远程文件 |
+| 文件写入 | `mcp_aliyun-servers_sftp_write` | 通过 SFTP 写入远程文件 |
+| 目录列表 | `mcp_aliyun-servers_sftp_ls` | 列出远程目录内容 |
+| 系统信息 | `mcp_aliyun-servers_ssh_system_info` | 获取系统概览（CPU、内存、磁盘） |
+| 断开连接 | `mcp_aliyun-servers_ssh_disconnect` | 关闭指定连接 |
+| 查看连接 | `mcp_aliyun-servers_ssh_list_connections` | 列出所有活跃连接 |
+
+**MCP 连接参数速查：**
+
+| 服务器 | host | username | port |
+|--------|------|----------|------|
+| 海外 | `43.133.44.232` | `ubuntu` | 22 |
+| 国内应用层 | `43.136.82.88` | `ubuntu` | 22 |
+| 国内数据层 | `114.132.81.246` | `ubuntu` | 22 |
+
+**使用示例：**
+
+```
+# 1. 连接服务器
+mcp_aliyun-servers_ssh_connect(host="43.133.44.232", username="ubuntu")
+→ 返回 connectionId
+
+# 2. 执行命令
+mcp_aliyun-servers_ssh_exec(connectionId="xxx", command="pm2 list")
+
+# 3. 操作完成后断开
+mcp_aliyun-servers_ssh_disconnect(connectionId="xxx")
+```
+
+**降级方案：传统 SSH 命令**
+
+当 MCP 不可用时，使用标准 SSH 命令：
+```bash
+ssh ubuntu@43.133.44.232 "cd /opt/linkchest/api && pm2 list"
+```
+
+---
+
 ### 1.1 海外服务器（单体架构）
 
 | 配置项 | 值 |
 |--------|-----|
 | IP | `43.133.44.232` |
+| 正式域名 | `https://linkchest.net` |
+| 临时测试地址 | `http://43.133.44.232:3003` |
 | 区域 | 新加坡 (`ap-singapore`) |
 | 用户 | `ubuntu` |
 | 架构 | 单体（API + WEB + DB + Redis 同一台） |
@@ -38,6 +86,7 @@ description: 高风险操作规则 - 部署与构建安全（橙色区域）
 
 | 配置项 | 服务器A（应用层） | 服务器B（数据层） |
 |--------|------------------|------------------|
+| 访问地址 | `http://43.136.82.88` | - |
 | 用户 | `ubuntu` | `ubuntu` |
 | 项目目录 | `/opt/linkchest/api` | `/opt/linkchest/api` |
 | PM2 进程名 | `linkchest-api-china` | - |
@@ -52,6 +101,7 @@ description: 高风险操作规则 - 部署与构建安全（橙色区域）
 ### 2.0 🔴 Git-Only 策略（强制）
 
 > **所有服务器的代码更新必须通过 `git pull`，禁止从本地 rsync/scp 推送代码。**
+> **⚠️ 任何例外情况必须先与用户确认，不得自行决策。**
 
 | 规则 | 说明 |
 |------|------|
