@@ -22,7 +22,8 @@ try {
         },
         { urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i, handler: 'CacheFirst', options: { cacheName: 'google-fonts-cache', expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 } } },
         { urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i, handler: 'StaleWhileRevalidate', options: { cacheName: 'google-fonts-stylesheets', expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 } } },
-        { urlPattern: /\/_next\/static\/.*/i, handler: 'CacheFirst', options: { cacheName: 'next-static-assets', expiration: { maxEntries: 64, maxAgeSeconds: 60 * 60 * 24 * 30 } } },
+        // Next.js 静态资源：不缓存，确保代码更新立即生效
+        { urlPattern: /\/_next\/static\/.*/i, handler: 'NetworkFirst', options: { cacheName: 'next-static-assets', expiration: { maxEntries: 64, maxAgeSeconds: 60 * 60 } } },
         { urlPattern: /\/_next\/image\?url=.*/i, handler: 'StaleWhileRevalidate', options: { cacheName: 'next-image-cache', expiration: { maxEntries: 128, maxAgeSeconds: 60 * 60 * 24 * 7 } } },
         // COS 封面图片缓存：CacheFirst 优先读本地，未命中再请求，大幅降低 COS 出流量
         {
@@ -120,7 +121,7 @@ const nextConfig = {
       {
         source: '/_next/static/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, must-revalidate' },
         ],
       },
     ];
