@@ -178,6 +178,11 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
       if (platformKey === 'bilibili') metadata = await fetchBilibiliMetadata(normalizedUrl, signal)
       else metadata = await fetchOgsMetadata(normalizedUrl, platformKey, signal)
     }
+
+    if (!metadata || (!metadata.title && !metadata.coverImage)) {
+      console.log(`[fetchUrlMetadata] ogs failed, trying html fallback for ${platformKey}`)
+      metadata = await fetchHtmlMetadata(normalizedUrl, platformKey, signal)
+    }
   } catch { metadata = await fetchOgsMetadata(url, undefined, signal) }
 
   const hasAllFieldsEmpty = !metadata || (!metadata.title && !metadata.coverImage && !metadata.description)
@@ -329,6 +334,90 @@ async function fetchOgsMetadata(url: string, platformKey?: string, signal?: Abor
   } catch (err) {
     logger.error({ url, err }, '[fetchOgsMetadata] 失败')
     return { title: null, coverImage: null, favicon: null, description: null }
+  }
+}
+
+async function fetchHtmlMetadata(url: string, platformKey?: string, signal?: AbortSignal): Promise<UrlMetadata> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 6000)
+  if (signal) {
+    signal.addEventListener('abort', () => controller.abort(), { once: true })
+  }
+  try {
+    const ua = platformKey && PLATFORM_UA_MAP[platformKey] ? PLATFORM_UA_MAP[platformKey] : DESKTOP_USER_AGENT
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': ua, 'Accept': 'text/html,application/xhtml+xml', 'Accept-Language': 'zh-CN,zh;q=0.9' },
+      signal: controller.signal,
+      agent: url.startsWith('https') ? httpsAgent : undefined,
+    })
+    if (!resp.ok) return { title: null, coverImage: null, favicon: null, description: null }
+    const html = await resp.text()
+    if (isAntiBotPage(html)) {
+      console.log('[fetchHtmlMetadata] Anti-bot page detected')
+      return { title: null, coverImage: null, favicon: null, description: null }
+    }
+
+    let title: string | null = null
+    let coverImage: string | null = null
+
+    const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/)
+    if (ogTitleMatch && ogTitleMatch[1]) {
+      title = ogTitleMatch[1]
+    }
+
+    const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/)
+      || html.match(/<meta\s+property=["']og:image:url["']\s+content=["']([^"']+)["']/)
+    if (ogImageMatch && ogImageMatch[1] && ogImageMatch[1].startsWith('http')) {
+      coverImage = ogImageMatch[1]
+    }
+
+    if (!title) {
+      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/)
+      if (titleMatch) {
+        let t = titleMatch[1].trim()
+        if (platformKey === 'douyin') {
+          t = t.replace(/\s*[-–—|]\s*抖音.*$/, '').trim()
+        } else if (platformKey === 'xiaohongshu') {
+          t = t.replace(/\s*[-–—|]\s*小红书.*$/, '').trim()
+        }
+        if (t && t !== '抖音' && t !== '小红书' && t !== '安全限制' && !isLowQualityTitle(t) && t.length > 1) {
+          title = t
+        }
+      }
+    }
+
+    if (!coverImage && platformKey === 'douyin') {
+      const posterMatch = html.match(/poster=["']([^"']+)["']/)
+      if (posterMatch && posterMatch[1].startsWith('http')) {
+        coverImage = posterMatch[1]
+      }
+      const imgMatch = html.match(/src=["']([^"']*douyinpic\.com[^"']*\.jpe?g[^"']*)["']/)
+      if (imgMatch && imgMatch[1].startsWith('http')) {
+        coverImage = imgMatch[1]
+      }
+    }
+
+    if (!coverImage && platformKey === 'xiaohongshu') {
+      const imgMatch = html.match(/src=["']([^"']*xhscdn[^"']*\.jpe?g[^"']*)["']/)
+        || html.match(/src=["']([^"']*sns-webpic[^"']*\.jpe?g[^"']*)["']/)
+      if (imgMatch) {
+        coverImage = imgMatch[1].startsWith('http') ? imgMatch[1] : 'https:' + imgMatch[1]
+      }
+    }
+
+    title = title ? cleanTitle(title) : null
+    coverImage = coverImage ? ensureHttps(coverImage) : null
+
+    if (title || coverImage) {
+      console.log(`[fetchHtmlMetadata] title=${title?.substring(0, 40)} cover=${coverImage?.substring(0, 60)}`)
+      return { title, coverImage, favicon: null, description: null }
+    }
+    return { title: null, coverImage: null, favicon: null, description: null }
+  } catch (err) {
+    console.log('[fetchHtmlMetadata] failed:', (err as Error).message)
+    return { title: null, coverImage: null, favicon: null, description: null }
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
