@@ -300,7 +300,10 @@ async function fetchOgsMetadata(url: string, platformKey?: string, signal?: Abor
         ])
       : await ogsPromise
 
-    if (error || !result) return { title: null, coverImage: null, favicon: null, description: null }
+    if (error || !result) {
+      logger.warn({ url, error }, '[fetchOgsMetadata] ogs 返回错误或无结果')
+      return { title: null, coverImage: null, favicon: null, description: null }
+    }
     const r = result as unknown as {
       ogTitle?: string
       ogImage?: { url: string }[]
@@ -311,6 +314,7 @@ async function fetchOgsMetadata(url: string, platformKey?: string, signal?: Abor
       twitterDescription?: string
       favicon?: string
     }
+    logger.info({ url, ogTitle: r.ogTitle, ogImageCount: r.ogImage?.length, twitterImageCount: r.twitterImage?.length }, '[fetchOgsMetadata] ogs 解析结果')
     const ogImage = r.ogImage?.[0]
     return {
       title: r.ogTitle || r.twitterTitle || r.articleTitle || null,
