@@ -143,4 +143,5 @@ export default {
   ERR_SHARE_TOO_MANY_REQUESTS: "Too many share requests, please try again later",
   ERR_NOT_FOUND: "The requested resource was not found",
   ERR_FEATURE_NOT_AVAILABLE: "This feature is not available in your region",
+  ERR_REQUEST_TIMEOUT: "Request timed out, please try again later",
 } as const;

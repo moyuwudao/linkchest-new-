@@ -8,6 +8,7 @@
 import prisma from '../lib/prisma'
 import { getRedisClient, isRedisAvailable } from '../lib/redis'
 import logger from '../lib/logger'
+import { fetchWithTimeout } from '../lib/fetchWithTimeout'
 import { sendAlertEmail } from './ses'
 
 // ===== 配置 =====
@@ -329,13 +330,14 @@ async function sendFeishuAlert(webhookUrl: string, ruleName: string, message: st
     },
   }
 
-  const res = await fetch(webhookUrl, {
+  const res = await fetchWithTimeout(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+    timeoutMs: 10000,
   })
 
-  if (!res.ok) {
+  if (res instanceof Response && !res.ok) {
     throw new Error(`Feishu webhook failed: ${res.status}`)
   }
 }
@@ -355,13 +357,14 @@ async function sendWeComAlert(webhookUrl: string, ruleName: string, message: str
     },
   }
 
-  const res = await fetch(webhookUrl, {
+  const res = await fetchWithTimeout(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+    timeoutMs: 10000,
   })
 
-  if (!res.ok) {
+  if (res instanceof Response && !res.ok) {
     throw new Error(`WeCom webhook failed: ${res.status}`)
   }
 }

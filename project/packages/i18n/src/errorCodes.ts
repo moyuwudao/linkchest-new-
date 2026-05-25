@@ -205,6 +205,7 @@ export const CommonErrorCodes = {
   NOT_FOUND: 'ERR_NOT_FOUND',
   SERVER_ERROR: 'ERR_SERVER_ERROR',
   FEATURE_NOT_AVAILABLE: 'ERR_FEATURE_NOT_AVAILABLE',
+  REQUEST_TIMEOUT: 'ERR_REQUEST_TIMEOUT',
 } as const;
 
 export type CommonErrorCode = typeof CommonErrorCodes[keyof typeof CommonErrorCodes];

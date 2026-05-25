@@ -8,6 +8,7 @@ import { Prisma } from '@prisma/client'
 import prisma from '../lib/prisma'
 import logger from '../lib/logger'
 import { getMetrics, getMetricsTimeline, getShareStats } from '../services/metrics'
+import { fetchWithTimeout } from '../lib/fetchWithTimeout'
 import { getMetadataStats } from '../services/metadata'
 import { queryLogs, getLogFileList } from '../services/logReader'
 import { getAllTierConfigs, createTierConfig, updateTierConfig, deleteTierConfig, clearTierConfigCache, syncTierConfigs, getQuotaConfig } from '../services/tierConfig'
@@ -162,7 +163,7 @@ router.get('/logs', async (req, res) => {
 
 router.get('/logs/files', async (req, res) => {
   try {
-    const files = getLogFileList()
+    const files = await getLogFileList()
     res.json({ files })
   } catch (e) {
     logger.error({ err: (e as Error).message }, 'admin log files failed')
@@ -578,7 +579,7 @@ router.post('/alerts/:id/test', async (req, res) => {
     const feishuUrl = channels.feishu?.[0] || process.env.FEISHU_WEBHOOK_URL || ''
     if (feishuUrl) {
       try {
-        await fetch(feishuUrl, {
+        await fetchWithTimeout(feishuUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -595,6 +596,7 @@ router.post('/alerts/:id/test', async (req, res) => {
               }],
             },
           }),
+          timeoutMs: 10000,
         })
         results.push('feishu')
       } catch (e) {
@@ -606,7 +608,7 @@ router.post('/alerts/:id/test', async (req, res) => {
     const wecomUrl = channels.wecom?.[0] || process.env.WECOM_WEBHOOK_URL || ''
     if (wecomUrl) {
       try {
-        await fetch(wecomUrl, {
+        await fetchWithTimeout(wecomUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -615,6 +617,7 @@ router.post('/alerts/:id/test', async (req, res) => {
               content: `## 🧪 LinkChest 告警测试 [${priority}]\n>**规则：** ${ruleName}\n>**详情：** ${message}\n>**时间：** ${new Date().toLocaleString('zh-CN')}`,
             },
           }),
+          timeoutMs: 10000,
         })
         results.push('wecom')
       } catch (e) {

@@ -314,7 +314,7 @@ async function fetchOgsMetadata(url: string, platformKey?: string, signal?: Abor
       twitterDescription?: string
       favicon?: string
     }
-    logger.info({ url, ogTitle: r.ogTitle, ogImageCount: r.ogImage?.length, twitterImageCount: r.twitterImage?.length }, '[fetchOgsMetadata] ogs 解析结果')
+    logger.info({ url, ogTitle: r.ogTitle, ogImageCount: r.ogImage?.length, twitterImageCount: r.twitterImage?.length, ogImageUrl: r.ogImage?.[0]?.url, twitterImageUrl: r.twitterImage?.[0]?.url }, '[fetchOgsMetadata] ogs 解析结果')
     const ogImage = r.ogImage?.[0]
     return {
       title: r.ogTitle || r.twitterTitle || r.articleTitle || null,

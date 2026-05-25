@@ -93,6 +93,41 @@ export async function recordErrorMetrics(metric: {
 }
 
 /**
+ * 记录超时指标
+ * 用于监控请求超时事件
+ */
+export async function recordTimeoutMetrics(metric: {
+  method: string
+  path: string
+  duration: number
+}) {
+  const redis = getRedisClient()
+  if (!redis || !isRedisAvailable()) return
+
+  const minute = getMinuteKey()
+  const pipeline = redis.pipeline()
+
+  // 超时计数
+  pipeline.incr(`${METRICS_PREFIX}:timeout:${minute}`)
+  pipeline.expire(`${METRICS_PREFIX}:timeout:${minute}`, TTL_SECONDS)
+
+  // 按路径的超时计数
+  const safePath = metric.path.replace(/:/g, '_').slice(0, 50)
+  pipeline.incr(`${METRICS_PREFIX}:timeout:path:${safePath}:${minute}`)
+  pipeline.expire(`${METRICS_PREFIX}:timeout:path:${safePath}:${minute}`, TTL_SECONDS)
+
+  // 超时耗时累计
+  pipeline.incrby(`${METRICS_PREFIX}:timeout:duration:${minute}`, Math.round(metric.duration))
+  pipeline.expire(`${METRICS_PREFIX}:timeout:duration:${minute}`, TTL_SECONDS)
+
+  try {
+    await pipeline.exec()
+  } catch (e) {
+    logger.warn({ err: (e as Error).message }, 'recordTimeoutMetrics failed')
+  }
+}
+
+/**
  * 聚合查询指标数据
  * @param windowMinutes 时间窗口（分钟）
  */

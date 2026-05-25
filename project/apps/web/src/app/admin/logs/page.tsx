@@ -11,6 +11,8 @@ import {
   Info,
   XCircle,
   Download,
+  Loader2,
+  Clock,
 } from 'lucide-react';
 import { getLogs, getLogFiles } from '@/lib/adminApi';
 
@@ -87,6 +89,8 @@ export default function AdminLogsPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [loading, setLoading] = useState(false);
+  const [partialLoad, setPartialLoad] = useState(false);
+  const [loadTime, setLoadTime] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const [filters, setFilters] = useState({
@@ -100,6 +104,8 @@ export default function AdminLogsPage() {
 
   const loadLogs = useCallback(async () => {
     setLoading(true);
+    setPartialLoad(false);
+    const start = Date.now();
     try {
       const res = await getLogs({
         ...filters,
@@ -108,9 +114,14 @@ export default function AdminLogsPage() {
       });
       setLogs(res.data.entries || []);
       setTotal(res.data.total || 0);
+      // 如果返回的数据量少于请求的 pageSize，可能是超时导致的部分结果
+      if (res.data.entries.length < pageSize && res.data.entries.length > 0) {
+        setPartialLoad(true);
+      }
     } catch {
       // ignore
     } finally {
+      setLoadTime(Date.now() - start);
       setLoading(false);
     }
   }, [filters, page, pageSize]);
@@ -228,6 +239,11 @@ export default function AdminLogsPage() {
         <div className="flex-1 overflow-y-auto min-h-0">
           {loading ? (
             <div className="p-8 space-y-2">
+              <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>正在加载日志...</span>
+                <span className="text-xs text-gray-300">({(loadTime / 1000).toFixed(1)}s)</span>
+              </div>
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="h-10 bg-gray-50 animate-pulse rounded" />
               ))}
@@ -238,6 +254,12 @@ export default function AdminLogsPage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
+              {partialLoad && (
+                <div className="px-4 py-2 bg-amber-50 border-b border-amber-100 flex items-center gap-2 text-xs text-amber-600">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>部分结果：日志读取超时，仅显示已扫描到的 {logs.length} 条记录</span>
+                </div>
+              )}
               {logs.map((log, idx) => {
                 const id = `${log.time ?? 'unknown'}-${idx}`;
                 const isExpanded = expandedId === id;

@@ -19,6 +19,7 @@ import {
 import { errorResponse, CommonErrorCodes, AuthErrorCodes } from './lib/errorCodes'
 import logger from './lib/logger'
 import { requestTracker, routeErrorHandler } from './middleware/requestTracker'
+import { requestTimeout } from './middleware/requestTimeout'
 import { adminAuth } from './middleware/adminAuth'
 import { initScheduler } from './services/scheduler'
 import { initEventHandlers } from './services/eventHandlers'
@@ -56,6 +57,9 @@ const isProduction = process.env.NODE_ENV === 'production'
 if (isProduction) {
   app.set('trust proxy', 1)
 }
+
+// 请求超时中间件（防止请求挂死，默认30秒）
+app.use(requestTimeout())
 
 // 结构化请求追踪中间件（替代原有的 console.log 日志）
 app.use(requestTracker)

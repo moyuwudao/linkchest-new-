@@ -44,24 +44,33 @@ interface LogQueryResult {
 }
 
 /**
- * 获取日志文件路径
+ * 获取日志文件路径（异步版本）
  * 优先找 out 日志，找不到则找 err 日志
  */
-function getLogFiles(): string[] {
+async function getLogFiles(): Promise<string[]> {
   const files: string[] = []
 
   try {
     const outLog = path.join(LOG_DIR, `${APP_NAME}-out.log`)
     const errLog = path.join(LOG_DIR, `${APP_NAME}-error.log`)
 
-    if (fs.existsSync(outLog)) files.push(outLog)
-    if (fs.existsSync(errLog)) files.push(errLog)
+    const [outExists, errExists] = await Promise.all([
+      fs.promises.access(outLog).then(() => true).catch(() => false),
+      fs.promises.access(errLog).then(() => true).catch(() => false),
+    ])
+
+    if (outExists) files.push(outLog)
+    if (errExists) files.push(errLog)
 
     // 如果找不到，尝试列出目录下的日志文件
-    if (files.length === 0 && fs.existsSync(LOG_DIR)) {
-      const dirFiles = fs.readdirSync(LOG_DIR)
-      const matching = dirFiles.filter(f => f.endsWith('.log'))
-      matching.forEach(f => files.push(path.join(LOG_DIR, f)))
+    if (files.length === 0) {
+      try {
+        const dirFiles = await fs.promises.readdir(LOG_DIR)
+        const matching = dirFiles.filter(f => f.endsWith('.log'))
+        matching.forEach(f => files.push(path.join(LOG_DIR, f)))
+      } catch {
+        // 目录不存在或无法读取
+      }
     }
   } catch (e) {
     logger.warn({ err: (e as Error).message }, 'getLogFiles failed')
@@ -156,7 +165,7 @@ function matchesFilter(entry: LogEntry, options: LogQueryOptions): boolean {
 }
 
 /**
- * 从文件末尾反向读取日志行
+ * 从文件末尾反向读取日志行（异步版本，避免阻塞事件循环）
  * 按块读取，从后往前收集匹配的行，直到收集够数量或超时
  */
 async function readLogsReverse(
@@ -168,7 +177,7 @@ async function readLogsReverse(
   const entries: LogEntry[] = []
   const startTime = Date.now()
 
-  const stat = fs.statSync(filePath)
+  const stat = await fs.promises.stat(filePath)
   const fileSize = stat.size
   if (fileSize === 0) return entries
 
@@ -187,9 +196,9 @@ async function readLogsReverse(
     position -= readSize
 
     const buffer = Buffer.alloc(readSize)
-    const fd = fs.openSync(filePath, 'r')
-    fs.readSync(fd, buffer, 0, readSize, position)
-    fs.closeSync(fd)
+    const fd = await fs.promises.open(filePath, 'r')
+    await fd.read(buffer, 0, readSize, position)
+    await fd.close()
 
     const chunk = buffer.toString('utf8') + leftover
     const lines = chunk.split('\n')
@@ -230,7 +239,7 @@ export async function queryLogs(options: LogQueryOptions = {}): Promise<LogQuery
   const pageSize = Math.min(options.pageSize || 50, 200) // 最大 200 条
   const timeoutMs = 3000 // 单文件读取超时 3 秒
 
-  const files = getLogFiles()
+  const files = await getLogFiles()
   if (files.length === 0) {
     return { entries: [], total: 0, page, pageSize }
   }
@@ -240,10 +249,12 @@ export async function queryLogs(options: LogQueryOptions = {}): Promise<LogQuery
   const allEntries: LogEntry[] = []
 
   // 按文件修改时间倒序读取（最新的文件优先）
-  const filesWithMtime = files.map(fp => ({
-    path: fp,
-    mtime: fs.statSync(fp).mtime.getTime(),
-  }))
+  const filesWithMtime = await Promise.all(
+    files.map(async fp => ({
+      path: fp,
+      mtime: (await fs.promises.stat(fp)).mtime.getTime(),
+    }))
+  )
   filesWithMtime.sort((a, b) => b.mtime - a.mtime)
 
   for (const file of filesWithMtime) {
@@ -274,17 +285,20 @@ export async function queryLogs(options: LogQueryOptions = {}): Promise<LogQuery
 }
 
 /**
- * 获取日志文件列表（用于前端展示）
+ * 获取日志文件列表（用于前端展示，异步版本）
  */
-export function getLogFileList(): Array<{ name: string; path: string; size: number; modified: Date }> {
-  const files = getLogFiles()
-  return files.map(fp => {
-    const stat = fs.statSync(fp)
-    return {
-      name: path.basename(fp),
-      path: fp,
-      size: stat.size,
-      modified: stat.mtime,
-    }
-  })
+export async function getLogFileList(): Promise<Array<{ name: string; path: string; size: number; modified: Date }>> {
+  const files = await getLogFiles()
+  const stats = await Promise.all(
+    files.map(async fp => {
+      const stat = await fs.promises.stat(fp)
+      return {
+        name: path.basename(fp),
+        path: fp,
+        size: stat.size,
+        modified: stat.mtime,
+      }
+    })
+  )
+  return stats
 }

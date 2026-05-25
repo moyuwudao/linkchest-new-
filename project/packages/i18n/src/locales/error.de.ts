@@ -141,4 +141,5 @@ export default {
   ERR_SHARE_TOO_MANY_REQUESTS: "Zu viele Freigabeanfragen, bitte versuchen Sie es später erneut",
   ERR_NOT_FOUND: "Die angeforderte Ressource wurde nicht gefunden",
   ERR_FEATURE_NOT_AVAILABLE: "Diese Funktion ist in Ihrer Region nicht verfügbar",
+  ERR_REQUEST_TIMEOUT: "Zeitüberschreitung der Anforderung, bitte versuchen Sie es später erneut",
 } as const;

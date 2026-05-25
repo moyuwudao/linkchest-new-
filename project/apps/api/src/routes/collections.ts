@@ -1066,11 +1066,12 @@ router.post('/scan-duplicates', authenticate, async (req: AuthenticatedRequest, 
       return errorResponse(res, 403, CollectionErrorCodes.COLLECTION_TIER_REQUIRED)
     }
 
-    // 获取用户所有未删除的收藏
+    // 获取用户未删除的收藏（限制 3000 条，避免内存溢出）
     const collections = await prisma.collection.findMany({
       where: { userId, deletedAt: null },
       select: { id: true, url: true, title: true, platform: true, coverImage: true, createdAt: true },
       orderBy: { createdAt: 'asc' },
+      take: 3000,
     })
 
     // 按 URL 分组（精确匹配）
@@ -1219,6 +1220,7 @@ router.get('/export', authenticate, async (req: AuthenticatedRequest, res) => {
         lists: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
+      take: 3000,
     })
 
     if (format === 'csv') {
@@ -1326,6 +1328,21 @@ router.post('/import', authenticate, async (req: AuthenticatedRequest, res) => {
 
     const result = { success: 0, skipped: 0, error: 0 }
 
+    // 批量预查：一次性获取用户所有收藏、标签、分组，避免 N+1 查询
+    const [existingCollections, existingTags, existingLists] = await Promise.all([
+      prisma.collection.findMany({
+        where: { userId, deletedAt: null },
+        select: { url: true },
+      }),
+      prisma.tag.findMany({ where: { userId }, select: { id: true, name: true } }),
+      prisma.list.findMany({ where: { userId }, select: { id: true, name: true } }),
+    ])
+
+    // 构建查找映射表
+    const existingUrlSet = new Set(existingCollections.map(c => c.url.replace(/\/+$/, '')))
+    const tagMap = new Map(existingTags.map(t => [t.name, t.id]))
+    const listMap = new Map(existingLists.map(l => [l.name, l.id]))
+
     for (const item of itemsToImport) {
       try {
         if (!item.url) { result.error++; continue }
@@ -1334,50 +1351,45 @@ router.post('/import', authenticate, async (req: AuthenticatedRequest, res) => {
         const cleanUrl = item.url.trim().replace(/\/+$/, '')
         if (!cleanUrl) { result.error++; continue }
 
-        // 去重检查（同时检查带/不带尾部斜杠的 URL，排除回收站中的）
-        const existing = await prisma.collection.findFirst({
-          where: {
-            userId,
-            deletedAt: null,
-            OR: [
-              { url: cleanUrl },
-              { url: cleanUrl + '/' },
-              { url: cleanUrl.replace(/\/$/, '') },
-            ]
-          }
-        })
-        if (existing) { result.skipped++; continue }
+        // 去重检查（内存中判断，避免逐条查库）
+        const normalizedUrl = cleanUrl.replace(/\/$/, '')
+        if (existingUrlSet.has(normalizedUrl) || existingUrlSet.has(normalizedUrl + '/')) {
+          result.skipped++; continue
+        }
 
-        // 处理标签
+        // 处理标签（批量查/创建）
         const tagIds: string[] = []
         if (item.tags && Array.isArray(item.tags)) {
           for (const t of item.tags) {
             const tagName = typeof t === 'string' ? t : t.name
-            if (tagName) {
-              let tag = await prisma.tag.findFirst({ where: { userId, name: tagName } })
-              if (!tag) {
-                tag = await prisma.tag.create({
-                  data: { userId, name: tagName, nameCn: tagName, nameEn: tagName },
-                })
-              }
-              tagIds.push(tag.id)
+            if (!tagName) continue
+            let tagId = tagMap.get(tagName)
+            if (!tagId) {
+              const newTag = await prisma.tag.create({
+                data: { userId, name: tagName, nameCn: tagName, nameEn: tagName },
+              })
+              tagId = newTag.id
+              tagMap.set(tagName, tagId)
             }
+            tagIds.push(tagId)
           }
         }
 
-        // 处理分组（一个收藏只能属于一个分组）
+        // 处理分组（批量查/创建）
         let targetListId: string = defaultList.id
         if (item.lists && Array.isArray(item.lists) && item.lists.length > 0) {
           const firstList = item.lists[0]
           const listName = typeof firstList === 'string' ? firstList : firstList.name
           if (listName && listName !== DEFAULT_LIST_KEY && listName !== '我的收藏') {
-            let list = await prisma.list.findFirst({ where: { userId, name: listName } })
-            if (!list) {
-              list = await prisma.list.create({
+            let listId = listMap.get(listName)
+            if (!listId) {
+              const newList = await prisma.list.create({
                 data: { userId, name: listName },
               })
+              listId = newList.id
+              listMap.set(listName, listId)
             }
-            targetListId = list.id
+            targetListId = listId
           }
         }
 
@@ -1394,6 +1406,9 @@ router.post('/import', authenticate, async (req: AuthenticatedRequest, res) => {
             lists: { connect: [{ id: targetListId }] },
           },
         })
+
+        // 加入已存在集合，防止同一批次内重复导入
+        existingUrlSet.add(normalizedUrl)
 
         // 后台抓取封面和标题（导入时未提供则异步补全）
         if (!item.coverImage || !item.title) {

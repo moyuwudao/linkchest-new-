@@ -141,4 +141,5 @@ export default {
   ERR_SHARE_TOO_MANY_REQUESTS: "访问过于频繁，请稍后再试",
   ERR_NOT_FOUND: "请求的资源不存在",
   ERR_FEATURE_NOT_AVAILABLE: "该功能在当前市场不可用",
+  ERR_REQUEST_TIMEOUT: "请求处理超时，请稍后重试",
 } as const;
