@@ -406,7 +406,7 @@ async function fetchHtmlMetadata(url: string, platformKey?: string, signal?: Abo
           || html.match(/window\._SSR_HYDRATED_DATA\s*=\s*(.+?);\s*<\/script>/)
         if (ssrMatch) {
           const data = JSON.parse(ssrMatch[1])
-          const app = data?.app?
+          const app = data?.app
           if (app) {
             // 用户页视频：从 videoList 或 itemList 找对应 modal_id 的视频
             const videoId = new URL(url).searchParams.get('modal_id')
