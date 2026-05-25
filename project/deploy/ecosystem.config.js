@@ -1,16 +1,15 @@
 // ecosystem.config.js - PM2 进程管理配置
 // 国内运营方案: 4核8G服务器跑应用层
-// 更新时间: 2026-05-18
+// 更新时间: 2026-05-25
 
 module.exports = {
   apps: [
     {
       name: 'linkchest-web',
-      script: '/opt/linkchest/api/deploy/start-web.sh',
+      script: '/opt/linkchest/api/project/deploy/start-web.sh',
       interpreter: '/bin/bash',
       env: {
         NODE_ENV: 'production',
-        NEXT_PUBLIC_API_URL: 'http://localhost:3001',
       },
       autorestart: true,
       watch: false,
@@ -24,7 +23,7 @@ module.exports = {
     },
     {
       name: 'linkchest-api',
-      script: '/opt/linkchest/api/deploy/start-api.sh',
+      script: '/opt/linkchest/api/project/deploy/start-api.sh',
       interpreter: '/bin/bash',
       env: {
         NODE_ENV: 'production',

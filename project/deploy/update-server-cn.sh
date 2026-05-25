@@ -22,8 +22,8 @@ DB_USER="linkchest"
 DB_PASS="LinkChest_DB_2026!"
 DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
 
-PM2_API="linkchest-api-china"
-PM2_WEB="linkchest-web-china"
+PM2_API="linkchest-api"
+PM2_WEB="linkchest-web"
 GH_MIRROR="https://ghfast.top"
 
 echo "=========================================="
@@ -67,9 +67,9 @@ if [ "$API_DIR" != "$SRC_API_DIR" ]; then
   cp -f "$SRC_API_DIR/package.json" "$API_DIR/" 2>/dev/null || true
 fi
 
-dos2unix "$BASE_DIR/deploy/start-api.sh" 2>/dev/null || sed -i 's/\r$//' "$BASE_DIR/deploy/start-api.sh"
-dos2unix "$BASE_DIR/deploy/start-web.sh" 2>/dev/null || sed -i 's/\r$//' "$BASE_DIR/deploy/start-web.sh"
-chmod +x "$BASE_DIR/deploy/start-api.sh" "$BASE_DIR/deploy/start-web.sh"
+dos2unix "$BASE_DIR/project/deploy/start-api.sh" 2>/dev/null || sed -i 's/\r$//' "$BASE_DIR/project/deploy/start-api.sh"
+dos2unix "$BASE_DIR/project/deploy/start-web.sh" 2>/dev/null || sed -i 's/\r$//' "$BASE_DIR/project/deploy/start-web.sh"
+chmod +x "$BASE_DIR/project/deploy/start-api.sh" "$BASE_DIR/project/deploy/start-web.sh"
 
 DATABASE_URL="$DATABASE_URL" npx prisma generate
 npm install --production 2>/dev/null || true
@@ -107,7 +107,7 @@ echo "[5/8] 重启 API 服务..."
 cd "$BASE_DIR"
 pm2 delete "$PM2_API" 2>/dev/null || true
 sleep 1
-pm2 start "$BASE_DIR/deploy/ecosystem.config.js" --only "$PM2_API" 2>/dev/null || {
+pm2 start "$BASE_DIR/project/deploy/ecosystem.config.js" --only "$PM2_API" 2>/dev/null || {
   echo "  ecosystem.config.js 中未找到 $PM2_API，使用直接启动..."
   cd "$API_DIR"
   DATABASE_URL="$DATABASE_URL" REDIS_URL="redis://localhost:6379" NODE_ENV=production MARKET=china \
@@ -170,7 +170,7 @@ timeout 600 npx next build || {
 echo "  重启 Web 服务..."
 pm2 delete "$PM2_WEB" 2>/dev/null || true
 sleep 1
-pm2 start "$BASE_DIR/deploy/ecosystem.config.js" --only "$PM2_WEB" 2>/dev/null || {
+pm2 start "$BASE_DIR/project/deploy/ecosystem.config.js" --only "$PM2_WEB" 2>/dev/null || {
   cd "$WEB_DIR"
   NODE_ENV=production pm2 start ./node_modules/.bin/next --name "$PM2_WEB" -- start -p 3003 -H 0.0.0.0
 }
