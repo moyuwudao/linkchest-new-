@@ -290,7 +290,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       setParsePhase(t('add.resolvingShortLink'))
 
       const parseData = { url: inputUrl }
-      const parseResponse = await api.post('/collections/parse', parseData)
+      const parseResponse = await api.post('/collections/parse-url', parseData)
       const parsed = parseResponse.data.data
 
       if (parsed.url) setUrl(parsed.url)
