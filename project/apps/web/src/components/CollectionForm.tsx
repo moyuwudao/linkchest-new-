@@ -265,6 +265,46 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
     },
   })
 
+  // 尝试通过 Chrome Extension 获取元数据（使用 postMessage 与 content script 通信）
+  const fetchMetadataFromExtension = useCallback(async (inputUrl: string): Promise<{ title?: string; coverImage?: string; platform?: string } | null> => {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined') {
+        resolve(null)
+        return
+      }
+
+      const requestId = Math.random().toString(36).substring(2, 15)
+
+      const handleMessage = (event: MessageEvent) => {
+        const data = event.data
+        if (data?.source === 'linkchest-extension' && data?.requestId === requestId && data?.type === 'METADATA_RESPONSE') {
+          window.removeEventListener('message', handleMessage)
+          if (data.data && (data.data.title || data.data.coverImage)) {
+            resolve(data.data)
+          } else {
+            resolve(null)
+          }
+        }
+      }
+
+      window.addEventListener('message', handleMessage)
+
+      // 发送请求给 content script
+      window.postMessage({
+        source: 'linkchest-web',
+        requestId,
+        type: 'FETCH_METADATA_FOR_URL',
+        url: inputUrl,
+      }, '*')
+
+      // 设置超时
+      setTimeout(() => {
+        window.removeEventListener('message', handleMessage)
+        resolve(null)
+      }, 3000)
+    })
+  }, [])
+
   // 解析URL
   const parseUrl = useCallback(async (inputUrl: string, auto = false) => {
     if (!inputUrl.trim()) return
@@ -288,6 +328,20 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       }
 
       setParsePhase(t('add.resolvingShortLink'))
+
+      // 先尝试从 Chrome Extension 获取元数据（对抖音/小红书等反爬平台有效）
+      const extMetadata = await fetchMetadataFromExtension(inputUrl)
+      if (extMetadata) {
+        console.log('[CollectionForm] Got metadata from extension:', extMetadata)
+        if (extMetadata.title) setTitle(extMetadata.title)
+        if (extMetadata.coverImage) setCoverImage(extMetadata.coverImage)
+        if (extMetadata.platform) setPlatform(extMetadata.platform)
+        // 如果 extension 提供了完整数据，跳过服务器解析
+        if (extMetadata.title && extMetadata.coverImage) {
+          setParsing(false)
+          return
+        }
+      }
 
       const parseData = { url: inputUrl }
       const parseResponse = await api.post('/collections/parse-url', parseData)

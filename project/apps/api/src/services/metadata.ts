@@ -179,6 +179,10 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
     console.log(`[fetchUrlMetadata] platform=${platformKey}`)
     const normalizedUrl = platformKey === 'youtube' ? normalizeYoutubeUrl(url) : url
 
+    // 已知反爬平台：服务器IP会被拦截，跳过 ogs/html 抓取，直接 fallback + 异步 worker
+    const antiBotPlatforms = ['douyin', 'xiaohongshu', 'kuaishou']
+    const isAntiBotPlatform = antiBotPlatforms.includes(platformKey)
+
     if (OEMBED_PROVIDERS[platformKey]) {
       metadata = await fetchOEmbedMetadata(normalizedUrl, OEMBED_PROVIDERS[platformKey], signal, platformKey)
       if (platformKey === 'youtube' && metadata && !metadata.title && CLOUDFLARE_WORKER_URL) {
@@ -187,12 +191,12 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
       }
     }
 
-    if (!metadata || (!metadata.title && !metadata.coverImage)) {
+    if (!isAntiBotPlatform && (!metadata || (!metadata.title && !metadata.coverImage))) {
       if (platformKey === 'bilibili') metadata = await fetchBilibiliMetadata(normalizedUrl, signal)
       else metadata = await fetchOgsMetadata(normalizedUrl, platformKey, signal)
     }
 
-    if (!metadata || (!metadata.title && !metadata.coverImage)) {
+    if (!isAntiBotPlatform && (!metadata || (!metadata.title && !metadata.coverImage))) {
       console.log(`[fetchUrlMetadata] ogs failed, trying html fallback for ${platformKey}`)
       metadata = await fetchHtmlMetadata(normalizedUrl, platformKey, signal)
     }
@@ -205,10 +209,15 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
     if (WORKER_FALLBACK_PLATFORMS.includes(ef)) metadata = await fetchCloudflareWorkerFallback(url, signal)
   }
 
-  if (platformKey !== 'other' && metadata) {
+  if (platformKey !== 'other') {
     const fallback = await getPlatformFallbackMetadata(platformKey, url)
-    const effectiveTitle = metadata.title && !isLowQualityTitle(metadata.title) ? metadata.title : fallback.title
-    metadata = { title: effectiveTitle, coverImage: metadata.coverImage || null, favicon: metadata.favicon || fallback.favicon, description: metadata.description || fallback.description }
+    const effectiveTitle = metadata?.title && !isLowQualityTitle(metadata.title) ? metadata.title : fallback.title
+    metadata = {
+      title: effectiveTitle,
+      coverImage: metadata?.coverImage || fallback.coverImage || null,
+      favicon: metadata?.favicon || fallback.favicon || null,
+      description: metadata?.description || fallback.description || null,
+    }
   }
 
   if (metadata && (metadata.title || metadata.coverImage)) {
