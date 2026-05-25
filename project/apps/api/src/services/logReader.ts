@@ -156,48 +156,121 @@ function matchesFilter(entry: LogEntry, options: LogQueryOptions): boolean {
 }
 
 /**
+ * 从文件末尾反向读取日志行
+ * 按块读取，从后往前收集匹配的行，直到收集够数量或超时
+ */
+async function readLogsReverse(
+  filePath: string,
+  options: LogQueryOptions,
+  needed: number,
+  timeoutMs: number
+): Promise<LogEntry[]> {
+  const entries: LogEntry[] = []
+  const startTime = Date.now()
+
+  const stat = fs.statSync(filePath)
+  const fileSize = stat.size
+  if (fileSize === 0) return entries
+
+  const chunkSize = 64 * 1024 // 64KB 一块
+  let position = fileSize
+  let leftover = ''
+
+  while (position > 0 && entries.length < needed) {
+    // 超时检查
+    if (Date.now() - startTime > timeoutMs) {
+      logger.warn({ file: filePath, elapsed: Date.now() - startTime }, 'log read timeout')
+      break
+    }
+
+    const readSize = Math.min(chunkSize, position)
+    position -= readSize
+
+    const buffer = Buffer.alloc(readSize)
+    const fd = fs.openSync(filePath, 'r')
+    fs.readSync(fd, buffer, 0, readSize, position)
+    fs.closeSync(fd)
+
+    const chunk = buffer.toString('utf8') + leftover
+    const lines = chunk.split('\n')
+
+    // 最后一块可能不完整，保留第一行给下一次
+    leftover = lines.shift() || ''
+
+    // 从后往前遍历行（因为 chunk 是从文件末尾读的）
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i]
+      if (!line.trim()) continue
+
+      const entry = parseLogLine(line)
+      if (entry && matchesFilter(entry, options)) {
+        entries.push(entry)
+        if (entries.length >= needed) break
+      }
+    }
+  }
+
+  // 处理最后剩下的内容
+  if (leftover.trim() && entries.length < needed) {
+    const entry = parseLogLine(leftover)
+    if (entry && matchesFilter(entry, options)) {
+      entries.push(entry)
+    }
+  }
+
+  return entries
+}
+
+/**
  * 查询日志
- * 支持从多个日志文件中读取，按时间倒序
+ * 从文件末尾反向读取，收集够数量即停止，避免全量扫描
  */
 export async function queryLogs(options: LogQueryOptions = {}): Promise<LogQueryResult> {
   const page = options.page || 1
   const pageSize = Math.min(options.pageSize || 50, 200) // 最大 200 条
+  const timeoutMs = 3000 // 单文件读取超时 3 秒
 
   const files = getLogFiles()
   if (files.length === 0) {
     return { entries: [], total: 0, page, pageSize }
   }
 
+  // 计算需要收集的总条数（考虑到分页）
+  const neededTotal = page * pageSize
   const allEntries: LogEntry[] = []
 
-  for (const filePath of files) {
-    try {
-      const stream = fs.createReadStream(filePath, { encoding: 'utf8' })
-      const rl = readline.createInterface({ input: stream, crlfDelay: Infinity })
+  // 按文件修改时间倒序读取（最新的文件优先）
+  const filesWithMtime = files.map(fp => ({
+    path: fp,
+    mtime: fs.statSync(fp).mtime.getTime(),
+  }))
+  filesWithMtime.sort((a, b) => b.mtime - a.mtime)
 
-      for await (const line of rl) {
-        const entry = parseLogLine(line)
-        if (entry && matchesFilter(entry, options)) {
-          allEntries.push(entry)
-        }
-      }
+  for (const file of filesWithMtime) {
+    if (allEntries.length >= neededTotal) break
+
+    const remaining = neededTotal - allEntries.length
+    try {
+      const entries = await readLogsReverse(file.path, options, remaining, timeoutMs)
+      allEntries.push(...entries)
     } catch (e) {
-      logger.warn({ file: filePath, err: (e as Error).message }, 'read log file failed')
+      logger.warn({ file: file.path, err: (e as Error).message }, 'read log file failed')
     }
   }
 
-  // 按时间倒序
+  // 按时间倒序排序（不同文件的日志需要合并排序）
   allEntries.sort((a, b) => {
     const ta = a.time ? new Date(a.time).getTime() : 0
     const tb = b.time ? new Date(b.time).getTime() : 0
     return tb - ta
   })
 
-  const total = allEntries.length
+  // 分页切片
   const start = (page - 1) * pageSize
   const entries = allEntries.slice(start, start + pageSize)
 
-  return { entries, total, page, pageSize }
+  // total 返回已扫描到的数量（不是精确总数，避免全量计数）
+  return { entries, total: allEntries.length, page, pageSize }
 }
 
 /**

@@ -874,7 +874,8 @@ router.post('/smart-parse', authenticate, [
 router.post('/parse-url', authenticate, [
   body('url').custom((value) => {
     const processed = ensureHttps(value)
-    return !!processed && isURL(processed)
+    // 使用更宽松的 URL 验证，支持各种平台链接
+    return !!processed && (isURL(processed) || /^https?:\/\/.+/.test(processed))
   }).withMessage('请输入有效的URL'),
 ], async (req: AuthenticatedRequest, res) => {
   const errors = validationResult(req)
