@@ -3,7 +3,7 @@
 # 由 PM2 调用，确保在正确的工作目录下启动 Next.js
 set -e
 
-cd /opt/linkchest/api/apps/web
+cd /opt/linkchest/api/project/apps/web
 
 echo "[Web] CWD: $(pwd)"
 echo "[Web] Node: $(node --version)"
@@ -16,7 +16,7 @@ if [ ! -d ".next" ]; then
 fi
 
 # 验证关键依赖存在 (npm workspaces 下 next 可能在 apps/web/node_modules)
-if [ ! -d "./node_modules/next" ] && [ ! -d "../../node_modules/next" ]; then
+if [ ! -d "./node_modules/next" ] && [ ! -d "../../../node_modules/next" ]; then
     echo "[Web] ERROR: next package not found in node_modules"
     exit 1
 fi
@@ -26,5 +26,5 @@ echo "[Web] .next directory exists, starting server..."
 if [ -f "./node_modules/.bin/next" ]; then
     exec ./node_modules/.bin/next start -p 3003 -H 0.0.0.0
 else
-    exec ../../node_modules/.bin/next start -p 3003 -H 0.0.0.0
+    exec ../../../node_modules/.bin/next start -p 3003 -H 0.0.0.0
 fi
