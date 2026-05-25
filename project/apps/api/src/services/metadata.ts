@@ -146,8 +146,17 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
 
   const cached = await getCachedMetadata(url)
   const cachedHasData = cached && (cached.title || cached.coverImage || cached.description)
-  console.log(`[fetchUrlMetadata] cache hit=${!!cached} hasData=${cachedHasData}`)
-  if (cachedHasData) {
+  const cachedHasCover = cached && !!cached.coverImage
+  console.log(`[fetchUrlMetadata] cache hit=${!!cached} hasData=${cachedHasData} hasCover=${cachedHasCover}`)
+
+  const SPECIAL_COVER_PLATFORMS = ['douyin', 'xiaohongshu']
+  let cachedPlatform = 'other'
+  try {
+    const { detectPlatform } = await import('./platforms')
+    cachedPlatform = detectPlatform(url)
+  } catch {}
+
+  if (cachedHasData && (cachedHasCover || !SPECIAL_COVER_PLATFORMS.includes(cachedPlatform))) {
     metadataStats.total++
     metadataStats.redisHit++
     metadataStats.success++
@@ -164,7 +173,11 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
     console.log(`[fetchUrlMetadata] platform=${platformKey}`)
     const normalizedUrl = platformKey === 'youtube' ? normalizeYoutubeUrl(url) : url
 
-    if (OEMBED_PROVIDERS[platformKey]) {
+    if (platformKey === 'douyin') {
+      metadata = await fetchDouyinMetadata(normalizedUrl, signal)
+    } else if (platformKey === 'xiaohongshu') {
+      metadata = await fetchXiaohongshuMetadata(normalizedUrl, signal)
+    } else if (OEMBED_PROVIDERS[platformKey]) {
       metadata = await fetchOEmbedMetadata(normalizedUrl, OEMBED_PROVIDERS[platformKey], signal, platformKey)
       if (platformKey === 'youtube' && metadata && !metadata.title && CLOUDFLARE_WORKER_URL) {
         const wr = await fetchCloudflareWorkerFallback(url, signal)
@@ -174,7 +187,7 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
 
     if (!metadata || (!metadata.title && !metadata.coverImage)) {
       if (platformKey === 'bilibili') metadata = await fetchBilibiliMetadata(normalizedUrl, signal)
-      else metadata = await fetchOgsMetadata(normalizedUrl, platformKey, signal)
+      else if (platformKey !== 'douyin' && platformKey !== 'xiaohongshu') metadata = await fetchOgsMetadata(normalizedUrl, platformKey, signal)
     }
   } catch { metadata = await fetchOgsMetadata(url, undefined, signal) }
 
@@ -188,7 +201,11 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
   if (platformKey !== 'other' && metadata) {
     const fallback = await getPlatformFallbackMetadata(platformKey, url)
     const effectiveTitle = metadata.title && !isLowQualityTitle(metadata.title) ? metadata.title : fallback.title
-    metadata = { title: effectiveTitle, coverImage: metadata.coverImage || null, favicon: metadata.favicon || fallback.favicon, description: metadata.description || fallback.description }
+    if (!metadata.coverImage) {
+      metadata = { ...metadata, title: effectiveTitle, favicon: metadata.favicon || fallback.favicon, description: metadata.description || fallback.description }
+    } else {
+      metadata = { title: effectiveTitle, coverImage: metadata.coverImage, favicon: metadata.favicon || fallback.favicon, description: metadata.description || fallback.description }
+    }
   }
 
   if (metadata && (metadata.title || metadata.coverImage)) {
@@ -274,6 +291,354 @@ async function fetchBilibiliMetadata(url: string, signal?: AbortSignal): Promise
     const infoDesc = info.desc as string | undefined
     return { title: cleanTitle(infoTitle || infoShortTitle || '') || null, coverImage: infoPic ? resolveUrl(url, infoPic.replace(/^http:/, 'https:')) : null, favicon: 'https://www.bilibili.com/favicon.ico', description: infoDesc ? cleanTitle(infoDesc.substring(0, 200)) : null }
   } catch { return { title: null, coverImage: null, favicon: null, description: null } } finally { clearTimeout(timeout) }
+}
+
+function extractDouyinVideoId(url: string): string | null {
+  try {
+    const u = new URL(url)
+    const modalId = u.searchParams.get('modal_id')
+    if (modalId) return modalId
+    const vid = u.searchParams.get('vid')
+    if (vid) return vid
+    const pathMatch = u.pathname.match(/\/video\/(\d+)/)
+    if (pathMatch) return pathMatch[1]
+    const hashMatch = u.hash.match(/modal_id=(\d+)/)
+    if (hashMatch) return hashMatch[1]
+    const modalIdMatch = url.match(/modal_id=(\d+)/)
+    if (modalIdMatch) return modalIdMatch[1]
+    const vidMatch = url.match(/[?&]vid=(\d+)/)
+    if (vidMatch) return vidMatch[1]
+  } catch {}
+  return null
+}
+
+async function fetchDouyinMetadata(url: string, signal?: AbortSignal): Promise<UrlMetadata> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 8000)
+  if (signal) {
+    signal.addEventListener('abort', () => controller.abort(), { once: true })
+  }
+  try {
+    const videoId = extractDouyinVideoId(url)
+    console.log(`[fetchDouyinMetadata] videoId=${videoId} url=${url}`)
+
+    const headers: Record<string, string> = {
+      'User-Agent': DEFAULT_USER_AGENT,
+      'Accept': 'text/html,application/xhtml+xml',
+      'Accept-Language': 'zh-CN,zh;q=0.9',
+      'Referer': 'https://www.douyin.com/',
+    }
+
+    let title: string | null = null
+    let coverImage: string | null = null
+
+    if (videoId) {
+      try {
+        const apiUrl = `https://www.iesdouyin.com/web/api/v2/aweme/iteminfo/?item_ids=${videoId}`
+        const apiController = new AbortController()
+        const apiTimeout = setTimeout(() => apiController.abort(), 4000)
+        if (signal) {
+          signal.addEventListener('abort', () => apiController.abort(), { once: true })
+        }
+        try {
+          const apiResp = await fetch(apiUrl, {
+            headers: { ...headers, 'Referer': 'https://www.douyin.com/' },
+            signal: apiController.signal,
+          })
+          if (apiResp.ok) {
+            const data = await apiResp.json() as any
+            if (data?.item_list?.[0]) {
+              const item = data.item_list[0]
+              if (!coverImage && item.video?.cover?.url_list?.[0]) {
+                const c = item.video.cover.url_list[0]
+                if (c && c.startsWith('http') && !c.includes('avatar')) {
+                  coverImage = c
+                  console.log('[fetchDouyinMetadata] Cover from API:', coverImage?.substring(0, 80))
+                }
+              }
+              if (!coverImage && item.video?.origin_cover?.url_list?.[0]) {
+                const c = item.video.origin_cover.url_list[0]
+                if (c && c.startsWith('http')) {
+                  coverImage = c
+                }
+              }
+              if (!title && item.desc) {
+                title = item.desc
+                console.log('[fetchDouyinMetadata] Title from API:', title?.substring(0, 80))
+              }
+            }
+          }
+        } catch (e) {
+          console.log('[fetchDouyinMetadata] API fetch failed:', (e as Error).message)
+        } finally {
+          clearTimeout(apiTimeout)
+        }
+      } catch {}
+    }
+
+    if (!coverImage || !title) {
+      const htmlResp = await fetch(url, {
+        headers,
+        signal: controller.signal,
+        agent: url.startsWith('https') ? httpsAgent : undefined,
+      })
+
+      if (htmlResp.ok) {
+        const html = await htmlResp.text()
+
+        if (!isAntiBotPage(html)) {
+          if (!coverImage) {
+            const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/)
+            if (ogImageMatch && ogImageMatch[1].startsWith('http') && !ogImageMatch[1].includes('avatar')) {
+              coverImage = ogImageMatch[1]
+              console.log('[fetchDouyinMetadata] Cover from og:image:', coverImage?.substring(0, 80))
+            }
+          }
+
+          if (!title) {
+            const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/)
+            if (ogTitleMatch) {
+              const t = ogTitleMatch[1]
+              if (t && t !== '抖音' && t !== '抖音-记录美好生活' && !t.includes('验证') && !t.includes('跳转')) {
+                title = t
+              }
+            }
+          }
+
+          if (!title) {
+            const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/)
+            if (titleMatch) {
+              let t = titleMatch[1].trim()
+              t = t.replace(/\s*[-–—|]\s*抖音.*$/, '').trim()
+              if (t && t !== '抖音' && t !== '抖音-记录美好生活' && !isLowQualityTitle(t) && t.length > 1) {
+                title = t
+              }
+            }
+          }
+
+          if (!coverImage || !title) {
+            try {
+              const stateMatch = html.match(/(?:__INITIAL_STATE__|window\.__INITIAL_STATE__)\s*=\s*([\s\S]*?)(?:<\/script>|;)/)
+              if (stateMatch) {
+                let jsonStr = stateMatch[1].trim()
+                if (jsonStr.endsWith(';')) jsonStr = jsonStr.slice(0, -1)
+                if (jsonStr.startsWith('{')) {
+                  try {
+                    const state = JSON.parse(jsonStr.replace(/undefined/g, 'null'))
+                    if (!coverImage) {
+                      const findCover = (obj: any): string | null => {
+                        if (!obj || typeof obj !== 'object') return null
+                        if (Array.isArray(obj)) {
+                          for (const item of obj) {
+                            const c = findCover(item)
+                            if (c) return c
+                          }
+                        }
+                        if (obj.video?.cover?.url_list?.[0]) return obj.video.cover.url_list[0]
+                        if (obj.video?.origin_cover?.url_list?.[0]) return obj.video.origin_cover.url_list[0]
+                        if (obj.cover?.url_list?.[0]) return obj.cover.url_list[0]
+                        for (const key of Object.keys(obj)) {
+                          const val = obj[key]
+                          if (val && typeof val === 'object') {
+                            const c = findCover(val)
+                            if (c) return c
+                          }
+                        }
+                        return null
+                      }
+                      coverImage = findCover(state)
+                    }
+                    if (!title) {
+                      const findTitle = (obj: any): string | null => {
+                        if (!obj || typeof obj !== 'object') return null
+                        if (Array.isArray(obj)) {
+                          for (const item of obj) {
+                            const t = findTitle(item)
+                            if (t) return t
+                          }
+                        }
+                        if (typeof obj.desc === 'string' && obj.desc.length > 1) return obj.desc
+                        if (typeof obj.title === 'string' && obj.title.length > 1) return obj.title
+                        for (const key of Object.keys(obj)) {
+                          const val = obj[key]
+                          if (val && typeof val === 'object') {
+                            const t = findTitle(val)
+                            if (t) return t
+                          }
+                        }
+                        return null
+                      }
+                      title = findTitle(state)
+                    }
+                    if (coverImage) console.log('[fetchDouyinMetadata] Cover from INITIAL_STATE')
+                    if (title) console.log('[fetchDouyinMetadata] Title from INITIAL_STATE:', title?.substring(0, 80))
+                  } catch {}
+                }
+              }
+            } catch {}
+          }
+        }
+      }
+    }
+
+    title = title ? cleanTitle(title) : null
+    coverImage = coverImage ? ensureHttps(coverImage) : null
+
+    if (title || coverImage) {
+      return {
+        title,
+        coverImage,
+        favicon: 'https://www.douyin.com/favicon.ico',
+        description: null,
+      }
+    }
+
+    return await getPlatformFallbackMetadata('douyin', url)
+  } catch {
+    return await getPlatformFallbackMetadata('douyin', url)
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+function extractXiaohongshuNoteId(url: string): string | null {
+  try {
+    const pathname = new URL(url).pathname
+    const match = pathname.match(/\/explore\/([a-zA-Z0-9]+)/)
+    if (match) return match[1]
+    const match2 = pathname.match(/\/discovery\/item\/([a-zA-Z0-9]+)/)
+    if (match2) return match2[1]
+  } catch {}
+  return null
+}
+
+async function fetchXiaohongshuMetadata(url: string, signal?: AbortSignal): Promise<UrlMetadata> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 8000)
+  if (signal) {
+    signal.addEventListener('abort', () => controller.abort(), { once: true })
+  }
+  try {
+    const noteId = extractXiaohongshuNoteId(url)
+    console.log(`[fetchXiaohongshuMetadata] noteId=${noteId} url=${url}`)
+
+    const headers: Record<string, string> = {
+      'User-Agent': DESKTOP_USER_AGENT,
+      'Accept': 'text/html,application/xhtml+xml',
+      'Accept-Language': 'zh-CN,zh;q=0.9',
+      'Cookie': '',
+    }
+
+    let title: string | null = null
+    let coverImage: string | null = null
+
+    const htmlResp = await fetch(url, {
+      headers,
+      signal: controller.signal,
+      agent: url.startsWith('https') ? httpsAgent : undefined,
+    })
+
+    if (htmlResp.ok) {
+      const html = await htmlResp.text()
+
+      if (!isAntiBotPage(html)) {
+        const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/)
+          || html.match(/<meta\s+property=["']og:image:url["']\s+content=["']([^"']+)["']/)
+        if (ogImageMatch && ogImageMatch[1].startsWith('http')) {
+          coverImage = ogImageMatch[1]
+          console.log('[fetchXiaohongshuMetadata] Cover from og:image:', coverImage?.substring(0, 80))
+        }
+
+        const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/)
+        if (ogTitleMatch && ogTitleMatch[1] && ogTitleMatch[1] !== '小红书') {
+          title = ogTitleMatch[1]
+        }
+
+        if (!title) {
+          const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/)
+          if (titleMatch) {
+            let t = titleMatch[1].trim()
+            t = t.replace(/\s*[-–—|]\s*小红书.*$/, '').trim()
+            if (t && t !== '小红书' && !isLowQualityTitle(t) && t.length > 1) {
+              title = t
+            }
+          }
+        }
+
+        if (!coverImage) {
+          const imgMatch = html.match(/<img[^>]*src=["']([^"']*xhscdn[^"']*)["'][^>]*>/i)
+            || html.match(/<img[^>]*src=["']([^"']*sns-webpic[^"']*)["'][^>]*>/i)
+          if (imgMatch) {
+            coverImage = imgMatch[1]
+            if (coverImage && !coverImage.startsWith('http')) {
+              coverImage = 'https:' + coverImage
+            }
+          }
+        }
+
+        if (!coverImage || !title) {
+          try {
+            const stateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*([\s\S]*?)<\/script>/)
+            if (stateMatch) {
+              let jsonStr = stateMatch[1].trim()
+              if (jsonStr.endsWith(';')) jsonStr = jsonStr.slice(0, -1)
+              if (jsonStr.startsWith('{')) {
+                try {
+                  const state = JSON.parse(jsonStr.replace(/undefined/g, 'null'))
+                  const findNote = (obj: any): any => {
+                    if (!obj || typeof obj !== 'object') return null
+                    if (obj.noteId === noteId || obj.note?.noteId === noteId) return obj.note || obj
+                    if (obj.noteDetailMap) {
+                      for (const key of Object.keys(obj.noteDetailMap)) {
+                        if (obj.noteDetailMap[key]?.note) return obj.noteDetailMap[key].note
+                      }
+                    }
+                    for (const key of Object.keys(obj)) {
+                      const val = obj[key]
+                      if (val && typeof val === 'object' && !Array.isArray(val)) {
+                        const found = findNote(val)
+                        if (found) return found
+                      }
+                    }
+                    return null
+                  }
+                  const note = findNote(state)
+                  if (note) {
+                    if (!title && note.title) title = note.title
+                    if (!title && note.displayTitle) title = note.displayTitle
+                    if (!coverImage && note.imageList?.[0]?.url) {
+                      coverImage = note.imageList[0].url
+                    }
+                    if (!coverImage && note.cover?.url) {
+                      coverImage = note.cover.url
+                    }
+                  }
+                } catch {}
+              }
+            }
+          } catch {}
+        }
+      }
+    }
+
+    title = title ? cleanTitle(title) : null
+    coverImage = coverImage ? ensureHttps(coverImage) : null
+
+    if (title || coverImage) {
+      return {
+        title,
+        coverImage,
+        favicon: 'https://www.xiaohongshu.com/favicon.ico',
+        description: null,
+      }
+    }
+
+    return await getPlatformFallbackMetadata('xiaohongshu', url)
+  } catch {
+    return await getPlatformFallbackMetadata('xiaohongshu', url)
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 async function fetchOgsMetadata(url: string, platformKey?: string, signal?: AbortSignal): Promise<UrlMetadata> {
