@@ -89,7 +89,20 @@ const lruCache = new LRUCache<string, UrlMetadata>({
 function isAntiBotPage(html: string): boolean {
   if (html.includes('_$jsvmprt')) return true
   if (html.includes('<body></body>') && html.length < 80000) return true
-  if (!html.includes('<meta property="og:') && !html.includes('<h1') && html.length < 50000) return true
+  // 抖音/小红书等 SPA 页面通常没有 og 标签和 h1，不能仅凭此判断为反爬
+  // 需要结合其他特征（如空 body、验证页面文字等）
+  const hasContent = html.includes('class="video-info"') ||
+    html.includes('class="content"') ||
+    html.includes('class="desc"') ||
+    html.includes('class="title"') ||
+    html.includes('class="note-content"') ||
+    html.includes('<script>window._SSR_HYDRATED_DATA') ||
+    html.includes('__INITIAL_STATE__') ||
+    html.includes('RENDER_DATA') ||
+    html.includes('SSR_HYDRATED_DATA') ||
+    html.includes('<div id="root">') ||
+    html.includes('<div id="app">')
+  if (!html.includes('<meta property="og:') && !html.includes('<h1') && html.length < 50000 && !hasContent) return true
   return false
 }
 
@@ -386,22 +399,108 @@ async function fetchHtmlMetadata(url: string, platformKey?: string, signal?: Abo
       }
     }
 
-    if (!coverImage && platformKey === 'douyin') {
-      const posterMatch = html.match(/poster=["']([^"']+)["']/)
-      if (posterMatch && posterMatch[1].startsWith('http')) {
-        coverImage = posterMatch[1]
+    // 抖音：从嵌入的 JSON 数据中提取视频信息
+    if (platformKey === 'douyin') {
+      try {
+        const ssrMatch = html.match(/<script>window\._SSR_HYDRATED_DATA=(.+?)<\/script>/)
+          || html.match(/window\._SSR_HYDRATED_DATA\s*=\s*(.+?);\s*<\/script>/)
+        if (ssrMatch) {
+          const data = JSON.parse(ssrMatch[1])
+          const app = data?.app?
+          if (app) {
+            // 用户页视频：从 videoList 或 itemList 找对应 modal_id 的视频
+            const videoId = new URL(url).searchParams.get('modal_id')
+            const videos = app.videoList || app.itemList || []
+            const video = videoId
+              ? videos.find((v: any) => v.videoId === videoId || v.awemeId === videoId)
+              : videos[0]
+            if (video) {
+              if (!title && video.title) title = video.title
+              if (!title && video.desc) title = video.desc
+              if (!coverImage && video.cover) coverImage = video.cover
+              if (!coverImage && video.originCover) coverImage = video.originCover
+              if (!coverImage && video.dynamicCover) coverImage = video.dynamicCover
+            }
+            // 如果上面没找到，尝试直接取第一个视频
+            if (!title && videos[0]?.title) title = videos[0].title
+            if (!title && videos[0]?.desc) title = videos[0].desc
+            if (!coverImage && videos[0]?.cover) coverImage = videos[0].cover
+          }
+          // 精选页/视频页
+          const detail = data?.app?.videoInfo || data?.app?.detail
+          if (detail) {
+            if (!title && detail.title) title = detail.title
+            if (!title && detail.desc) title = detail.desc
+            if (!coverImage && detail.cover) coverImage = detail.cover
+            if (!coverImage && detail.originCover) coverImage = detail.originCover
+          }
+        }
+      } catch (e) {
+        // SSR JSON 解析失败，继续用正则兜底
       }
-      const imgMatch = html.match(/src=["']([^"']*douyinpic\.com[^"']*\.jpe?g[^"']*)["']/)
-      if (imgMatch && imgMatch[1].startsWith('http')) {
-        coverImage = imgMatch[1]
+
+      // 正则兜底：poster 属性、douyinpic 图片
+      if (!coverImage) {
+        const posterMatch = html.match(/poster=["']([^"']+)["']/)
+        if (posterMatch && posterMatch[1].startsWith('http')) {
+          coverImage = posterMatch[1]
+        }
+      }
+      if (!coverImage) {
+        const imgMatch = html.match(/src=["']([^"']*douyinpic\.com[^"']*\.(?:jpe?g|webp)[^"']*)["']/)
+        if (imgMatch && imgMatch[1].startsWith('http')) {
+          coverImage = imgMatch[1]
+        }
       }
     }
 
-    if (!coverImage && platformKey === 'xiaohongshu') {
-      const imgMatch = html.match(/src=["']([^"']*xhscdn[^"']*\.jpe?g[^"']*)["']/)
-        || html.match(/src=["']([^"']*sns-webpic[^"']*\.jpe?g[^"']*)["']/)
-      if (imgMatch) {
-        coverImage = imgMatch[1].startsWith('http') ? imgMatch[1] : 'https:' + imgMatch[1]
+    // 小红书：从嵌入的 JSON 数据中提取笔记信息
+    if (platformKey === 'xiaohongshu') {
+      try {
+        const initStateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*([\s\S]*?)(?:;\s*<\/script>|<\/script>)/)
+        if (initStateMatch) {
+          let jsonStr = initStateMatch[1].trim()
+          if (jsonStr.endsWith(';')) jsonStr = jsonStr.slice(0, -1)
+          const state = JSON.parse(jsonStr.replace(/undefined/g, 'null'))
+          // 递归查找 note 数据
+          const findNote = (obj: any): any => {
+            if (!obj || typeof obj !== 'object') return null
+            if (obj.noteId || obj.note?.noteId) return obj.note || obj
+            if (obj.noteDetailMap) {
+              for (const key of Object.keys(obj.noteDetailMap)) {
+                if (obj.noteDetailMap[key]?.note) return obj.noteDetailMap[key].note
+              }
+            }
+            for (const key of Object.keys(obj)) {
+              const val = obj[key]
+              if (val && typeof val === 'object' && !Array.isArray(val)) {
+                const found = findNote(val)
+                if (found) return found
+              }
+            }
+            return null
+          }
+          const note = findNote(state)
+          if (note) {
+            if (!title && note.title) title = note.title
+            if (!title && note.displayTitle) title = note.displayTitle
+            if (!title && note.desc) title = note.desc
+            if (!coverImage && note.cover?.url) coverImage = note.cover.url
+            if (!coverImage && note.imageList?.[0]?.url) coverImage = note.imageList[0].url
+            if (!coverImage && note.imageList?.[0]?.urlDefault) coverImage = note.imageList[0].urlDefault
+          }
+        }
+      } catch (e) {
+        // INITIAL_STATE 解析失败
+      }
+
+      // 正则兜底：xhscdn 图片
+      if (!coverImage) {
+        const imgMatch = html.match(/src=["']([^"']*xhscdn[^"']*\.(?:jpe?g|webp)[^"']*)["']/)
+          || html.match(/src=["']([^"']*sns-webpic[^"']*\.(?:jpe?g|webp)[^"']*)["']/)
+        if (imgMatch) {
+          coverImage = imgMatch[1].startsWith('http') ? imgMatch[1] : 'https:' + imgMatch[1]
+        }
       }
     }
 
