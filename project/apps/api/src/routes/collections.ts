@@ -1443,6 +1443,37 @@ router.get('/platforms', (_req, res) => {
   res.json({ data: getSupportedPlatformList() })
 })
 
+// 国内专用：Cloudflare Worker 代理路由
+// .workers.dev 域名在国内受限，通过国内服务器代理访问
+// 海外服务器直接访问 Worker，国内服务器通过此代理路由访问
+const WORKER_DIRECT_URL = 'https://linkchest-metadata.lvmeta.workers.dev'
+
+router.get('/proxy-metadata', authenticate, async (req: AuthenticatedRequest, res) => {
+  const targetUrl = req.query.url as string
+  if (!targetUrl) {
+    return res.status(400).json({ error: 'Missing url parameter' })
+  }
+
+  try {
+    const response = await fetch(`${WORKER_DIRECT_URL}/?url=${encodeURIComponent(targetUrl)}`, {
+      headers: {
+        'User-Agent': 'LinkChest/1.0',
+        'Accept': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Worker request failed' })
+    }
+
+    const data = await response.json()
+    res.json(data)
+  } catch (err: any) {
+    logger.error('[proxy-metadata] Error:', err.message)
+    res.status(502).json({ error: 'Proxy failed', detail: err.message })
+  }
+})
+
 // 获取单个收藏
 router.get('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
   const { id } = req.params
