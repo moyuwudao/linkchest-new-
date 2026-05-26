@@ -1,95 +1,190 @@
 /**
  * LinkChest Metadata Fetcher - Cloudflare Worker
- * 
- * 用于抓取被反爬平台（抖音/小红书等）的元数据
- * 运行在 Cloudflare 边缘网络，IP 不被反爬机制拦截
+ * 支持抖音/小红书等反爬平台的元数据抓取
  */
 
 export interface Env {
-  // KV 命名空间（用于缓存）
   METADATA_CACHE?: KVNamespace;
 }
 
-interface UrlMetadata {
-  title: string | null;
-  coverImage: string | null;
-  favicon: string | null;
-  description: string | null;
-}
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Content-Type': 'application/json',
+    };
 
-// 平台检测
-function detectPlatform(url: string): string {
-  try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    if (hostname.includes('douyin.com')) return 'douyin';
-    if (hostname.includes('xiaohongshu.com')) return 'xiaohongshu';
-    if (hostname.includes('kuaishou.com')) return 'kuaishou';
-    if (hostname.includes('bilibili.com')) return 'bilibili';
-    if (hostname.includes('zhihu.com')) return 'zhihu';
-    if (hostname.includes('weibo.com')) return 'weibo';
-    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) return 'youtube';
-    if (hostname.includes('tiktok.com')) return 'tiktok';
-    return 'other';
-  } catch {
-    return 'other';
-  }
-}
-
-// 抖音元数据提取
-async function fetchDouyinMetadata(url: string): Promise<UrlMetadata> {
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-      },
-      redirect: 'follow',
-    });
-
-    if (!response.ok) {
-      return { title: null, coverImage: null, favicon: null, description: null };
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
     }
 
-    const html = await response.text();
+    const url = new URL(request.url);
+    const targetUrl = url.searchParams.get('url');
 
-    // 检查是否被反爬
-    if (html.includes('_$jsvmprt')) {
-      return { title: null, coverImage: null, favicon: null, description: null };
+    if (!targetUrl) {
+      return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
+        status: 400, headers: corsHeaders,
+      });
     }
 
-    let title: string | null = null;
-    let coverImage: string | null = null;
-    let description: string | null = null;
+    let validatedUrl: string;
+    try {
+      validatedUrl = new URL(targetUrl).toString();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid URL' }), {
+        status: 400, headers: corsHeaders,
+      });
+    }
 
-    // 尝试从 SSR_HYDRATED_DATA 提取
-    const ssrMatch = html.match(/<script>window\._SSR_HYDRATED_DATA=(.+?)<\/script>/)
-      || html.match(/window\._SSR_HYDRATED_DATA\s*=\s*(.+?);\s*<\/script>/);
-    
-    if (ssrMatch) {
+    // 检查缓存
+    const cacheKey = validatedUrl;
+    if (env.METADATA_CACHE) {
       try {
-        const data = JSON.parse(ssrMatch[1]);
-        const app = data?.app;
-        if (app) {
-          const videoId = new URL(url).searchParams.get('modal_id');
-          const videos = app.videoList || app.itemList || [];
-          const video = videos.find((v: any) => v.videoId === videoId || v.awemeId === videoId)
-            || videos[0];
-          
-          if (video) {
-            title = video.title || video.desc || null;
-            coverImage = video.cover?.urlList?.[0] 
-              || video.originCover?.urlList?.[0] 
-              || video.dynamicCover?.urlList?.[0] 
-              || null;
-          }
+        const cached = await env.METADATA_CACHE.get(cacheKey);
+        if (cached) {
+          return new Response(cached, {
+            headers: { ...corsHeaders, 'X-Cache': 'HIT' },
+          });
         }
-      } catch {
-        // SSR 解析失败
+      } catch {}
+    }
+
+    // 检测平台
+    const hostname = new URL(validatedUrl).hostname.toLowerCase();
+    const isDouyin = hostname.includes('douyin.com');
+    const isXiaohongshu = hostname.includes('xiaohongshu.com');
+
+    // 抓取页面
+    let html = '';
+    try {
+      const res = await fetch(validatedUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+          'Accept': 'text/html,application/xhtml+xml',
+          'Accept-Language': 'zh-CN,zh;q=0.9',
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      html = await res.text();
+    } catch (err: any) {
+      return new Response(JSON.stringify({ 
+        error: 'fetch failed', 
+        detail: err.message 
+      }), { status: 502, headers: corsHeaders });
+    }
+
+    let title = null;
+    let coverImage = null;
+    let description = null;
+    let favicon = null;
+
+    // 检测是否为抖音用户页
+    const isDouyinUserPage = isDouyin && /\/user\//.test(validatedUrl);
+
+    // 抖音专用提取（精选页/视频详情）
+    if (isDouyin && !html.includes('_$jsvmprt')) {
+      const ssrMatch = html.match(/<script>window\._SSR_HYDRATED_DATA=(.+?)<\/script>/)
+        || html.match(/window\._SSR_HYDRATED_DATA\s*=\s*(.+?);\s*<\/script>/);
+      if (ssrMatch) {
+        try {
+          const data = JSON.parse(ssrMatch[1]);
+          const app = data?.app;
+          if (app) {
+            const videoId = new URL(validatedUrl).searchParams.get('modal_id');
+            const videos = app.videoList || app.itemList || [];
+            const video = videos.find((v: any) => v.videoId === videoId || v.awemeId === videoId) || videos[0];
+            if (video) {
+              title = video.title || video.desc || null;
+              coverImage = video.cover?.urlList?.[0]
+                || video.originCover?.urlList?.[0]
+                || video.dynamicCover?.urlList?.[0]
+                || null;
+            }
+
+            // 抖音用户页提取用户信息
+            if (isDouyinUserPage) {
+              const userInfo = app.user?.userInfo || app.author || app.userInfo;
+              if (userInfo) {
+                title = userInfo.nickname || userInfo.shortId || title;
+                coverImage = userInfo.avatar?.urlList?.[0]
+                  || userInfo.avatarThumb?.urlList?.[0]
+                  || userInfo.avatarUrl
+                  || coverImage;
+                description = userInfo.signature || userInfo.desc || null;
+              }
+
+              // 尝试从用户主页提取封面（用户头像作为封面）
+              if (!coverImage) {
+                const author = app.author || app.user;
+                if (author) {
+                  coverImage = author.avatar?.urlList?.[0]
+                    || author.avatarThumb?.urlList?.[0]
+                    || coverImage;
+                  if (!title) {
+                    title = author.nickname || author.uniqueId || author.shortId || title;
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {}
       }
     }
 
-    // 从 og 标签提取兜底
+    // 小红书专用提取
+    if (isXiaohongshu && !html.includes('xhs_sec') && !html.includes('/404/sec_')) {
+      const initMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*([\s\S]*?)(?:;\s*<\/script>|<\/script>)/);
+      if (initMatch) {
+        try {
+          let jsonStr = initMatch[1].trim();
+          if (jsonStr.endsWith(';')) jsonStr = jsonStr.slice(0, -1);
+          const state = JSON.parse(jsonStr.replace(/undefined/g, 'null'));
+
+          const findNote = (obj: any): any => {
+            if (!obj || typeof obj !== 'object') return null;
+            if (obj.noteId || (obj.note && obj.note.noteId)) return obj.note || obj;
+            if (obj.noteDetailMap) {
+              for (const key of Object.keys(obj.noteDetailMap)) {
+                if (obj.noteDetailMap[key]?.note) return obj.noteDetailMap[key].note;
+              }
+            }
+            if (obj.noteData?.data) return obj.noteData.data;
+            for (const key of Object.keys(obj)) {
+              const val = obj[key];
+              if (val && typeof val === 'object' && !Array.isArray(val)) {
+                const found = findNote(val);
+                if (found) return found;
+              }
+            }
+            return null;
+          };
+
+          // 尝试提取笔记详情
+          const note = findNote(state);
+          if (note) {
+            title = note.title || note.displayTitle || null;
+            coverImage = note.cover?.url || note.cover?.urlDefault || null;
+            if (!coverImage && note.imageList && note.imageList[0]) {
+              coverImage = note.imageList[0].url || note.imageList[0].urlDefault || null;
+            }
+            description = note.desc || null;
+          }
+
+          // 尝试提取用户信息（用户主页）
+          if (!title) {
+            const user = state?.user || state?.userInfo || state?.creator;
+            if (user) {
+              title = user.nickname || user.displayName || null;
+              coverImage = user.avatar || user.avatarUrl || coverImage;
+              description = user.desc || user.intro || null;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 通用 OGS 兜底
     if (!title) {
       const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)
         || html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:title["']/i);
@@ -108,258 +203,25 @@ async function fetchDouyinMetadata(url: string): Promise<UrlMetadata> {
       if (ogDescMatch) description = ogDescMatch[1];
     }
 
-    return {
-      title,
-      coverImage,
-      favicon: 'https://www.douyin.com/favicon.ico',
-      description,
-    };
-  } catch {
-    return { title: null, coverImage: null, favicon: null, description: null };
-  }
-}
-
-// 小红书元数据提取
-async function fetchXiaohongshuMetadata(url: string): Promise<UrlMetadata> {
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-      },
-      redirect: 'follow',
-    });
-
-    if (!response.ok) {
-      return { title: null, coverImage: null, favicon: null, description: null };
-    }
-
-    const html = await response.text();
-
-    // 检查是否被反爬（重定向到安全验证页）
-    if (html.includes('xhs_sec') || response.url.includes('/404/sec_')) {
-      return { title: null, coverImage: null, favicon: null, description: null };
-    }
-
-    let title: string | null = null;
-    let coverImage: string | null = null;
-    let description: string | null = null;
-
-    // 从 __INITIAL_STATE__ 提取
-    const initMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*([\s\S]*?)(?:;\s*<\/script>|<\/script>)/);
-    if (initMatch) {
-      try {
-        let jsonStr = initMatch[1].trim();
-        if (jsonStr.endsWith(';')) jsonStr = jsonStr.slice(0, -1);
-        const state = JSON.parse(jsonStr.replace(/undefined/g, 'null'));
-
-        // 递归查找 note
-        const findNote = (obj: any): any => {
-          if (!obj || typeof obj !== 'object') return null;
-          if (obj.noteId || (obj.note && obj.note.noteId)) return obj.note || obj;
-          if (obj.noteDetailMap) {
-            for (const key of Object.keys(obj.noteDetailMap)) {
-              if (obj.noteDetailMap[key]?.note) return obj.noteDetailMap[key].note;
-            }
-          }
-          if (obj.noteData?.data) {
-            return obj.noteData.data;
-          }
-          for (const key of Object.keys(obj)) {
-            const val = obj[key];
-            if (val && typeof val === 'object' && !Array.isArray(val)) {
-              const found = findNote(val);
-              if (found) return found;
-            }
-          }
-          return null;
-        };
-
-        const note = findNote(state);
-        if (note) {
-          title = note.title || note.displayTitle || null;
-          coverImage = note.cover?.url || note.cover?.urlDefault || null;
-          if (!coverImage && note.imageList && note.imageList[0]) {
-            coverImage = note.imageList[0].url || note.imageList[0].urlDefault || null;
-          }
-          description = note.desc || null;
-        }
-      } catch {
-        // INITIAL_STATE 解析失败
-      }
-    }
-
-    // 从 og 标签提取兜底
     if (!title) {
-      const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)
-        || html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:title["']/i);
-      if (ogTitleMatch) title = ogTitleMatch[1];
-    }
-
-    if (!coverImage) {
-      const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']*)["']/i)
-        || html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:image["']/i);
-      if (ogImageMatch) coverImage = ogImageMatch[1];
-    }
-
-    return {
-      title,
-      coverImage,
-      favicon: 'https://www.xiaohongshu.com/favicon.ico',
-      description,
-    };
-  } catch {
-    return { title: null, coverImage: null, favicon: null, description: null };
-  }
-}
-
-// 通用 OGS 提取
-async function fetchOgsMetadata(url: string): Promise<UrlMetadata> {
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
-        'Accept': 'text/html,application/xhtml+xml',
-      },
-      redirect: 'follow',
-    });
-
-    if (!response.ok) {
-      return { title: null, coverImage: null, favicon: null, description: null };
-    }
-
-    const html = await response.text();
-
-    let title: string | null = null;
-    let coverImage: string | null = null;
-    let favicon: string | null = null;
-    let description: string | null = null;
-
-    // og:title
-    const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)
-      || html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:title["']/i);
-    if (ogTitleMatch) title = ogTitleMatch[1];
-
-    // og:image
-    const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']*)["']/i)
-      || html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:image["']/i);
-    if (ogImageMatch) coverImage = ogImageMatch[1];
-
-    // og:description
-    const ogDescMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i)
-      || html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:description["']/i);
-    if (ogDescMatch) description = ogDescMatch[1];
-
-    // title tag
-    if (!title) {
-      const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+      const titleMatch = html.match(/<title[^>]*>([^\u003c]*)<\/title>/i);
       if (titleMatch) title = titleMatch[1].trim();
     }
 
-    // favicon
-    const faviconMatch = html.match(/<link[^>]*rel=["'](?:shortcut\s+)?icon["'][^>]*href=["']([^"']*)["']/i)
-      || html.match(/<link[^>]*href=["']([^"']*)["'][^>]*rel=["'](?:shortcut\s+)?icon["']/i);
-    if (faviconMatch) {
-      favicon = faviconMatch[1];
-      if (favicon && !favicon.startsWith('http')) {
-        const baseUrl = new URL(url);
-        favicon = favicon.startsWith('/') 
-          ? `${baseUrl.protocol}//${baseUrl.host}${favicon}`
-          : `${baseUrl.protocol}//${baseUrl.host}/${favicon}`;
-      }
-    }
-
-    return { title, coverImage, favicon, description };
-  } catch {
-    return { title: null, coverImage: null, favicon: null, description: null };
-  }
-}
-
-export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // CORS 头
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Content-Type': 'application/json',
+    const metadata = {
+      title: title ? decodeHTMLEntities(title) : null,
+      coverImage: coverImage ? decodeHTMLEntities(coverImage) : null,
+      description: description ? decodeHTMLEntities(description) : null,
+      favicon,
     };
-
-    // 处理预检请求
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
-    }
-
-    // 只接受 GET/POST
-    if (request.method !== 'GET' && request.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-        status: 405,
-        headers: corsHeaders,
-      });
-    }
-
-    // 获取 URL 参数
-    const url = new URL(request.url);
-    const targetUrl = url.searchParams.get('url');
-
-    if (!targetUrl) {
-      return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
-        status: 400,
-        headers: corsHeaders,
-      });
-    }
-
-    // 验证 URL
-    let validatedUrl: string;
-    try {
-      validatedUrl = new URL(targetUrl).toString();
-    } catch {
-      return new Response(JSON.stringify({ error: 'Invalid URL' }), {
-        status: 400,
-        headers: corsHeaders,
-      });
-    }
-
-    // 检查缓存
-    const cacheKey = validatedUrl;
-    if (env.METADATA_CACHE) {
-      try {
-        const cached = await env.METADATA_CACHE.get(cacheKey);
-        if (cached) {
-          return new Response(cached, {
-            headers: { ...corsHeaders, 'X-Cache': 'HIT' },
-          });
-        }
-      } catch {
-        // 缓存读取失败，继续执行
-      }
-    }
-
-    // 根据平台选择提取策略
-    const platform = detectPlatform(validatedUrl);
-    let metadata: UrlMetadata;
-
-    switch (platform) {
-      case 'douyin':
-        metadata = await fetchDouyinMetadata(validatedUrl);
-        break;
-      case 'xiaohongshu':
-        metadata = await fetchXiaohongshuMetadata(validatedUrl);
-        break;
-      default:
-        metadata = await fetchOgsMetadata(validatedUrl);
-        break;
-    }
 
     const response = JSON.stringify(metadata);
 
-    // 写入缓存（5分钟）
+    // 写入缓存
     if (env.METADATA_CACHE && (metadata.title || metadata.coverImage)) {
-      ctx.waitUntil(
-        env.METADATA_CACHE.put(cacheKey, response, { expirationTtl: 300 })
-          .catch(() => {})
-      );
+      try {
+        await env.METADATA_CACHE.put(cacheKey, response, { expirationTtl: 300 });
+      } catch {}
     }
 
     return new Response(response, {
@@ -367,3 +229,13 @@ export default {
     });
   },
 };
+
+function decodeHTMLEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+}
