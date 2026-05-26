@@ -60,6 +60,11 @@ if (wslName === 'linkchest-global' && marketValue !== 'global') {
   marketValue = 'global';
 }
 
+// 调试日志：确认最终使用的 market 值
+console.log(`[app.config.js] 最终 marketValue: "${marketValue}"`);
+console.log(`[app.config.js] 环境变量 MARKET: "${process.env.MARKET || '未设置'}"`);
+console.log(`[app.config.js] WSL_DISTRO_NAME: "${process.env.WSL_DISTRO_NAME || '未设置'}"`);
+
 module.exports = {
   expo: {
     name: marketValue === 'china' ? '链藏' : 'LinkChest',
