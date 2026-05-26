@@ -71,8 +71,9 @@ build_log.txt
 cover-processed/
 *.tar.gz
 
-# Cloudflare Workers
-workers/
+# Cloudflare Workers build output
+workers/*/dist/
+workers/*/.wrangler/
 
 # Chrome extension build output
 apps/chrome-extension/dist.zip
