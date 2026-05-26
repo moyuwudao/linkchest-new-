@@ -442,3 +442,130 @@ package.json            +3 依赖（ogs, p-limit, lru-cache）
 5. **并发控制** → `p-limit` 限制 max 3 并发，防止资源耗尽
 
 **预期效果**：在不升级服务器的前提下，将 metadata 相关的服务器承载能力提升 **3-5 倍**，同时显著提升用户体验。
+
+---
+
+## 九、当前实施方案记录（2026-05）
+
+### 9.1 Cloudflare Worker 多策略元数据提取
+
+**Worker 位置**：`project/workers/metadata-fetcher/src/index.ts`
+
+**核心策略**：
+
+| 策略 | 优先级 | 适用平台 | 说明 |
+|------|--------|----------|------|
+| **平台公开 API** | 1 | Twitter/X、微博 | 使用官方 oEmbed 或构造 API |
+| **SSR 数据提取** | 2 | 抖音、小红书、B站 | 从 window.__INITIAL_STATE__ 提取 |
+| **OG 元数据** | 3 | 通用网页 | 从 og:title、og:image 提取 |
+| **图片 URL 模式匹配** | 4 | 知乎等 | 从 HTML 中提取图片 URL |
+
+**各平台具体实现**：
+
+#### Twitter/X
+```typescript
+// 使用官方 oEmbed API
+const res = await fetch(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`)
+// 从 oEmbed HTML 中提取图片
+const imgMatch = data.html?.match(/https:\/\/pbs\.twimg\.com\/[^\s"<>]+/)
+```
+
+#### 知乎文章
+```typescript
+// 从 HTML 中提取 zhimg 图片
+const zhimgMatch = html.match(/https?:\/\/pic[0-9]*\.zhimg\.com\/v2-[^"'\s]+_[rl]\.jpg/i)
+```
+
+#### 微博用户页
+```typescript
+// 构造头像 URL
+const coverImage = `https://tvax3.sinaimg.cn/crop.0.0.180.180.180/${uid}/none.jpg`
+```
+
+#### 通用平台
+```typescript
+// OG 元数据提取
+const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)
+const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']*)["']/i)
+```
+
+**Worker 配置**：
+- 环境变量：`CLOUDFLARE_WORKER_URL=https://linkchest-metadata.lvmeta.workers.dev`
+- KV 缓存：5 分钟 TTL
+- CORS：允许所有来源
+
+### 9.2 前端 URL 输入框清除按钮
+
+**位置**：`project/apps/web/src/components/CollectionForm.tsx`
+
+**功能**：
+- 当输入框有内容时，右侧显示 "×" 按钮
+- 点击按钮清空 URL 及相关解析信息（标题、封面、平台、错误提示等）
+- 按钮样式：`text-xl font-bold`，便于点击
+
+```tsx
+<button
+  onClick={() => {
+    setUrl('')
+    setTitle('')
+    setCoverImage('')
+    setPlatform('')
+    setParseError('')
+    setDuplicateWarning(null)
+    setTitleDuplicateWarning(null)
+  }}
+  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-taupe dark:text-parchment/60 hover:text-charcoal dark:hover:text-parchment transition-colors text-xl font-bold"
+>
+  ×
+</button>
+```
+
+### 9.3 平台抓取成功率（Cloudflare Worker）
+
+| 平台 | 标题 | 封面 | 备注 |
+|------|------|------|------|
+| Twitter/X | ✅ | ⚠️（oEmbed不返回） | 使用官方 oEmbed |
+| 知乎文章 | ✅ | ✅ | HTML 抓取 + zhimg图片提取 |
+| 微博用户 | ⚠️（访客标题） | ✅ | 构造头像 URL |
+| B站 | ❌ | ❌ | Cloudflare IP 被拦截 |
+| YouTube | ❌ | ❌ | Cloudflare IP 被拦截 |
+| 快手 | ✅ | ❌ | OG 标签提取 |
+| 抖音精选页 | ❌ | ❌ | Cloudflare IP 被拦截 |
+| 抖音用户页 | ❌ | ❌ | Cloudflare IP 被拦截 |
+| 小红书 | ❌ | ❌ | Cloudflare IP 被拦截 |
+
+### 9.4 Cloudflare Worker 限制说明（2026-05 更新）
+
+**关键问题**：Cloudflare Worker 的出口 IP 被多个平台加入反爬黑名单，导致抖音、小红书、B站、YouTube 等平台无法获取数据。
+
+**可用方案**：
+
+| 方案 | 适用平台 | 说明 |
+|------|----------|------|
+| **官方 oEmbed API** | Twitter/X、YouTube | 稳定可靠，不受反爬影响 |
+| **构造头像 URL** | 微博用户 | `tvax3.sinaimg.cn/crop.xxx/uid/none.jpg` |
+| **HTML 抓取** | 知乎文章 | 使用移动端 UA，从 HTML 提取图片 |
+| **OG 标签** | 快手等 | 部分平台支持 |
+
+**推荐架构**：
+1. **后端 API（主要）**：使用服务器 IP 直接抓取，成功率更高
+2. **Cloudflare Worker（补充）**：仅用于知乎、微博等少数平台
+3. **前端降级**：自动提取失败时，用户可手动输入标题和封面
+
+### 9.5 部署注意事项
+
+**海外服务器**：
+- Worker URL：`https://linkchest-metadata.lvmeta.workers.dev`
+- 直接调用，无需代理
+
+**国内服务器**：
+- 通过 `/api/collections/proxy-metadata` 代理路由访问 Worker
+- 配置：`CLOUDFLARE_WORKER_URL=http://localhost:3001/api/collections/proxy-metadata`
+
+**自动部署**：
+- GitHub Actions 工作流：`.github/workflows/deploy-worker.yml`
+- 当 `project/workers/metadata-fetcher/` 目录有代码变更时自动部署
+
+---
+
+*最后更新：2026-05-26*

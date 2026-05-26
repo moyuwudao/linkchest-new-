@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { api } from '../lib/api';
+import { api, getBaseDomain } from '../lib/api';
 import { useThemeStore } from '../store/theme';
 import { useI18n } from '../lib/i18n';
 
@@ -125,7 +125,8 @@ export default function TierUpgradeScreen() {
   async function handleUpgrade(tierKey: string) {
     setPaying(true);
     try {
-      const upgradeUrl = `https://linkchest.net/tier/upgrade?cycle=${cycle}`;
+      const baseDomain = getBaseDomain();
+      const upgradeUrl = `https://${baseDomain}/tier/upgrade?cycle=${cycle}`;
       const { openBrowserAsync } = await import('expo-web-browser');
       await openBrowserAsync(upgradeUrl);
     } catch {

@@ -12,11 +12,15 @@ export default defineConfig({
         popup: resolve(__dirname, 'popup.html'),
         options: resolve(__dirname, 'options.html'),
         'service-worker': resolve(__dirname, 'src/background/service-worker.ts'),
+        'metadata-extractor': resolve(__dirname, 'src/content/metadata-extractor.ts'),
       },
       output: {
         entryFileNames: (chunk) => {
           if (chunk.name === 'service-worker') {
             return 'service-worker.js';
+          }
+          if (chunk.name === 'metadata-extractor') {
+            return 'content-scripts/metadata-extractor.js';
           }
           return 'assets/[name].js';
         },

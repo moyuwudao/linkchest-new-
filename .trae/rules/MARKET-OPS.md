@@ -710,7 +710,104 @@ MARKET-OPS.md（本文档）→ BUILD.md（构建流程）
 
 ---
 
-## 10. 新增 Provider 检查清单
+## 10. APK 构建校验清单（强制）
+
+> **🔴 构建 APK 前必须逐项确认，构建后必须逐项验证。**
+> **未通过校验禁止交付 APK。**
+
+### 10.1 构建前校验
+
+#### 10.1.1 Google 服务配置
+
+| 检查项 | 海外版 (global) | 国内版 (china) | 验证命令 |
+|--------|----------------|---------------|----------|
+| Firebase App ID 真实有效 | ✅ 必填 | ❌ 不需要 | `cat google-services.json \| grep mobilesdk_app_id` |
+| 包含对应包名配置 | `com.linkchest.app` | 不需要 | `cat google-services.json \| grep package_name` |
+| OAuth 客户端已配置 | ✅ 必填 | ❌ 不需要 | `cat google-services.json \| grep oauth_client` |
+
+**禁止情况：**
+- ❌ `mobilesdk_app_id` 为 `0000000000000000`（占位符）
+- ❌ 缺少对应包名的 `client` 配置
+- ❌ `oauth_client` 为空数组
+
+#### 10.1.2 市场配置一致性
+
+| 检查项 | 验证方式 | 期望结果 |
+|--------|----------|----------|
+| `app.json` 中 `extra.market` | `cat app.json \| grep market` | 与构建目标一致，或确认 `app.config.js` 会覆盖 |
+| `app.config.js` MARKET 逻辑 | 检查 `process.env.MARKET` | 构建脚本已正确设置 |
+| `build-gradle.sh` MARKET 隔离 | 检查 `.env.market` 写入逻辑 | 实例隔离路径正确 |
+
+#### 10.1.3 登录配置确认
+
+| 版本 | 应启用 | 应禁用 | 配置文件 |
+|------|--------|--------|----------|
+| **国内版 (china)** | 微信登录 | 支付宝登录、Google、Apple、Facebook | `LoginScreen.tsx` 第127-133行 |
+| **海外版 (global)** | Google、Facebook | 微信登录、支付宝登录 | `LoginScreen.tsx` 第134-139行 |
+
+**注意：**
+- Android 国内版不需要 Apple 登录（仅 iOS 需要）
+- Web 端国内版保留微信+支付宝登录
+- Web 端海外版保留 Google+Apple+Facebook 登录
+
+#### 10.1.4 支付配置确认
+
+| 版本 | 应启用 | 应禁用 |
+|------|--------|--------|
+| **国内版 (china)** | 微信支付、支付宝 | PayPal、Google Pay、Apple IAP |
+| **海外版 (global)** | PayPal、Google Pay、Apple IAP | 微信支付、支付宝 |
+
+#### 10.1.5 协议地址配置
+
+| 协议类型 | 海外版地址 | 国内版地址 | 状态 |
+|----------|-----------|-----------|------|
+| 服务条款 | `https://linkchest.net/terms` | `https://linkchest.cn/terms` | 备案中 |
+| 隐私政策 | `https://linkchest.net/privacy` | `https://linkchest.cn/privacy` | 备案中 |
+
+**注意：** 国内域名 `linkchest.cn` 备案完成前，使用 IP 地址或临时域名。
+
+### 10.2 构建后验证
+
+#### 10.2.1 APK 文件验证
+
+| 检查项 | 验证命令 | 期望结果 |
+|--------|----------|----------|
+| 文件名包含时间戳 | `ls *.apk` | `linkchest-{flavor}-YYYYMMDD-HHMM.apk` |
+| 包名正确 | `aapt dump badging *.apk \| grep package` | `name='com.linkchest.app'` 或 `name='cn.linkchest.app'` |
+| 应用名称正确 | `aapt dump badging *.apk \| grep application-label` | `LinkChest` 或 `链藏` |
+
+**禁止情况：**
+- ❌ APK 文件名为 `linkchest-{flavor}-release.apk`（无时间戳）
+- ❌ 包名与构建目标不匹配
+- ❌ 应用名称与构建目标不匹配
+
+#### 10.2.2 Bundle 内容验证
+
+| 检查项 | 验证命令 | 期望结果 |
+|--------|----------|----------|
+| 国内版不含海外域名 | `grep "linkchest.net" index.android.bundle` | 无匹配 |
+| 海外版包含海外域名 | `grep "linkchest.net" index.android.bundle` | 有匹配 |
+| usesCleartextTraffic（国内版） | `grep 'usesCleartextTraffic' AndroidManifest.xml` | `="true"` |
+
+#### 10.2.3 构建产物检查清单
+
+```bash
+# 海外版验证
+aapt dump badging linkchest-global-*.apk | grep package
+aapt dump badging linkchest-global-*.apk | grep application-label
+# 期望: package: name='com.linkchest.app'
+# 期望: application-label: 'LinkChest'
+
+# 国内版验证
+aapt dump badging linkchest-china-*.apk | grep package
+aapt dump badging linkchest-china-*.apk | grep application-label
+# 期望: package: name='cn.linkchest.app'
+# 期望: application-label: '链藏'
+```
+
+---
+
+## 11. 新增 Provider 检查清单
 
 添加新 Provider 时，必须完成以下步骤：
 
@@ -745,9 +842,9 @@ MARKET-OPS.md（本文档）→ BUILD.md（构建流程）
 
 ---
 
-## 11. 维护计划
+## 12. 维护计划
 
-### 11.1 定期维护
+### 12.1 定期维护
 
 | 频率 | 任务 |
 |------|------|
@@ -758,7 +855,7 @@ MARKET-OPS.md（本文档）→ BUILD.md（构建流程）
 | 每半年 | 支付费率审查、合规检查 |
 | 按需 | 微信/支付宝平台证书续期 |
 
-### 11.2 紧急响应
+### 12.2 紧急响应
 
 ```
 发现问题 → 确认影响范围 → 临时修复 → 根本修复 → 验证 → 复盘
@@ -770,9 +867,9 @@ MARKET-OPS.md（本文档）→ BUILD.md（构建流程）
 
 ---
 
-## 12. 完整文件清单
+## 13. 完整文件清单
 
-### 12.1 后端文件
+### 13.1 后端文件
 
 | 文件 | 路径 | 说明 |
 |------|------|------|
@@ -799,7 +896,7 @@ MARKET-OPS.md（本文档）→ BUILD.md（构建流程）
 | 登录路由 | `apps/api/src/routes/auth.ts` | 所有登录方式 |
 | 数据库迁移 | `apps/api/prisma/migrations/20260518_*/migration.sql` | 国内字段迁移 |
 
-### 12.2 前端文件
+### 13.2 前端文件
 
 | 文件 | 路径 | 说明 |
 |------|------|------|
@@ -809,7 +906,7 @@ MARKET-OPS.md（本文档）→ BUILD.md（构建流程）
 | 移动端 API 客户端 | `apps/mobile/src/lib/api.ts` | MarketConfig 类型 |
 | 移动端登录页 | `apps/mobile/src/screens/LoginScreen.tsx` | 动态登录按钮 |
 
-### 12.3 配置文件
+### 13.3 配置文件
 
 | 文件 | 路径 | 说明 |
 |------|------|------|
@@ -819,5 +916,5 @@ MARKET-OPS.md（本文档）→ BUILD.md（构建流程）
 
 ---
 
-*最后更新：2026-05-19*
-*版本：v1.1（新增国内部署经验总结）*
+*最后更新：2026-05-26*
+*版本：v1.2（新增APK构建校验清单、登录配置校验、协议地址配置）*

@@ -909,6 +909,104 @@ router.post('/parse-url', authenticate, [
   }
 })
 
+// 兼容旧版本前端调用（/parse -> /parse-url）
+router.post('/parse', authenticate, [
+  body('url').custom((value) => {
+    const processed = ensureHttps(value)
+    return !!processed && (isURL(processed) || /^https?:\/\/.+/.test(processed))
+  }).withMessage('请输入有效的URL'),
+], async (req: AuthenticatedRequest, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, errors.array())
+  }
+
+  const { url } = req.body
+  const platform = detectPlatform(url)
+
+  try {
+    const metadata = await fetchUrlMetadata(url)
+    res.json({
+      data: {
+        platform,
+        title: metadata.title || '',
+        coverImage: metadata.coverImage || null,
+        favicon: metadata.favicon || null,
+      }
+    })
+  } catch (error) {
+    res.json({
+      data: {
+        platform,
+        title: '',
+        coverImage: null,
+        favicon: null,
+      }
+    })
+  }
+})
+
+// 直接获取页面内容（用于前端绕过 Cloudflare Worker 失败的情况）
+router.post('/fetch-url', authenticate, [
+  body('url').custom((value) => {
+    const processed = ensureHttps(value)
+    return !!processed && (isURL(processed) || /^https?:\/\/.+/.test(processed))
+  }).withMessage('请输入有效的URL'),
+], async (req: AuthenticatedRequest, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, errors.array())
+  }
+
+  const { url } = req.body
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive',
+      },
+      redirect: 'follow',
+    })
+
+    if (!response.ok) {
+      return res.json({ data: { title: '', coverImage: null } })
+    }
+
+    const html = await response.text()
+
+    let title = ''
+    let coverImage = null
+
+    const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)
+    if (ogTitleMatch) {
+      title = ogTitleMatch[1]
+    } else {
+      const titleMatch = html.match(/<title[^>]*>([^<]*?)<\/title>/i)
+      if (titleMatch) {
+        title = titleMatch[1].trim()
+      }
+    }
+
+    const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']*)["']/i)
+    if (ogImageMatch) {
+      coverImage = ogImageMatch[1]
+    }
+
+    res.json({
+      data: {
+        title: title || '',
+        coverImage: coverImage || null,
+      }
+    })
+  } catch (error) {
+    res.json({ data: { title: '', coverImage: null } })
+  }
+})
+
 // 从混合文本中提取URL（必须在 /:id 之前注册）
 router.post('/extract-url', authenticate, [
   body('text').isString().withMessage('请输入文本内容'),

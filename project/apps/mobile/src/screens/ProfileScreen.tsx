@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '../lib/react-query';
 import { useAuthStore } from '../store/auth';
 import { useThemeStore } from '../store/theme';
-import { api } from '../lib/api';
+import { api, getSupportEmail, getDownloadUrl } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 
 export default function ProfileScreen() {
@@ -159,7 +159,7 @@ export default function ProfileScreen() {
             {
               text: t('profile.downloadApk'),
               onPress: () => {
-                const apkUrl = `https://linkchest.net/download?lang=${locale}`;
+                const apkUrl = getDownloadUrl(locale);
                 Linking.openURL(apkUrl).catch(() =>
                   Alert.alert(t('common.hint'), t('profile.openDownloadFailed'))
                 );
@@ -173,9 +173,10 @@ export default function ProfileScreen() {
       icon: 'chatbubble-outline',
       title: t('profile.feedback'),
       onPress: () => {
+        const supportEmail = getSupportEmail();
         Alert.alert(
           t('profile.feedback'),
-          'support@linkchest.net',
+          supportEmail,
           [
             { text: t('common.cancel'), style: 'cancel' },
             {
@@ -183,7 +184,7 @@ export default function ProfileScreen() {
               onPress: async () => {
                 try {
                   const { Clipboard } = await import('expo-clipboard');
-                  await Clipboard.setStringAsync('support@linkchest.net');
+                  await Clipboard.setStringAsync(supportEmail);
                   Alert.alert(t('common.success'), t('common.copied'));
                 } catch {
                   Alert.alert(t('common.error'), t('common.copyFailed'));

@@ -46,6 +46,54 @@ GRADLE_TASK="assemble${TARGET_FLAVOR^}Release"
 WSL_ID="${WSL_DISTRO_NAME:-unknown}"
 
 # ============================================================
+# 运营文档校验（根据 MARKET-OPS.md 第10章）
+# ============================================================
+echo ""
+echo "=========================================="
+echo "=== 运营文档校验 (MARKET-OPS.md) ==="
+echo "=========================================="
+
+# 校验1：确认 google-services.json 配置（海外版必填）
+if [ "$TARGET_FLAVOR" = "global" ]; then
+    GOOGLE_SERVICES="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/google-services.json"
+    if [ -f "$GOOGLE_SERVICES" ]; then
+        APP_ID=$(grep -o '"mobilesdk_app_id": "[^"]*"' "$GOOGLE_SERVICES" | grep -o '1:[0-9]*:android:[a-z0-9]*' || echo "")
+        if [ -n "$APP_ID" ] && [ "$APP_ID" != "1::android:" ]; then
+            echo "✅ Google Services 配置正确: $APP_ID"
+        else
+            echo "❌ Google Services 配置异常，请检查 MARKET-OPS.md 第10.1.1节"
+            exit 1
+        fi
+    else
+        echo "❌ google-services.json 不存在，海外版必须配置"
+        exit 1
+    fi
+fi
+
+# 校验2：确认登录配置
+MARKET_OPS="/mnt/d/trae_projects/linkchest/.trae/rules/MARKET-OPS.md"
+if [ -f "$MARKET_OPS" ]; then
+    echo "✅ MARKET-OPS.md 文档存在"
+    # 显示当前版本的登录配置要求
+    if [ "$TARGET_FLAVOR" = "global" ]; then
+        echo "   海外版登录配置要求: Google + Apple (Facebook已禁用)"
+    else
+        echo "   国内版登录配置要求: 微信 (支付宝已禁用)"
+    fi
+else
+    echo "⚠️  MARKET-OPS.md 文档不存在，建议阅读运营文档"
+fi
+
+# 校验3：确认协议地址配置
+if [ "$TARGET_FLAVOR" = "global" ]; then
+    echo "   协议地址: https://linkchest.net/terms | https://linkchest.net/privacy"
+else
+    echo "   协议地址: https://linkchest.cn/terms | https://linkchest.cn/privacy"
+fi
+
+echo "=========================================="
+
+# ============================================================
 # 日志系统初始化
 # ============================================================
 BUILD_TIMESTAMP=$(date +"%Y%m%d-%H%M%S")

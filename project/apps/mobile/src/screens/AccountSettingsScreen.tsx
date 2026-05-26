@@ -21,7 +21,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import { useQuery, useMutation, useQueryClient } from '../lib/react-query';
 import { useAuthStore } from '../store/auth';
-import { api, setApiUrl, resetApiUrl, getApiUrl } from '../lib/api';
+import { api, setApiUrl, resetApiUrl, getApiUrl, getBaseDomain } from '../lib/api';
 import { useThemeStore } from '../store/theme';
 import { useI18n } from '../lib/i18n';
 
@@ -520,7 +520,10 @@ export default function AccountSettingsScreen() {
           <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
               <Text style={{ fontSize: 11, color: colors.textTertiary }}>{t('account.referralDesc')}</Text>
-              <TouchableOpacity onPress={() => Linking.openURL('https://linkchest.net/docs/referral-rules.html')}>
+              <TouchableOpacity onPress={() => {
+                const baseDomain = getBaseDomain();
+                Linking.openURL(`https://${baseDomain}/docs/referral-rules.html`);
+              }}>
                 <Text style={{ fontSize: 11, color: colors.primary, textDecorationLine: 'underline' }}>{t('account.referralRulesLink')}</Text>
               </TouchableOpacity>
             </View>

@@ -3,6 +3,18 @@
     "aliyun-servers": {
       "type": "builtin",
       "serverName": "aliyun-servers"
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://linkchest:changeme@localhost:5432/linkchest"
+      ]
     }
   }
 }

@@ -64,18 +64,17 @@ description: 规则体系总览 - 快速查找指南和规则层次结构
 
 | 需求 | 查看规则 |
 |-----|---------|
-| **写代码** | `CODE_STYLE.md` |
+| **写代码** | `CODE_STYLE.md` + **Context7 MCP**（查最新 API） |
 | **写测试** | `TESTING.md` |
 | **提交代码** | `GIT_WORKFLOW.md` |
 | **代码审查** | `common/CODE_REVIEW.md` |
 | **安全检查** | `RED_LINES.md` → `CAUTION_ZONE.md` |
-| **使用 Agents** | `common/AGENTS.md` |
-| **配置 Hooks** | `common/HOOKS.md` |
-| **性能优化** | `common/PERFORMANCE.md` |
-| **开发流程** | `common/DEVELOPMENT_WORKFLOW.md` |
+| **性能分析** | `common/PERFORMANCE.md` + **Chrome DevTools MCP**（Trace） + **PostgreSQL MCP**（EXPLAIN） |
+| **调试问题** | **Chrome DevTools MCP**（Console + Network） + **PostgreSQL MCP**（数据验证） |
 | **构建APK** | `BUILD_RED_LINES.md` → `BUILD.md` |
 | **部署更新** | `HIGH_RISK.md` → `DEPLOYMENT.md` |
 | **国内外运营** | `MARKET-OPS.md` |
+| **Skill/MCP 查询** | `common/AGENTS.md` |
 
 ### 安全问题优先级
 
@@ -214,6 +213,18 @@ bash .trae/rules-consistency-check.sh
 
 ## 更新日志
 
+### 2026-05-25 — MCP 能力深度集成
+
+- ✅ 新增 3 个 MCP 工具：Context7（实时文档）/ Chrome DevTools（性能+调试）/ PostgreSQL（只读数据查询）
+- ✅ 重写 `common/AGENTS.md`（v3.0）：新增 MCP 工具清单 + 协同矩阵 + 增强场景推荐
+- ✅ 重写 `common/PERFORMANCE.md`（v2.0）：新增 Chrome DevTools 性能追踪 + PostgreSQL EXPLAIN §2
+- ✅ 升级 `deploy-linkchest` Skill：Step 5 新增 Chrome DevTools 深度验证 + PostgreSQL 数据库验证
+- ✅ 升级 `check-servers` Skill：新增 Chrome DevTools（方式3，替代 Playwright 成为推荐）+ PostgreSQL 直连检查（方式5）
+- ✅ `rule-index.json` 注册 6 个 MCP（aliyun-servers / GitHub / Playwright / Chrome DevTools / Context7 / PostgreSQL）
+- ✅ `INTERACTION.md` §6 新增 MCP 降级策略（4 条优先级规则）
+- ✅ `ECC_SKILLS.md` 新增 MCP 协同说明
+- ✅ `INDEX.md` 快速查找表新增性能分析/调试问题入口
+
 ### 2026-05-22 - 第二轮深度优化
 
 - ✅ 修复 BUILD_RED_LINES.md / CAUTION_ZONE.md / RED_LINES.md 的 alwaysApply 矛盾
@@ -266,5 +277,5 @@ bash .trae/rules-consistency-check.sh
 
 ---
 
-*最后更新：2026-05-22*
-*版本：v2.5*
+*最后更新：2026-05-25*
+*版本：v2.6 — MCP 能力深度集成*

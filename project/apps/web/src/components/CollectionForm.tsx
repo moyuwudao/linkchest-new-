@@ -305,6 +305,29 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
     })
   }, [])
 
+  // 尝试通过浏览器直接获取页面元数据（绕过服务端代理）
+  const fetchMetadataDirectly = useCallback(async (inputUrl: string): Promise<{ title?: string; coverImage?: string } | null> => {
+    try {
+      const response = await fetch('/api/collections/fetch-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: inputUrl }),
+      });
+      
+      if (!response.ok) return null;
+      
+      const data = await response.json();
+      if (data.data && (data.data.title || data.data.coverImage)) {
+        return data.data;
+      }
+    } catch {
+      // 忽略错误
+    }
+    return null;
+  }, [])
+
   // 解析URL
   const parseUrl = useCallback(async (inputUrl: string, auto = false) => {
     if (!inputUrl.trim()) return
@@ -359,10 +382,23 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       setParsing(false)
     } catch (err: any) {
       console.error('Parse failed:', err)
+      // 尝试直接获取元数据
+      try {
+        const directMetadata = await fetchMetadataDirectly(inputUrl)
+        if (directMetadata) {
+          if (directMetadata.title) setTitle(directMetadata.title)
+          if (directMetadata.coverImage) setCoverImage(directMetadata.coverImage)
+          setParseError('')
+          setParsing(false)
+          return
+        }
+      } catch (directErr) {
+        console.error('Direct fetch failed:', directErr)
+      }
       setParseError(t('add.parseFailed'))
       setParsing(false)
     }
-  }, [t])
+  }, [t, fetchMetadataDirectly])
 
   // 标题变化时检测重复
   useEffect(() => {
@@ -639,14 +675,32 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
             {t('add.linkOrShareText')}
           </label>
           <div className="flex gap-2">
-            <input
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder={t('add.pasteLinkPlaceholder')}
-              className="flex-1 px-4 py-2 border border-chest-200 dark:border-chest-600 rounded-lg bg-parchment/20 dark:bg-chest-700/30 text-charcoal dark:text-parchment focus:outline-none focus:ring-2 focus:ring-chest-500"
-              disabled={parsing}
-            />
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder={t('add.pasteLinkPlaceholder')}
+                className="w-full px-4 py-2 pr-10 border border-chest-200 dark:border-chest-600 rounded-lg bg-parchment/20 dark:bg-chest-700/30 text-charcoal dark:text-parchment focus:outline-none focus:ring-2 focus:ring-chest-500"
+                disabled={parsing}
+              />
+              {url && (
+                <button
+                  onClick={() => {
+                    setUrl('')
+                    setTitle('')
+                    setCoverImage('')
+                    setPlatform('')
+                    setParseError('')
+                    setDuplicateWarning(null)
+                    setTitleDuplicateWarning(null)
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-taupe dark:text-parchment/60 hover:text-charcoal dark:hover:text-parchment transition-colors text-xl font-bold"
+                >
+                  ×
+                </button>
+              )}
+            </div>
             <button
               onClick={() => parseUrl(url)}
               disabled={parsing || !url.trim()}

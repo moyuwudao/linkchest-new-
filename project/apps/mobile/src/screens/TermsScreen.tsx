@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useI18n } from '../lib/i18n';
 import { useThemeStore } from '../store/theme';
+import { getBaseDomain, getSupportEmail } from '../lib/api';
 import termsContent from './terms-content.json';
 import privacyContent from './privacy-content.json';
 
@@ -18,9 +19,17 @@ function renderInlineMarkdown(text: string) {
   });
 }
 
-function renderMarkdown(rawContent: string, colors: any) {
+function renderMarkdown(rawContent: string, colors: any, isChinaMarket: boolean) {
   // 兼容 JSON 中 \n 被存储为字面量的情况
-  const content = rawContent.replace(/\\n/g, '\n');
+  let content = rawContent.replace(/\\n/g, '\n');
+  
+  // 根据市场环境动态替换域名
+  const targetDomain = isChinaMarket ? 'linkchest.cn' : 'linkchest.net';
+  const targetEmail = isChinaMarket ? 'support@linkchest.cn' : 'support@linkchest.net';
+  
+  content = content.replace(/linkchest\.net/g, targetDomain);
+  content = content.replace(/support@linkchest\.net/g, targetEmail);
+  
   return content.split('\n').map((line, index) => {
     const key = 'line-' + index;
     // Strip trailing two-space markdown line breaks (already on separate lines)
@@ -65,6 +74,10 @@ export default function TermsScreen() {
 
   const title = activeTab === 'privacy' ? t('privacy.title') : t('terms.title');
 
+  // 获取市场环境
+  const baseDomain = getBaseDomain();
+  const isChinaMarket = baseDomain === 'linkchest.cn';
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.card }]}>
@@ -92,7 +105,7 @@ export default function TermsScreen() {
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-        {renderMarkdown(content, colors)}
+        {renderMarkdown(content, colors, isChinaMarket)}
       </ScrollView>
     </SafeAreaView>
   );

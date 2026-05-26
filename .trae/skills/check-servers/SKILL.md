@@ -70,9 +70,24 @@ bash project/deploy/check-servers.sh china
 
 AI 按照上述检查项目逐项执行，汇总报告。
 
-### 方式 3：Playwright MCP 深度验证（部署后推荐）
+### 方式 3：Chrome DevTools MCP 深度验证（推荐）
 
-当 Playwright MCP 可用时，自动执行浏览器级别的页面验证：
+Chrome DevTools MCP 可检测 curl 和 Playwright 无法发现的问题：
+
+| 验证项 | MCP 操作 | 预期 |
+|--------|----------|------|
+| 页面渲染 | `navigate_page(WEB_URL)` + `take_screenshot` | 无白屏，元素正常 |
+| Console 日志 | `list_console_messages` | 无 Error/404/500 |
+| API 代理 | `list_network_requests` 过滤 API | 所有请求 200 |
+| 静态资源 | `list_network_requests` 过滤 manifest/static | manifest.json 200 |
+| CORS | `list_console_messages` 过滤 CORS | 无跨域报错 |
+
+- 海外 WEB URL：`http://43.133.44.232:3003`
+- 国内 WEB URL：`http://43.136.82.88`
+
+### 方式 4：Playwright MCP 页面验证（降级方案）
+
+当 Chrome DevTools MCP 不可用时使用：
 
 | 验证项 | URL | 预期 |
 |--------|-----|------|
@@ -82,10 +97,16 @@ AI 按照上述检查项目逐项执行，汇总报告。
 | 国内登录 | `http://43.136.82.88/login` | 表单可交互 |
 | 静态资源 | `/manifest.json` | 返回 200 |
 
-Playwright 验证可以发现 curl 无法检测的问题：
-- JS 运行时报错导致的白屏
-- CSS 加载失败导致的样式错乱
-- API 代理配置错误导致的前后端通信失败
+### 方式 5：PostgreSQL MCP 数据库健康检查（本地开发）
+
+当本地 Docker PostgreSQL 可用时，直接通过 MCP 检查数据库：
+
+| 检查项 | PostgreSQL MCP 操作 | 预期 |
+|--------|---------------------|------|
+| 连接状态 | `SELECT 1` | 返回 1 |
+| 表统计 | `SELECT relname, n_live_tup FROM pg_stat_user_tables` | 核心表存在 |
+| 迁移状态 | `SELECT migration_name FROM _prisma_migrations ORDER BY finished_at DESC LIMIT 3` | 最新迁移已应用 |
+| 慢查询检测 | `SELECT query, calls, mean_exec_time FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 5` | 定位慢查询 |
 
 ## 输出报告格式
 
@@ -157,7 +178,9 @@ Playwright 验证可以发现 curl 无法检测的问题：
     ↓
 curl 健康检查通过？
     ↓ 是
-Playwright MCP 深度页面验证
+Chrome DevTools MCP 深度页面验证（Console/Network/Screenshot）
+    ↓  若 Chrome DevTools 不可用，降级到 Playwright MCP
+PostgreSQL MCP 数据库验证（本地开发）
     ↓
 输出报告
     ↓

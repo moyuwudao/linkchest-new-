@@ -129,7 +129,7 @@ const GLOBAL_FEATURES: MarketFeatures = {
     email: true,
     google: true,
     apple: true,
-    facebook: true,
+    facebook: false,  // Web端海外版不启用Facebook登录
     wechat: false,
     alipay_auth: false,
   },

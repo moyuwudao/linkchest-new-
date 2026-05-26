@@ -377,15 +377,45 @@
     }
   },
   "mcp": {
+    "aliyun-servers": {
+      "status": "connected",
+      "primary_uses": ["SSH服务器管理", "远程命令执行", "SFTP文件读写", "系统信息"],
+      "integrated_skills": ["deploy-linkchest", "check-servers"],
+      "added": "2026-05-20"
+    },
     "github": {
       "status": "connected",
       "primary_uses": ["PR管理", "Issue追踪", "代码搜索", "部署前commit检查"],
-      "integrated_skills": ["deploy-linkchest"]
+      "integrated_skills": ["deploy-linkchest"],
+      "added": "2026-05-20"
     },
     "playwright": {
       "status": "connected",
       "primary_uses": ["部署后页面验证", "E2E测试", "WEB渲染检查"],
-      "integrated_skills": ["deploy-linkchest", "check-servers"]
+      "integrated_skills": ["deploy-linkchest", "check-servers"],
+      "added": "2026-05-20"
+    },
+    "chrome-devtools": {
+      "status": "connected",
+      "type": "builtin",
+      "primary_uses": ["性能追踪(LCP/CLS/INP)", "Console日志检查", "网络请求分析", "页面截图验证", "DOM操作"],
+      "integrated_skills": ["deploy-linkchest", "check-servers"],
+      "added": "2026-05-25"
+    },
+    "context7": {
+      "status": "connected",
+      "command": "npx -y @upstash/context7-mcp",
+      "primary_uses": ["实时npm库文档", "版本匹配API查询", "消除代码幻觉"],
+      "integrated_skills": [],
+      "added": "2026-05-25"
+    },
+    "postgres": {
+      "status": "connected",
+      "command": "npx -y @modelcontextprotocol/server-postgres postgresql://linkchest:changeme@localhost:5432/linkchest",
+      "primary_uses": ["只读数据查询(SELECT)", "EXPLAIN慢查询分析", "Schema内省", "迁移状态验证"],
+      "integrated_skills": ["deploy-linkchest", "check-servers"],
+      "restrictions": "只读模式，禁止INSERT/UPDATE/DELETE/DDL",
+      "added": "2026-05-25"
     }
   }
 }

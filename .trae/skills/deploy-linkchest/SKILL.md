@@ -124,9 +124,9 @@ ssh ubuntu@43.133.44.232 "cd /opt/linkchest/api && git pull && bash deploy/updat
 ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update-server-cn.sh"
 ```
 
-### Step 5: 部署后验证（Playwright MCP 增强）
+### Step 5: 部署后验证（MCP 多层增强）
 
-**基础验证**：
+**基础验证**（必须执行）：
 
 ```bash
 # 海外
@@ -138,19 +138,38 @@ curl -s http://43.136.82.88/api/health
 ssh ubuntu@43.136.82.88 "pm2 status"
 ```
 
-**Playwright MCP 增强验证**（当 Playwright MCP 可用时自动执行）：
+**Chrome DevTools MCP 深度验证**（推荐，可检测 curl 无法发现的问题）：
 
-| 验证项 | 操作 | 预期 |
-|--------|------|------|
-| 首页加载 | 打开 WEB 首页 URL | 页面正常渲染，无白屏 |
-| 登录页面 | 打开 /login | 表单可交互 |
-| API 代理 | 发起一个 API 请求 | 返回 200，无 CORS 错误 |
-| 静态资源 | 加载 manifest.json | 返回 200 |
+| 验证项 | MCP 操作 | 预期 |
+|--------|----------|------|
+| 页面渲染 | `navigate_page(WEB_URL)` + `take_screenshot` | 页面正常渲染，无白屏 |
+| Console 错误 | `list_console_messages` | 无 JS Error，无 404/500 |
+| API 请求 | `list_network_requests` 过滤 API | 所有 API 返回 200/3xx |
+| CORS | `list_console_messages` 过滤 CORS | 无 CORS 报错 |
+| 静态资源 | `list_network_requests` 过滤 manifest | manifest.json 返回 200 |
 
 - 海外 WEB URL：`http://43.133.44.232:3003`
 - 国内 WEB URL：`http://43.136.82.88`
 
-**验证标准**：所有服务 `online`，API 返回 `200`，Playwright 页面验证通过，无 `Error` 或 `500`。
+**Playwright MCP 页面验证**（降级方案或补充验证）：
+
+| 验证项 | URL | 预期 |
+|--------|-----|------|
+| 海外首页 | `http://43.133.44.232:3003` | 页面正常渲染 |
+| 海外登录 | `http://43.133.44.232:3003/login` | 表单可交互 |
+| 国内首页 | `http://43.136.82.88` | 页面正常渲染 |
+| 国内登录 | `http://43.136.82.88/login` | 表单可交互 |
+| 静态资源 | `/manifest.json` | 返回 200 |
+
+**PostgreSQL MCP 数据库验证**（当部署涉及 schema 变更时执行）：
+
+| 验证项 | PostgreSQL MCP 操作 | 预期 |
+|--------|---------------------|------|
+| 表统计 | `SELECT relname, n_live_tup FROM pg_stat_user_tables` | 核心表存在且有数据 |
+| 迁移状态 | `SELECT * FROM _prisma_migrations ORDER BY finished_at DESC LIMIT 3` | 最新迁移已应用 |
+| 表结构 | `SELECT column_name, data_type FROM information_schema.columns WHERE table_name='collections'` | 新增字段已生效 |
+
+**验证标准**：所有服务 `online`，API 返回 `200`，Chrome DevTools 页面验证通过，PostgreSQL 迁移验证通过，无 `Error` 或 `500`。
 
 ### Step 6: 异常处理
 
@@ -208,6 +227,18 @@ ssh ubuntu@43.136.82.88 "pm2 status"
 | 涉及 Nginx/Docker 配置 | `deployment-patterns`（CI/CD 最佳实践） |
 | 涉及认证/安全相关代码 | `security-review`（安全漏洞检测） |
 
+## MCP 协同
+
+部署流程中，按阶段自动使用以下 MCP 工具：
+
+| 阶段 | MCP 工具 | 用途 |
+|------|----------|------|
+| Git 状态检查 | GitHub MCP | 远程 commit 对比、待合并 PR 检测 |
+| 连接与执行 | aliyun-servers MCP | SSH 连接服务器、执行部署命令 |
+| 页面验证（推荐） | Chrome DevTools MCP | Console 错误检查、API 响应验证、截图对比 |
+| 页面验证（降级） | Playwright MCP | 页面加载验证、交互测试 |
+| 数据库验证 | PostgreSQL MCP | 迁移状态确认、表结构验证、数据完整性 |
+
 ## 自动触发机制
 
 当检测到部署关键词时，AI 必须：
@@ -237,7 +268,11 @@ aliyun-servers MCP 连接服务器（优先）
     ↓
 数据库变更？→ 加载 `database-migrations` ECC Skill
     ↓
-验证：curl 健康检查 + Playwright MCP 页面验证
+验证（MCP 多层）：
+  ① curl 健康检查（基础）
+  ② Chrome DevTools MCP 深度页面验证（Console/Network/Screenshot）
+  ③ PostgreSQL MCP 数据库验证（迁移状态/表结构）
+  ④ Playwright MCP 页面验证（降级方案）
     ↓
 异常时查案例集锦
     ↓

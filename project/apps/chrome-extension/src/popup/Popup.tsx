@@ -82,8 +82,22 @@ export default function Popup() {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tab = tabs[0];
         if (tab?.url) setPageUrl(tab.url);
-        if (tab?.title) setPageTitle(tab.title);
         if (tab?.favIconUrl) setFaviconUrl(tab.favIconUrl);
+
+        // 向 content script 请求提取的元数据（标题、封面等）
+        if (tab?.id) {
+          chrome.tabs.sendMessage(tab.id, { type: 'GET_METADATA' }, (metadata) => {
+            if (metadata) {
+              if (metadata.title) setPageTitle(metadata.title);
+              if (metadata.coverImage) setFaviconUrl(metadata.coverImage);
+            } else {
+              // content script 无响应，回退到 tab.title
+              if (tab?.title) setPageTitle(tab.title);
+            }
+          });
+        } else {
+          if (tab?.title) setPageTitle(tab.title);
+        }
       });
 
       if (li) {

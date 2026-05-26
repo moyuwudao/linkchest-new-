@@ -5,10 +5,18 @@ description: ECC Skill 触发规则 - 定义何时自动加载平台提供的 EC
 
 # ECC Skill 触发规则
 
-> 本文档定义 LinkChest 项目中何时自动加载平台提供的 ECC Skill。
-> ECC Skill 由 Trae 平台提供，无需本地安装，AI 根据场景自动调用。
+> 本文档定义 LinkChest 项目中 ECC Skill 的可选参考清单。
+> **⚠️ 触发策略**：ECC Skill **不自动触发**。仅当用户显式说「使用 xx Skill」或任务明确符合单个 ECC Skill 的精确场景时才加载。
 
-## 触发矩阵
+## 触发策略
+
+| 方式 | 条件 | 说明 |
+|------|------|------|
+| **用户显式调用** | 用户说「用 backend-patterns」「调用 security-review」 | 直接加载 |
+| **精确匹配** | 任务恰好只命中 1 个 ECC Skill 的精确场景 | 可建议调用，但不自动加载 |
+| **宽泛匹配** | 任务模糊命中多个 Skill 的触发条件 | **不加载任何 ECC Skill**，避免上下文膨胀 |
+
+## Skill 清单（7 个，按需调用）
 
 | ECC Skill | 触发场景 | 检测关键词/文件 |
 |-----------|----------|----------------|
@@ -20,13 +28,10 @@ description: ECC Skill 触发规则 - 定义何时自动加载平台提供的 EC
 | `docker-patterns` | docker-compose 配置、容器排障 | docker-compose/Dockerfile/container |
 | `deployment-patterns` | 部署配置、CI/CD、Nginx、PM2 | nginx/pm2/deploy/CI/CD |
 
-## 加载优先级
+## 使用方式
 
-1. **自动加载**：检测到触发关键词时，AI 自动参考 ECC Skill 的最佳实践
-2. **显式调用**：用户可以直接说"使用 backend-patterns Skill"
-3. **Skill 协同**：项目自定义 Skill（deploy-linkchest 等）在流程中声明需要协同的 ECC Skill
-
-## 与项目 Skill 的协同关系
+- **显式调用**：用户说「使用 database-migrations Skill」
+- **项目 Skill 协同**：项目自定义 Skill（deploy-linkchest 等）在自身 SKILL.md 中声明需要协同的 ECC Skill
 
 | 项目 Skill | 协同的 ECC Skill | 协同时机 |
 |-----------|-----------------|----------|
@@ -40,5 +45,7 @@ description: ECC Skill 触发规则 - 定义何时自动加载平台提供的 EC
 - ECC Skill 是平台级知识，不替代项目特定规则
 - 当 ECC Skill 建议与项目规则冲突时，**以项目规则为准**
 - ECC Skill 的加载不消耗项目规则的 token 预算
+- **Context7 MCP 协同**：编写代码涉及库 API 时，建议同时调用 Context7 MCP 获取版本匹配的官方文档，避免使用过时 API
+- **Chrome DevTools MCP 协同**：部署后验证或性能分析时，优先使用 Chrome DevTools MCP 的 `performance_start_trace` 和 `list_console_messages`
 
 *版本：v1.0 — 2026-05-22*

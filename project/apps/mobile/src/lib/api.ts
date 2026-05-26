@@ -19,6 +19,21 @@ const DEFAULT_API_URL = isChinaMarket
   : 'https://linkchest.net/api';
 const API_URL_STORAGE_KEY = 'linkchest_api_url';
 
+// 根据市场返回对应的基础域名
+export function getBaseDomain(): string {
+  return isChinaMarket ? 'linkchest.cn' : 'linkchest.net';
+}
+
+// 根据市场返回对应的客服邮箱
+export function getSupportEmail(): string {
+  return isChinaMarket ? 'support@linkchest.cn' : 'support@linkchest.net';
+}
+
+// 根据市场返回对应的下载页面
+export function getDownloadUrl(locale: string): string {
+  return `https://${getBaseDomain()}/download?lang=${locale}`;
+}
+
 let currentBaseUrl = DEFAULT_API_URL;
 
 export const api = axios.create({

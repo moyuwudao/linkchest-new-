@@ -17,6 +17,9 @@ description: 高风险操作规则 - 部署与构建安全（橙色区域）
 
 ## 1. 服务器信息速查表
 
+> **本文件为服务器信息的唯一来源（Single Source of Truth）。**
+> 其他文件（DEPLOYMENT.md、INTERACTION.md）应引用此处，不得重复声明。
+
 ### 1.0 服务器连接方式（优先使用 MCP）
 
 **优先方式：`aliyun-servers` MCP**

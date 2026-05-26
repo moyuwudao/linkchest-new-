@@ -188,6 +188,49 @@ app.get('/health', async (req, res) => {
       await connectWithRetry(3)
       await prisma.$queryRaw`SELECT 1`
       checks.database = 'ok (recovered)'
+    } catch (retryErr) {
+      const retryMessage = retryErr instanceof Error ? retryErr.message : 'unknown'
+      logger.error({ err: retryMessage }, '健康检查数据库重连失败')
+      checks.database = 'error'
+      allHealthy = false
+    }
+  }
+
+  // Redis 连通性检测
+  try {
+    await redis.ping()
+    checks.redis = 'ok'
+  } catch (err) {
+    const errMessage = err instanceof Error ? err.message : 'unknown'
+    logger.warn({ err: errMessage }, '健康检查 Redis 连接失败')
+    checks.redis = 'error'
+    allHealthy = false
+  }
+
+  const statusCode = allHealthy ? 200 : 503
+  res.status(statusCode).json({
+    status: allHealthy ? 'healthy' : 'unhealthy',
+    checks,
+    timestamp: new Date().toISOString(),
+  })
+})
+
+// API 健康检查（兼容移动端 /api/health 请求）
+app.get('/api/health', async (req, res) => {
+  const checks: Record<string, string> = {}
+  let allHealthy = true
+
+  // 数据库连通性检测（失败时尝试一次主动重连）
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    checks.database = 'ok'
+  } catch (err) {
+    const errMessage = err instanceof Error ? err.message : 'unknown'
+    logger.warn({ err: errMessage }, '健康检查数据库查询失败，尝试主动重连...')
+    try {
+      await connectWithRetry(3)
+      await prisma.$queryRaw`SELECT 1`
+      checks.database = 'ok (recovered)'
     } catch (reconnectErr) {
       const reconnectMessage = reconnectErr instanceof Error ? reconnectErr.message : 'unknown'
       checks.database = `error: ${reconnectMessage}`

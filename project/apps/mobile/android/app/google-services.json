@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "320062761256",
-    "project_id": "collecthub",
-    "storage_bucket": "collecthub.appspot.com"
+    "project_number": "76720591248",
+    "project_id": "linkchest-7e82f",
+    "storage_bucket": "linkchest-7e82f.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:320062761256:android:0000000000000000",
+        "mobilesdk_app_id": "1:76720591248:android:987978ad236e33ee7de315",
         "android_client_info": {
           "package_name": "com.linkchest.app"
         }
@@ -15,26 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "dummy-key"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:320062761256:android:0000000000000000",
-        "android_client_info": {
-          "package_name": "cn.linkchest.app"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "dummy-key"
+          "current_key": "AIzaSyBS4lbLiXyzIERxEmakGmUzZJw5bSOXRZA"
         }
       ],
       "services": {

@@ -324,111 +324,78 @@ const platformCoverExtractors: Record<string, () => Promise<CoverExtractorResult
   douyin: extractDouyinCover,
 
   xiaohongshu: async () => {
-    // 小红书是 SPA，从首页点击笔记后 URL 变但页面不刷新
-    // 需要区分：当前是笔记详情页还是首页
-    const isNotePage = /\/explore\/[a-z0-9]+/.test(window.location.pathname)
-    console.log('[LinkChest] XHS: isNotePage =', isNotePage, 'pathname =', window.location.pathname)
-
-    // 1. og:image 优先（避免懒加载延迟）
     const ogImage = getOpenGraph('image')
-    console.log('[LinkChest] XHS: og:image =', ogImage?.substring(0, 80))
     if (ogImage && isValidImageUrl(ogImage)) {
-      console.log('[LinkChest] XHS: using og:image')
       return { coverImage: ogImage }
     }
 
-    // 2. 备用：meta thumbnail
     const thumbnail = getMetaContent('meta[name="thumbnail"]')
-    console.log('[LinkChest] XHS: thumbnail =', thumbnail?.substring(0, 80))
-    if (thumbnail && isValidImageUrl(thumbnail)) {
-      console.log('[LinkChest] XHS: using thumbnail')
-      return { coverImage: thumbnail }
-    }
+    if (thumbnail && isValidImageUrl(thumbnail)) return { coverImage: thumbnail }
 
-    // 3. 备用：twitter:image
     const twImage = getTwitterCard('image')
-    console.log('[LinkChest] XHS: twitter:image =', twImage?.substring(0, 80))
-    if (twImage && isValidImageUrl(twImage)) {
-      console.log('[LinkChest] XHS: using twitter:image')
-      return { coverImage: twImage }
-    }
+    if (twImage && isValidImageUrl(twImage)) return { coverImage: twImage }
 
-    // 4. 备用：link[rel="image_src"]
     const imageSrc = document.querySelector('link[rel="image_src"]')?.getAttribute('href') || null
-    console.log('[LinkChest] XHS: image_src =', imageSrc?.substring(0, 80))
-    if (isValidImageUrl(imageSrc)) {
-      console.log('[LinkChest] XHS: using image_src')
-      return { coverImage: imageSrc }
-    }
+    if (isValidImageUrl(imageSrc)) return { coverImage: imageSrc }
 
-    // 5. 笔记详情页：找当前笔记的大图（在视口内或笔记容器内）
-    if (isNotePage) {
-      // 策略 A：找在视口内的大图（当前显示的笔记）
-      const allImgs = document.querySelectorAll('img[src*="sns-webpic"]')
-      console.log('[LinkChest] XHS: total sns-webpic images =', allImgs.length)
+    // ★ 核心：找当前打开的笔记浮层（不是首页缩略图）
+    const isNotePage = /\/explore\/[a-z0-9]+/.test(window.location.pathname)
 
-      // 先找在视口内的大图
-      for (const img of allImgs) {
+    // 辅助：从容器中提取封面
+    function extractCoverFromContainer(container: Element): string | null {
+      // 1. 图片笔记：取第一张 sns-webpic 图片（封面总是在第一张）
+      const webpicImgs = container.querySelectorAll('img[src*="sns-webpic"]')
+      for (const img of webpicImgs) {
         const el = img as HTMLImageElement
-        const rect = el.getBoundingClientRect()
-        // 在视口内、尺寸足够大
-        if (rect.top >= -100 && rect.top <= window.innerHeight &&
-            rect.width > 200 && rect.height > 200) {
-          if (isValidImageUrl(el.src)) {
-            console.log('[LinkChest] XHS: using viewport img', el.src.substring(0, 80))
-            return { coverImage: el.src }
-          }
-        }
+        if (el.naturalWidth > 0 && el.naturalWidth < 200) continue
+        if (el.naturalHeight > 0 && el.naturalHeight < 200) continue
+        if (isValidImageUrl(el.src)) return el.src
       }
 
-      // 策略 B：找笔记容器内的大图
-      const noteContainers = document.querySelectorAll(
-        '#noteContainer, [class*="note-detail"], [class*="note-content"], [class*="note-page"], [class*="note-scroller"]'
-      )
-      console.log('[LinkChest] XHS: note containers found =', noteContainers.length)
-      for (const container of noteContainers) {
-        const imgs = container.querySelectorAll('img[src*="sns-webpic"]')
-        for (const img of imgs) {
-          const el = img as HTMLImageElement
-          if (el.naturalWidth > 0 && el.naturalWidth < 150) continue
-          if (el.naturalHeight > 0 && el.naturalHeight < 150) continue
-          if (isValidImageUrl(el.src)) {
-            console.log('[LinkChest] XHS: using note container img', el.src.substring(0, 80))
-            return { coverImage: el.src }
+      // 2. 视频笔记：<video poster="...">
+      const video = container.querySelector('video[poster]') as HTMLVideoElement | null
+      if (video?.poster && isValidImageUrl(video.poster)) {
+        return video.poster
+      }
+
+      return null
+    }
+
+    if (isNotePage) {
+      // 策略1：找所有 note-detail-mask，取最后一个（最新打开的 modal）
+      const modals = document.querySelectorAll('[class*="note-detail-mask"], [class*="note-detail-wrapper"]')
+      if (modals.length > 0) {
+        const modal = modals[modals.length - 1]
+        const cover = extractCoverFromContainer(modal)
+        if (cover) return { coverImage: cover }
+      }
+
+      // 策略2：通过笔记 ID 定位（URL 中 /explore/{noteId}）
+      const noteIdMatch = window.location.pathname.match(/\/explore\/([a-z0-9]+)/)
+      if (noteIdMatch) {
+        const noteId = noteIdMatch[1]
+        const bodyChildren = Array.from(document.body.children)
+        for (let i = bodyChildren.length - 1; i >= 0; i--) {
+          const child = bodyChildren[i]
+          if ((child.innerHTML || '').includes(noteId)) {
+            const cover = extractCoverFromContainer(child)
+            if (cover) return { coverImage: cover }
           }
         }
       }
     }
 
-    // 6. 首页或 fallback：取第一张尺寸合适的 sns-webpic
+    // 首页或 fallback：取第一张尺寸合适的
     const webpicImgs = document.querySelectorAll('img[src*="sns-webpic"]')
-    console.log('[LinkChest] XHS: sns-webpic images found =', webpicImgs.length)
     for (const img of webpicImgs) {
       const el = img as HTMLImageElement
       if (el.naturalWidth > 0 && el.naturalWidth < 150) continue
       if (el.naturalHeight > 0 && el.naturalHeight < 150) continue
-      const src = el.src
-      if (isValidImageUrl(src)) {
-        console.log('[LinkChest] XHS: using sns-webpic img', src.substring(0, 80))
-        return { coverImage: src }
+      if (isValidImageUrl(el.src)) {
+        return { coverImage: el.src }
       }
     }
 
-    // 7. 最后 fallback：note-content 区域
-    const noteImgs = document.querySelectorAll('#noteContainer img, .note-content img, .note-scroller img')
-    console.log('[LinkChest] XHS: note images found =', noteImgs.length)
-    for (const img of noteImgs) {
-      const el = img as HTMLImageElement
-      if (el.naturalWidth > 0 && el.naturalWidth < 150) continue
-      if (el.naturalHeight > 0 && el.naturalHeight < 150) continue
-      const src = el.src
-      if (isValidImageUrl(src)) {
-        console.log('[LinkChest] XHS: using note img', src.substring(0, 80))
-        return { coverImage: src }
-      }
-    }
-
-    console.log('[LinkChest] XHS: no cover found')
     return { coverImage: null }
   },
 
