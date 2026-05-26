@@ -220,50 +220,34 @@ app.get('/api/health', async (req, res) => {
   const checks: Record<string, string> = {}
   let allHealthy = true
 
-  // 数据库连通性检测（失败时尝试一次主动重连）
+  // 数据库连通性检测
   try {
     await prisma.$queryRaw`SELECT 1`
     checks.database = 'ok'
   } catch (err) {
-    const errMessage = err instanceof Error ? err.message : 'unknown'
-    logger.warn({ err: errMessage }, '健康检查数据库查询失败，尝试主动重连...')
-    try {
-      await connectWithRetry(3)
-      await prisma.$queryRaw`SELECT 1`
-      checks.database = 'ok (recovered)'
-    } catch (reconnectErr) {
-      const reconnectMessage = reconnectErr instanceof Error ? reconnectErr.message : 'unknown'
-      checks.database = `error: ${reconnectMessage}`
-      allHealthy = false
-    }
+    checks.database = 'error'
+    allHealthy = false
   }
 
   // Redis 连通性检测
   try {
-    const redis = getRedisClient()
-    if (redis && isRedisAvailable()) {
-      await redis.ping()
+    const redisClient = getRedisClient()
+    if (redisClient && isRedisAvailable()) {
+      await redisClient.ping()
       checks.redis = 'ok'
     } else {
       checks.redis = 'unavailable'
     }
   } catch (err) {
-    checks.redis = `error: ${err instanceof Error ? err.message : 'unknown'}`
+    checks.redis = 'error'
     allHealthy = false
-  }
-
-  // 记录健康检查结果（用于告警引擎）
-  if (allHealthy) {
-    recordHealthCheckSuccess()
-  } else {
-    recordHealthCheckFailure()
   }
 
   const statusCode = allHealthy ? 200 : 503
   res.status(statusCode).json({
-    status: allHealthy ? 'ok' : 'degraded',
-    timestamp: new Date().toISOString(),
+    status: allHealthy ? 'healthy' : 'unhealthy',
     checks,
+    timestamp: new Date().toISOString(),
   })
 })
 
