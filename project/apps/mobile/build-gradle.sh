@@ -235,7 +235,7 @@ log_json "INFO" "config-inject" "bundle-cleanup-done" "JS bundle and cache clean
 # ============================================================
 log_json "INFO" "config-inject" "apk-cleanup-start" "Cleaning old APK files"
 
-APK_DIR="app/build/outputs/apk/${TARGET_FLAVOR}/release"
+APK_DIR="build-apk/${TARGET_FLAVOR}/release"
 OLD_APK_COUNT=0
 if [ -d "$APK_DIR" ]; then
     OLD_APK_COUNT=$(ls "$APK_DIR"/linkchest-${TARGET_FLAVOR}-[0-9]*.apk 2>/dev/null | wc -l)
@@ -357,7 +357,7 @@ log_json "INFO" "build" "gradle-success" "Gradle build completed successfully" \
 # ============================================================
 log_json "INFO" "verify" "artifact-check-start" "Starting artifact verification"
 
-APK_DIR="app/build/outputs/apk/${TARGET_FLAVOR}/release"
+APK_DIR="build-apk/${TARGET_FLAVOR}/release"
 BUNDLE_FILE="app/build/generated/assets/createBundle${TARGET_FLAVOR^}ReleaseJsAndAssets/index.android.bundle"
 
 # 国内版专属验证
@@ -451,8 +451,8 @@ else
     echo "⚠️  ${TARGET_FLAVOR^^} - 未找到新生成的 APK"
     echo "=========================================="
 
-    if [ -f "$APK_DIR/linkchest-${TARGET_FLAVOR}-release.apk" ]; then
-        mv "$APK_DIR/linkchest-${TARGET_FLAVOR}-release.apk" "$APK_RENAMED"
+    if [ -f "app/build/outputs/apk/${TARGET_FLAVOR}/release/linkchest-${TARGET_FLAVOR}-release.apk" ]; then
+        mv "app/build/outputs/apk/${TARGET_FLAVOR}/release/linkchest-${TARGET_FLAVOR}-release.apk" "$APK_RENAMED"
         if [ -f "$APK_RENAMED" ]; then
             log_json "WARN" "verify" "apk-cached-used" "Using cached APK (not fresh build)" \
                 "{\"artifact\":{\"type\":\"apk\",\"path\":\"$APK_RENAMED\",\"note\":\"cached\"}}"

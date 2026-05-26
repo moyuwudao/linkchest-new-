@@ -166,6 +166,16 @@ android {
         variant.outputs.all { output ->
             outputFileName = "linkchest-${variant.flavorName}-${variant.buildType.name}.apk"
         }
+        // 自定义APK输出目录，避免与旧构建冲突
+        variant.outputs.all { output ->
+            def customOutputDir = new File(rootProject.projectDir, "../../build-apk/${variant.flavorName}/${variant.buildType.name}")
+            customOutputDir.mkdirs()
+            output.outputFileName = output.outputFileName
+            // 使用variant API设置输出目录
+            if (variant.hasProperty('packageApplicationProvider')) {
+                variant.packageApplicationProvider.get().outputDirectory = customOutputDir
+            }
+        }
     }
 }
 
