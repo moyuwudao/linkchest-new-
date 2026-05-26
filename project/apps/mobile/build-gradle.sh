@@ -155,7 +155,7 @@ log_json "INFO" "config-inject" "env-market-start" "Starting .env.market injecti
 
 ENV_MARKET_SHARED="/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market"
 ENV_MARKET_FLAVOR="/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.${TARGET_FLAVOR}"
-ENV_MARKET_ISOLATED="/tmp/.env.market.${WSL_ID}"
+ENV_MARKET_ISOLATED="/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.${WSL_ID}"
 
 echo -n "$MARKET_VALUE" > "$ENV_MARKET_SHARED"
 echo -n "$MARKET_VALUE" > "$ENV_MARKET_FLAVOR"

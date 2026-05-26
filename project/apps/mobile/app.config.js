@@ -17,7 +17,7 @@ if (process.env.MARKET) {
   // 2. 尝试读取实例隔离的 .env.market 文件（关键：避免并行构建竞争）
   const wslDistroName = process.env.WSL_DISTRO_NAME || '';
   const envMarketIsolatedPath = wslDistroName
-    ? `/tmp/.env.market.${wslDistroName}`
+    ? `/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.${wslDistroName}`
     : null;
 
   // 3. 尝试检测当前构建的 flavor（从 Gradle 任务）
