@@ -198,8 +198,13 @@ app.get('/health', async (req, res) => {
 
   // Redis 连通性检测
   try {
-    await redis.ping()
-    checks.redis = 'ok'
+    const redisClient = getRedisClient()
+    if (redisClient && isRedisAvailable()) {
+      await redisClient.ping()
+      checks.redis = 'ok'
+    } else {
+      checks.redis = 'unavailable'
+    }
   } catch (err) {
     const errMessage = err instanceof Error ? err.message : 'unknown'
     logger.warn({ err: errMessage }, '健康检查 Redis 连接失败')
