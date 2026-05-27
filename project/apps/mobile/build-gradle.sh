@@ -84,12 +84,13 @@ echo "✅ '$TARGET_FLAVOR' 配置存在"
 
 # 校验4：包名一致性
 EXPECTED_PACKAGE=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['markets']['$TARGET_FLAVOR']['packageName'])")
-ACTUAL_PACKAGE=$(grep "applicationId" app/build.gradle | head -1 | sed "s/.*applicationId ['\"]\(.*\)['\"].*/\1/")
+# 从productFlavors中读取对应flavor的包名
+ACTUAL_PACKAGE=$(grep -A 10 "productFlavors" app/build.gradle | grep -A 5 "^\s*${TARGET_FLAVOR}\s*{" | grep "applicationId" | sed "s/.*applicationId ['\"]\(.*\)['\"].*/\1/")
 
 if [ "$EXPECTED_PACKAGE" != "$ACTUAL_PACKAGE" ]; then
     echo "❌ 包名不匹配"
     echo "   market-config.json: $EXPECTED_PACKAGE"
-    echo "   build.gradle: $ACTUAL_PACKAGE"
+    echo "   build.gradle (flavor=$TARGET_FLAVOR): $ACTUAL_PACKAGE"
     exit 1
 fi
 
@@ -138,12 +139,16 @@ if [ "$EXPECTED_GOOGLE" = "True" ]; then
     fi
     echo "✅ Google Services 配置正确"
 else
-    # 国内版：必须不存在google-services.json或已跳过
-    if grep -q "apply plugin: 'com.google.gms.google-services'" app/build.gradle; then
-        echo "❌ 国内版不应应用 Google Services 插件"
+    # 国内版：检查build.gradle中是否已正确配置条件应用（国内版不应用）
+    # 由于getCurrentFlavor()在脚本阶段无法获取正确flavor，我们检查配置逻辑是否正确
+    if grep -q "if (getCurrentFlavor() != \"china\")" app/build.gradle; then
+        echo "✅ Google Services 已正确配置条件应用（国内版跳过）"
+    elif grep -q "apply plugin: 'com.google.gms.google-services'" app/build.gradle; then
+        echo "❌ 国内版不应无条件应用 Google Services 插件"
         exit 1
+    else
+        echo "✅ Google Services 已正确禁用"
     fi
-    echo "✅ Google Services 已正确禁用"
 fi
 
 echo "=========================================="
@@ -420,7 +425,8 @@ if [ "$TARGET_FLAVOR" = "china" ]; then
     log_json "INFO" "verify" "china-bundle-check" "Starting China bundle verification"
 
     if [ -f "$BUNDLE_FILE" ]; then
-        if grep -q "linkchest\.net" "$BUNDLE_FILE" 2>/dev/null; then
+        # 使用 -a 参数将二进制文件视为文本，避免 Hermes bundle 的误报
+        if grep -aq "linkchest\.net" "$BUNDLE_FILE" 2>/dev/null; then
             log_json "ERROR" "verify" "china-bundle-check" "China bundle contains global domain" \
                 "{\"detected_domain\":\"linkchest.net\",\"bundle_path\":\"$BUNDLE_FILE\",\"case\":\"CASE-E010\",\"suggestion\":\"Metro cache isolation may have failed\"}"
             echo "❌ 警告: 国内版 bundle 检测到海外域名 'linkchest.net'"

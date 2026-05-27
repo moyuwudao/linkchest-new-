@@ -1,9 +1,19 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { type SupportedLocale, isValidLocale, detectSystemLocale } from '@linkchest/i18n';
+import Constants from 'expo-constants';
 
 export type { SupportedLocale } from '@linkchest/i18n';
 export { isValidLocale, detectSystemLocale } from '@linkchest/i18n';
+
+// 根据市场判断默认语言：国内版强制中文，海外版跟随系统
+function getDefaultLocale(): SupportedLocale {
+  const market = Constants.expoConfig?.extra?.market as string | undefined;
+  const androidPackage = Constants.expoConfig?.android?.package || '';
+  const isChina = market === 'china' || androidPackage === 'cn.linkchest.app';
+  if (isChina) return 'zh';
+  return detectSystemLocale();
+}
 
 type NestedRecord = { [key: string]: string | NestedRecord };
 type TranslationMap = Record<string, string>;
@@ -82,7 +92,7 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 // 同步检测系统语言作为初始值，避免首次渲染显示 KEY
-const initialLocale = detectSystemLocale();
+const initialLocale = getDefaultLocale();
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
@@ -90,7 +100,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem('linkchest-locale').then((saved) => {
-      let target: SupportedLocale = detectSystemLocale();
+      let target: SupportedLocale = getDefaultLocale();
       if (saved && isValidLocale(saved)) {
         target = saved;
       }

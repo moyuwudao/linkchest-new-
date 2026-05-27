@@ -17,6 +17,7 @@ import { initAnalytics, logEvent, logScreenView, setUserId, setUserProperties } 
 import { initNotifications, getPushToken } from './src/lib/notifications';
 import { CollectionViewsProvider } from './src/lib/collectionViewsContext';
 import { appLogger, interceptConsole } from './src/lib/logger';
+import Constants from 'expo-constants';
 
 // 页面
 import LoginScreen from './src/screens/LoginScreen';
@@ -576,13 +577,21 @@ function AppContent() {
     };
 
     checkClipboardRef.current = checkClipboard as any;
-    checkClipboard();
+    // 延迟启动剪贴板检测，避免启动时竞争
+    const initTimer = setTimeout(() => {
+      checkClipboard();
+    }, 2000);
 
     // ★ 主要检测机制：剪贴板内容变化时主动触发
-    const clipboardSubscription = Clipboard.addClipboardListener(() => {
-      console.log('[Clipboard] Clipboard changed, trigger check');
-      setTimeout(() => checkClipboard(), 300);
-    });
+    let clipboardSubscription: any;
+    try {
+      clipboardSubscription = Clipboard.addClipboardListener(() => {
+        console.log('[Clipboard] Clipboard changed, trigger check');
+        setTimeout(() => checkClipboard(), 300);
+      });
+    } catch (e) {
+      console.warn('[Clipboard] Failed to add clipboard listener:', e);
+    }
 
     // 补充检测：App 回到前台时触发（处理后台期间剪贴板已变化的情况）
     const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
@@ -593,7 +602,10 @@ function AppContent() {
     });
 
     return () => {
-      clipboardSubscription.remove();
+      clearTimeout(initTimer);
+      if (clipboardSubscription?.remove) {
+        clipboardSubscription.remove();
+      }
       appStateSubscription.remove();
     };
   }, []); // 空依赖，永不重装

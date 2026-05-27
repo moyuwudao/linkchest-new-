@@ -24,14 +24,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePressableScale } from '../lib/animations';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import Constants from 'expo-constants';
+import { isChinaMarket } from '../lib/market';
 
 WebBrowser.maybeCompleteAuthSession();
-
-// 本地市场判断（与 api.ts 保持一致）
-const extraMarket = Constants.expoConfig?.extra?.market;
-const androidPackage = Constants.expoConfig?.android?.package || '';
-const isChinaMarket = extraMarket === 'china' || androidPackage === 'cn.linkchest.app';
 
 type AccountType = 'email';
 
@@ -119,9 +114,7 @@ export default function LoginScreen() {
   const { setToken, setUser } = useAuthStore();
 
   // 本地市场判断（API 不可用时的回退）
-  const localMarket = Constants.expoConfig?.extra?.market as string || 'global';
-  const isLocalChina = localMarket === 'china' ||
-    (Constants.expoConfig?.android?.package || '') === 'cn.linkchest.app';
+  const isLocalChina = isChinaMarket();
 
   // 默认市场配置（API 失败时使用）
   // 注意：Android 国内版不需要 Apple 登录（仅 iOS 需要）
@@ -134,7 +127,7 @@ export default function LoginScreen() {
       }
     : {
         market: 'global',
-        authProviders: { google: true, apple: true, wechat: false, alipay_auth: false, facebook: true },
+        authProviders: { google: true, apple: true, wechat: false, alipay_auth: false, facebook: false },
         paymentProviders: { paypal: true, wechat_pay: false, alipay: false, google_pay: true, apple_iap: true, google_play_billing: true },
         features: { contentModeration: false, referralProgram: true },
       };
@@ -406,13 +399,18 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1, backgroundColor: colors.background }}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        scrollEnabled={true}
+      >
         <View style={styles.container}>
           {/* Header - Language Picker */}
           <View style={styles.header}>
             <View style={{ width: 40 }} />
             <View style={{ flex: 1 }} />
-            <View style={{ position: 'relative' }}>
+            <View style={{ position: 'relative', zIndex: 100 }}>
               <TouchableOpacity
                 style={[styles.langPickerBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
                 onPress={() => setShowLangPicker(!showLangPicker)}
@@ -475,7 +473,7 @@ export default function LoginScreen() {
 
           {/* Logo Area */}
           <View style={styles.logoArea}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Image
                 source={require('../../assets/logo.png')}
                 style={{ width: 48, height: 48, borderRadius: 12 }}
@@ -844,7 +842,6 @@ const styles = StyleSheet.create({
   langPickerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -897,7 +894,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   form: {
-    gap: 12,
+    marginTop: 12,
   },
   input: {
     borderWidth: 1,
@@ -951,7 +948,7 @@ const styles = StyleSheet.create({
   },
   thirdPartyIcons: {
     flexDirection: 'row',
-    gap: 24,
+    justifyContent: 'center',
   },
   thirdPartyBtn: {
     width: 48,
@@ -1007,7 +1004,7 @@ const styles = StyleSheet.create({
   },
   codeRow: {
     flexDirection: 'row',
-    gap: 12,
+    marginTop: 12,
   },
   codeInput: {
     flex: 1,

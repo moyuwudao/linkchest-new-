@@ -2,20 +2,15 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import Constants from 'expo-constants';
 import { getErrorMessage, type SupportedLocale, isValidLocale } from '@linkchest/i18n';
 import { getCachedTranslation } from './i18n';
+import { isChinaMarket as checkChinaMarket } from './market';
 
-// 市场判断逻辑（多重回退）：
-// 1. 优先使用 extra.market（构建时注入）
-// 2. 回退到 android.package（包名）判断
-// 3. 最终回退到 'global'
-const extraMarket = Constants.expoConfig?.extra?.market;
-const androidPackage = Constants.expoConfig?.android?.package || '';
-const isChinaMarket = extraMarket === 'china' || androidPackage === 'cn.linkchest.app';
+// 使用统一的市场判断函数
+const isChinaMarket = checkChinaMarket();
 
 const DEFAULT_API_URL = isChinaMarket
-  ? 'https://43.136.82.88/api'
+  ? 'http://43.136.82.88/api'
   : 'https://linkchest.net/api';
 const API_URL_STORAGE_KEY = 'linkchest_api_url';
 
