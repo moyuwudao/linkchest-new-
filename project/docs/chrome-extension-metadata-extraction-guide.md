@@ -1,7 +1,7 @@
 # LinkChest Chrome Extension — 页面元数据提取方案
 
 > 本文档记录各平台标题/封面的提取策略，防止后续更新导致退化。
-> 最后更新：2026-05-25
+> 最后更新：2026-05-26
 
 ---
 
@@ -122,7 +122,7 @@ setInterval(() => {
 
 ## 三、小红书（xiaohongshu.com / xhslink.com）
 
-### 3.1 提取策略
+### 3.1 提取策略 — 封面（通用入口）
 
 ```
 1. og:image（最可靠，登录用户有高清封面）
@@ -133,7 +133,55 @@ setInterval(() => {
 6. #noteContainer img / .note-content img / .note-scroller img
 ```
 
-### 3.2 关键注意点
+> 封面提取的详细内部逻辑见 §3.2（图片笔记）和 §3.3（视频笔记）。
+
+### 3.2 图片笔记封面提取
+
+图片笔记的封面是 `<img>` 标签，通过 `sns-webpic` CDN 域名 + modal 定位策略（§3.5）即可准确提取。
+
+### 3.3 视频笔记封面提取（2026-05-26 修复）
+
+**核心问题**：小红书视频使用 **xgplayer** 播放器，封面图不在 `<img>` 标签中，而是通过 `<xg-poster class="xgplayer-poster">` 自定义元素的 CSS `background-image` 属性存储。
+
+**错误做法**：
+```typescript
+// ❌ 封面不在 <img> 标签中，position 重叠算法永远匹配不到
+const allImgs = container.querySelectorAll('img')  // → 拿到的都是侧边栏推荐卡片缩略图
+```
+
+**正确做法 — 三层策略**：
+
+```typescript
+function extractCoverFromContainer(container: Element): string | null {
+  // 1. video.poster（标准 HTML5 方式，小红书 xgplayer 始终为空）
+  const video = container.querySelector('video') as HTMLVideoElement | null
+  if (video?.poster && isValidImageUrl(video.poster)) return video.poster
+
+  // 2. xgplayer-poster 的 background-image（小红书视频封面真实存储位置）
+  const posterEl = container.querySelector<HTMLElement>('.xgplayer-poster, xg-poster')
+  if (posterEl) {
+    const bg = getComputedStyle(posterEl).backgroundImage
+    const match = bg?.match(/url\(["']?([^"')]+)["']?\)/)
+    if (match?.[1] && isValidImageUrl(match[1])) return match[1]  // → sns-webpic URL
+  }
+
+  // 3. 兜底：position 重叠算法（匹配 <img> 与 <video> 的矩形交集）
+  //    对于 xgplayer 场景始终为 null，保留作为非标准播放器兼容
+  //    ...
+}
+```
+
+**MCP 实测验证**（2026-05-26，red_video 页面）：
+
+| 策略 | 结果 |
+|------|------|
+| `video.poster` | 空 |
+| **`xgplayer-poster` background-image** | `http://sns-webpic-qc.xhscdn.com/...` |
+| 重叠算法（兜底） | `null`（封面不在 `<img>` 中） |
+
+**适用页面**：`/red_video/*`（RED 视频专区）和 `/explore` modal 中的视频笔记均使用 xgplayer。
+
+### 3.4 关键注意点
 
 **`isPlaceholderImage` 黑名单**：
 - ❌ **禁止**将 `picasso-static`、`fe-platform` 加入黑名单
@@ -147,7 +195,7 @@ setInterval(() => {
 - ❌ `querySelector('img[naturalWidth>400]')` 会抛出 `SyntaxError`
 - ✅ 必须用 JS 循环检查：`img.naturalWidth > 400`
 
-### 3.3 小红书 SPA + Modal 架构
+### 3.5 小红书 SPA + Modal 架构
 
 **核心问题**：小红书是 SPA，点击笔记后**不刷新页面**，而是在当前页面上打开一个 **modal/overlay 浮层** 显示笔记详情。首页的所有笔记缩略图 DOM 仍然存在于页面中。
 
@@ -219,7 +267,7 @@ for (const img of allImgs) {
 }
 ```
 
-### 3.4 SPA 渲染延迟
+### 3.6 SPA 渲染延迟
 
 小红书从首页点击笔记后，modal 和图片加载需要较长时间：
 ```typescript
@@ -227,7 +275,7 @@ const delay = currentUrl.includes('xiaohongshu') ? 2500 : 1200
 setTimeout(() => extractAndSend('urlChange'), delay)
 ```
 
-### 3.5 已知问题
+### 3.7 已知问题
 
 - MCP 浏览器未登录会跳转到登录页/404，无法验证
 - 实际用户环境（已登录）中 `og:image` 可能不存在，需依赖 DOM 兜底

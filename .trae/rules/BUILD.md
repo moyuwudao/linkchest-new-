@@ -152,9 +152,9 @@ apps/web/
 > **未经用户明确同意，禁止在 Windows 本地构建 APK！所有 APK 构建必须在 WSL 环境中执行。**
 > 
 > **原因：**
-> - ✅ WSL 已预配置完整构建环境（Android SDK、Java 17、NDK、Gradle 等）
->   - 国际版：`linkchest-global` 实例
->   - 国内版：`linkchest-cn` 实例
+> - - ✅ WSL 已预配置完整构建环境（Android SDK、Java 17、NDK、Gradle 等）
+  - 国际版：`linkchest-global` 实例
+  - 国内版：`linkchest-cn` 实例
 > - ✅ 环境变量、国内镜像、构建工具全部配置妥当
 > - ✅ 避免 Windows 原生环境的兼容性问题和依赖重复下载
 > - ✅ 构建速度更快，无需重新下载依赖
@@ -165,7 +165,7 @@ apps/web/
 
 | 组件 | 要求 |
 |------|------|
-| WSL | Ubuntu 24.04 LTS（**强制要求**，双实例：`linkchest-global` / `linkchest-cn`） |
+| WSL | Ubuntu 24.04 LTS（**强制要求**，双实例：国际版用 `linkchest-global`，国内版用 `linkchest-cn`） |
 | Node.js | 20.x（WSL 内已安装） |
 | Java | OpenJDK 17（`/usr/lib/jvm/java-17-openjdk-amd64`） |
 | Android SDK | `/opt/android-sdk`（WSL 预配置） |
@@ -294,9 +294,13 @@ cat project/apps/mobile/android/gradle/wrapper/gradle-wrapper.properties | grep 
 .\project\apps\mobile\build-apk.ps1 global    # 只构建国际版
 .\project\apps\mobile\build-apk.ps1 china     # 只构建国内版
 
+```bash
 # ✅ 方式2：直接通过 WSL 构建（单版本）
-wsl -d linkchest-global -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
-wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
+# 海外版
+wsl -d linkchest-global -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh global
+
+# 国内版
+wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh china
 ```
 
 **构建脚本特性：**
@@ -326,7 +330,7 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 | 应用名称 | LinkChest | 链藏 |
 | 包名 | `com.linkchest.app` | `cn.linkchest.app` |
 | API 地址 | `https://linkchest.net/api` | `http://43.136.82.88/api` |
-| 登录方式 | Google, Apple | 微信, 支付宝 |
+| 登录方式 | Google, Apple | 微信, Apple |
 | 支付方式 | PayPal, Google Pay | 微信支付, 支付宝 |
 
 ##### 5.1.8.2 构建前准备
@@ -745,5 +749,5 @@ jobs:
 
 ---
 
-*最后更新：2026-05-20*
-*版本：v1.2 — 新增国内外分版本构建规范*
+*最后更新：2026-05-26*
+*版本：v1.1 — 统一文档日期和版本*

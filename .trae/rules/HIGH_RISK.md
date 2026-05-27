@@ -332,5 +332,5 @@ wsl -d linkchest -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mob
 
 ---
 
-*最后更新：2026-05-20*
-*版本：v1.0 — 从 RED_LINES.md 拆分独立*
+*最后更新：2026-05-26*  
+*版本：v1.1 — 修正WSL实例名称，增加market-config.json校验*

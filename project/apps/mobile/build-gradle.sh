@@ -46,49 +46,104 @@ GRADLE_TASK="assemble${TARGET_FLAVOR^}Release"
 WSL_ID="${WSL_DISTRO_NAME:-unknown}"
 
 # ============================================================
-# 运营文档校验（根据 MARKET-OPS.md 第10章）
+# 运营配置强制校验（单一来源：market-config.json）
 # ============================================================
 echo ""
 echo "=========================================="
-echo "=== 运营文档校验 (MARKET-OPS.md) ==="
+echo "=== 运营配置校验 (market-config.json) ==="
 echo "=========================================="
 
-# 校验1：确认 google-services.json 配置（海外版必填）
-if [ "$TARGET_FLAVOR" = "global" ]; then
-    GOOGLE_SERVICES="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/google-services.json"
-    if [ -f "$GOOGLE_SERVICES" ]; then
-        APP_ID=$(grep -o '"mobilesdk_app_id": "[^"]*"' "$GOOGLE_SERVICES" | grep -o '1:[0-9]*:android:[a-z0-9]*' || echo "")
-        if [ -n "$APP_ID" ] && [ "$APP_ID" != "1::android:" ]; then
-            echo "✅ Google Services 配置正确: $APP_ID"
-        else
-            echo "❌ Google Services 配置异常，请检查 MARKET-OPS.md 第10.1.1节"
-            exit 1
-        fi
+CONFIG_FILE="/mnt/d/trae_projects/linkchest/project/apps/mobile/market-config.json"
+
+# 校验1：market-config.json 必须存在
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "❌ market-config.json 不存在，构建阻断"
+    echo "   路径: $CONFIG_FILE"
+    echo "   说明: 运营配置的唯一真相源缺失"
+    exit 1
+fi
+
+echo "✅ market-config.json 存在"
+
+# 校验2：读取并验证JSON格式
+if ! python3 -c "import json; json.load(open('$CONFIG_FILE'))" 2>/dev/null; then
+    echo "❌ market-config.json 格式错误，构建阻断"
+    exit 1
+fi
+
+echo "✅ market-config.json 格式正确"
+
+# 校验3：确认当前flavor在配置中存在
+FLAVOR_CONFIG=$(python3 -c "import json; d=json.load(open('$CONFIG_FILE')); print(json.dumps(d['markets'].get('$TARGET_FLAVOR', {})))" 2>/dev/null)
+if [ -z "$FLAVOR_CONFIG" ] || [ "$FLAVOR_CONFIG" = "{}" ]; then
+    echo "❌ market-config.json 中未找到 '$TARGET_FLAVOR' 配置"
+    exit 1
+fi
+
+echo "✅ '$TARGET_FLAVOR' 配置存在"
+
+# 校验4：包名一致性
+EXPECTED_PACKAGE=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['markets']['$TARGET_FLAVOR']['packageName'])")
+ACTUAL_PACKAGE=$(grep "applicationId" app/build.gradle | head -1 | sed "s/.*applicationId ['\"]\(.*\)['\"].*/\1/")
+
+if [ "$EXPECTED_PACKAGE" != "$ACTUAL_PACKAGE" ]; then
+    echo "❌ 包名不匹配"
+    echo "   market-config.json: $EXPECTED_PACKAGE"
+    echo "   build.gradle: $ACTUAL_PACKAGE"
+    exit 1
+fi
+
+echo "✅ 包名一致: $ACTUAL_PACKAGE"
+
+# 校验5：应用名称一致性
+EXPECTED_APPNAME=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['markets']['$TARGET_FLAVOR']['appName'])")
+# 从strings.xml读取实际名称
+STRINGS_FILE="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/res/values/strings.xml"
+if [ -f "$STRINGS_FILE" ]; then
+    ACTUAL_APPNAME=$(grep -o 'name="app_name"[^>]*>[^<]*' "$STRINGS_FILE" | sed 's/.*>//')
+    if [ "$EXPECTED_APPNAME" != "$ACTUAL_APPNAME" ]; then
+        echo "⚠️  应用名称可能不匹配"
+        echo "   market-config.json: $EXPECTED_APPNAME"
+        echo "   strings.xml: $ACTUAL_APPNAME"
     else
-        echo "❌ google-services.json 不存在，海外版必须配置"
+        echo "✅ 应用名称一致: $ACTUAL_APPNAME"
+    fi
+fi
+
+# 校验6：登录配置验证
+EXPECTED_LOGIN=$(python3 -c "import json; print(','.join(json.load(open('$CONFIG_FILE'))['markets']['$TARGET_FLAVOR']['login']['android']))")
+echo "   登录配置: $EXPECTED_LOGIN"
+
+# 校验7：支付配置验证
+EXPECTED_PAYMENT=$(python3 -c "import json; print(','.join(json.load(open('$CONFIG_FILE'))['markets']['$TARGET_FLAVOR']['payment']['android']))")
+echo "   支付配置: $EXPECTED_PAYMENT"
+
+# 校验8：协议地址验证
+EXPECTED_TERMS=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['markets']['$TARGET_FLAVOR']['protocols']['terms'])")
+EXPECTED_PRIVACY=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['markets']['$TARGET_FLAVOR']['protocols']['privacy'])")
+echo "   协议地址: $EXPECTED_TERMS | $EXPECTED_PRIVACY"
+
+# 校验9：API域名验证
+EXPECTED_DOMAIN=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['markets']['$TARGET_FLAVOR']['apiDomain'])")
+echo "   API域名: $EXPECTED_DOMAIN"
+
+# 校验10：Google Services配置验证
+EXPECTED_GOOGLE=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['markets']['$TARGET_FLAVOR']['features']['googleServices'])")
+if [ "$EXPECTED_GOOGLE" = "True" ]; then
+    # 海外版：必须存在google-services.json
+    GOOGLE_SERVICES="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/google-services.json"
+    if [ ! -f "$GOOGLE_SERVICES" ]; then
+        echo "❌ Google Services 已启用但 google-services.json 不存在"
         exit 1
     fi
-fi
-
-# 校验2：确认登录配置
-MARKET_OPS="/mnt/d/trae_projects/linkchest/.trae/rules/MARKET-OPS.md"
-if [ -f "$MARKET_OPS" ]; then
-    echo "✅ MARKET-OPS.md 文档存在"
-    # 显示当前版本的登录配置要求
-    if [ "$TARGET_FLAVOR" = "global" ]; then
-        echo "   海外版登录配置要求: Google + Apple (Facebook已禁用)"
-    else
-        echo "   国内版登录配置要求: 微信 (支付宝已禁用)"
+    echo "✅ Google Services 配置正确"
+else
+    # 国内版：必须不存在google-services.json或已跳过
+    if grep -q "apply plugin: 'com.google.gms.google-services'" app/build.gradle; then
+        echo "❌ 国内版不应应用 Google Services 插件"
+        exit 1
     fi
-else
-    echo "⚠️  MARKET-OPS.md 文档不存在，建议阅读运营文档"
-fi
-
-# 校验3：确认协议地址配置
-if [ "$TARGET_FLAVOR" = "global" ]; then
-    echo "   协议地址: https://linkchest.net/terms | https://linkchest.net/privacy"
-else
-    echo "   协议地址: https://linkchest.cn/terms | https://linkchest.cn/privacy"
+    echo "✅ Google Services 已正确禁用"
 fi
 
 echo "=========================================="

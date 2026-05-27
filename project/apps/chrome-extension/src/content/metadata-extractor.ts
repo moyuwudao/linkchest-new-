@@ -352,10 +352,53 @@ const platformCoverExtractors: Record<string, () => Promise<CoverExtractorResult
         if (isValidImageUrl(el.src)) return el.src
       }
 
-      // 2. 视频笔记：<video poster="...">
-      const video = container.querySelector('video[poster]') as HTMLVideoElement | null
-      if (video?.poster && isValidImageUrl(video.poster)) {
-        return video.poster
+      // 2. 视频笔记封面提取
+      const video = container.querySelector('video') as HTMLVideoElement | null
+      if (video) {
+        if (video.poster && isValidImageUrl(video.poster)) return video.poster
+
+        // 2a. xgplayer-poster 的 background-image（小红书视频播放器封面储存在此）
+        const posterEl = container.querySelector<HTMLElement>('.xgplayer-poster, xg-poster')
+        if (posterEl) {
+          const bg = getComputedStyle(posterEl).backgroundImage
+          const match = bg?.match(/url\(["']?([^"')]+)["']?\)/)
+          if (match && match[1] && isValidImageUrl(match[1])) {
+            console.log('[LinkChest] XHS video cover from xgplayer-poster bg:', match[1].substring(0, 80))
+            return match[1]
+          }
+        }
+
+        // 2b. 兜底：重叠算法（已废弃，保留作为安全网）
+        const videoRect = video.getBoundingClientRect()
+        if (videoRect.width > 0 && videoRect.height > 0) {
+          const allImgs = container.querySelectorAll('img')
+          let bestSrc: string | null = null
+          let bestArea = 0
+
+          for (const img of allImgs) {
+            const el = img as HTMLImageElement
+            if (!isValidImageUrl(el.src)) continue
+            if (el.src.includes('sns-avatar')) continue
+
+            const r = el.getBoundingClientRect()
+            if (r.width < 200 || r.height < 120) continue
+
+            const ox = Math.max(0, Math.min(videoRect.right, r.right) - Math.max(videoRect.left, r.left))
+            const oy = Math.max(0, Math.min(videoRect.bottom, r.bottom) - Math.max(videoRect.top, r.top))
+            const area = ox * oy
+
+            if (area > bestArea) {
+              bestArea = area
+              bestSrc = el.src
+            }
+          }
+
+          const minArea = videoRect.width * videoRect.height * 0.3
+          if (bestSrc && bestArea > minArea) {
+            console.log('[LinkChest] XHS video cover by overlap (fallback): area=', Math.round(bestArea), 'min=', Math.round(minArea))
+            return bestSrc
+          }
+        }
       }
 
       return null

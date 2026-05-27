@@ -30,6 +30,8 @@ description: "构建红线规则 - APK构建时绝对禁止的行为，构建操
 | **未阅读 BUILD.md 直接构建** | 不了解镜像配置、缓存配置、WSL要求 | 构建失败或配置丢失 |
 | **未设置 MARKET 环境变量构建 APK** | 高 | 构建的 APK 市场配置错误，用户看到错误的支付/登录选项 |
 | **并行构建时 .env.market 未隔离** | 高 | 两个 WSL 实例竞争写入同一文件，导致 APK 配置混乱 |
+| **修改运营方案未同步更新 market-config.json** | 高 | 构建脚本无法识别新配置，导致 APK 与预期不符 |
+| **market-config.json 缺失或损坏** | 高 | 构建脚本无法执行运营配置校验，构建失败 |
 
 ### 1.2 强制检查清单
 
@@ -42,6 +44,7 @@ description: "构建红线规则 - APK构建时绝对禁止的行为，构建操
 - [ ] **禁止 clean** — 确认不使用 `clean` 命令
 - [ ] **MARKET 隔离** — 确认 `.env.market` 已写入实例隔离路径（`/tmp/.env.market.{WSL_DISTRO_NAME}`）
 - [ ] **Metro 缓存隔离** — 确认 `REACT_NATIVE_METRO_CACHE_DIR` 已设置为实例特定目录
+- [ ] **运营配置校验** — 确认 `market-config.json` 存在且与构建目标一致
 - [ ] **构建后验证** — 国内版构建完成后验证 bundle 不包含 `linkchest.net`
 
 ### 1.3 唯一允许的构建方式
@@ -99,6 +102,7 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 - `android/app/build`
 - `clean` + `gradle`/`build`（禁止 clean 相关命令）
 - `.env.market` 缺失或 MARKET 值错误
+- `market-config.json` 缺失或修改后未同步
 
 > **部署相关阻断**：由 [HIGH_RISK.md](HIGH_RISK.md) 处理
 
@@ -135,6 +139,8 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 │   ⬜ 确认不使用 clean 参数              │
 │   ⬜ 确认 Gradle 镜像已配置             │
 │   ⬜ 确认 Maven 镜像已配置              │
+│   ⬜ 确认 market-config.json 已更新     │
+│     （修改运营方案后必须同步更新）      │
 │                                         │
 │ 未全部确认前，禁止执行任何命令！        │
 └─────────────────────────────────────────┘
@@ -260,6 +266,6 @@ fi
 
 ---
 
-*最后更新：2026-05-21*
-*版本：v3.0 — 双 WSL 架构（linkchest-global + linkchest-cn）*
+*最后更新：2026-05-26*
+*版本：v3.1 — 双 WSL 架构（linkchest-global + linkchest-cn）*
 *优先级：任务触发 - 构建操作时自动加载*

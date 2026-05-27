@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-26",
+  "description": "LinkChest 国内外运营配置 - 唯一真相源",
+  "warning": "修改此文件后需同步更新 MARKET-OPS.md 文档，并重新构建APK才能生效",
+  "markets": {
+    "global": {
+      "name": "海外版",
+      "packageName": "com.linkchest.app",
+      "appName": "LinkChest",
+      "login": {
+        "android": ["email", "google"],
+        "ios": ["email", "google", "apple"],
+        "web": ["email", "google", "apple"]
+      },
+      "payment": {
+        "android": ["paypal", "google_pay"],
+        "ios": ["apple_pay"],
+        "web": ["paypal", "google_pay", "apple_pay"]
+      },
+      "protocols": {
+        "terms": "https://linkchest.net/terms",
+        "privacy": "https://linkchest.net/privacy"
+      },
+      "apiDomain": "https://linkchest.net",
+      "features": {
+        "googleServices": true,
+        "firebase": true,
+        "wechat": false,
+        "alipay": false
+      }
+    },
+    "china": {
+      "name": "国内版",
+      "packageName": "cn.linkchest.app",
+      "appName": "链藏",
+      "login": {
+        "android": ["email", "wechat"],
+        "ios": ["email", "wechat", "apple"],
+        "web": ["email", "wechat", "apple"]
+      },
+      "payment": {
+        "android": ["wechat_pay", "alipay"],
+        "ios": ["apple_pay"],
+        "web": ["wechat_pay", "alipay", "apple_pay"]
+      },
+      "protocols": {
+        "terms": "https://linkchest.cn/terms",
+        "privacy": "https://linkchest.cn/privacy"
+      },
+      "apiDomain": "http://43.136.82.88",
+      "features": {
+        "googleServices": false,
+        "firebase": false,
+        "wechat": true,
+        "alipay": true
+      }
+    }
+  }
+}

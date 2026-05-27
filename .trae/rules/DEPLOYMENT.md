@@ -399,7 +399,6 @@ ALIPAY_PRIVATE_KEY=your-alipay-private-key
 
 # 国内登录配置
 WECHAT_APP_ID=your-wechat-app-id
-ALIPAY_AUTH_APP_ID=your-alipay-auth-app-id
 
 # 腾讯云配置（内容审核 + 邮件推送）
 TENCENTCLOUD_SECRET_ID=your-secret-id
@@ -857,5 +856,5 @@ docker exec linkchest-db pg_dump -U linkchest linkchest > backup.sql
 
 ---
 
-*最后更新：2026-05-22*
-*版本：v2.3 — 强制 Git-Only 部署策略*
+*最后更新：2026-05-26*
+*版本：v2.4 — 强制 Git-Only 部署策略*
