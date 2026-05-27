@@ -25,18 +25,6 @@ def getRNVersion() {
 }
 def rnVersion = getRNVersion()
 
-// 获取当前构建的flavor（用于条件配置）
-def getCurrentFlavor() {
-    Gradle gradle = getGradle()
-    String taskName = gradle.getStartParameter().getTaskRequests().toString()
-    if (taskName.contains("Global")) {
-        return "global"
-    } else if (taskName.contains("China")) {
-        return "china"
-    }
-    return "global"
-}
-
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -235,8 +223,4 @@ if (rnVersion < versionToNumber(0, 75, 0)) {
     applyNativeModulesAppBuildGradle(project)
 }
 
-// Google Services 插件：仅海外版需要
-// 国内版跳过，因为包名不同且国内无法访问Google服务
-if (getCurrentFlavor() != "china") {
-    apply plugin: 'com.google.gms.google-services'
-}
+apply plugin: 'com.google.gms.google-services'

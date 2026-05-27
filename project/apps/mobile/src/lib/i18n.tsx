@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { type SupportedLocale, isValidLocale, detectSystemLocale } from '@linkchest/i18n';
-import Constants from 'expo-constants';
 
 export type { SupportedLocale } from '@linkchest/i18n';
 export { isValidLocale, detectSystemLocale } from '@linkchest/i18n';
@@ -82,18 +81,6 @@ const I18nContext = createContext<I18nContextType>({
   t: (key) => key,
 });
 
-// 检测是否为国内版（延迟执行，避免模块加载时出问题）
-function isChinaMarket(): boolean {
-  try {
-    const extraMarket = Constants.expoConfig?.extra?.market as string | undefined;
-    if (extraMarket === 'china') return true;
-    const androidPackage = Constants.expoConfig?.android?.package || '';
-    return androidPackage === 'cn.linkchest.app';
-  } catch {
-    return false;
-  }
-}
-
 // 同步检测系统语言作为初始值，避免首次渲染显示 KEY
 const initialLocale = detectSystemLocale();
 
@@ -103,8 +90,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem('linkchest-locale').then((saved) => {
-      // 国内版默认中文，海外版跟随系统
-      let target: SupportedLocale = isChinaMarket() ? 'zh' : detectSystemLocale();
+      let target: SupportedLocale = detectSystemLocale();
       if (saved && isValidLocale(saved)) {
         target = saved;
       }
