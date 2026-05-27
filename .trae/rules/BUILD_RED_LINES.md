@@ -45,6 +45,7 @@ description: "构建红线规则 - APK构建时绝对禁止的行为，构建操
 - [ ] **MARKET 隔离** — 确认 `.env.market` 已写入实例隔离路径（`/tmp/.env.market.{WSL_DISTRO_NAME}`）
 - [ ] **Metro 缓存隔离** — 确认 `REACT_NATIVE_METRO_CACHE_DIR` 已设置为实例特定目录
 - [ ] **运营配置校验** — 确认 `market-config.json` 存在且与构建目标一致
+- [ ] **统一入口确认** — 确认使用 `build-apk.ps1` 执行构建，而非直接调用 WSL
 - [ ] **构建后验证** — 国内版构建完成后验证 bundle 不包含 `linkchest.net`
 
 ### 1.3 唯一允许的构建方式
@@ -58,16 +59,20 @@ description: "构建红线规则 - APK构建时绝对禁止的行为，构建操
 
 #### 构建命令
 
-```bash
-# ✅ 方式1：通过 PowerShell 统一入口（推荐，支持并行构建）
+```powershell
+# ✅ 唯一允许的方式：通过 PowerShell 统一入口
 .\project\apps\mobile\build-apk.ps1           # 并行构建两个版本（推荐）
 .\project\apps\mobile\build-apk.ps1 global    # 只构建国际版
 .\project\apps\mobile\build-apk.ps1 china     # 只构建国内版
-
-# ✅ 方式2：直接通过 WSL 构建（单版本）
-wsl -d linkchest-global -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
-wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
 ```
+
+**绝对禁止直接调用 WSL 或 gradlew 构建：**
+- ❌ `wsl -d linkchest-global -u mayn -- bash .../build-gradle.sh` — 绕过统一入口
+- ❌ `wsl -d linkchest-cn -u mayn -- bash .../build-gradle.sh` — 绕过统一入口
+- ❌ `npx expo prebuild --platform android --clean`
+- ❌ `cd android && ./gradlew assembleRelease`
+- ❌ `eas build --platform android`
+- ❌ 任何在 Windows PowerShell/CMD 中直接执行的构建命令
 
 #### 双版本构建策略
 
@@ -99,10 +104,13 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 
 - `gradlew`、`gradle`、`assembleRelease`
 - `expo prebuild`、`eas build`
+- `wsl -d linkchest-global`、`wsl -d linkchest-cn` + `build-gradle` — 绕过统一入口
 - `android/app/build`
 - `clean` + `gradle`/`build`（禁止 clean 相关命令）
 - `.env.market` 缺失或 MARKET 值错误
 - `market-config.json` 缺失或修改后未同步
+
+> **紧急处理例外**：用户明确说"继续"、"构建"、"开始"等指令时，可跳过用户确认环节，但仍**必须使用 `build-apk.ps1`** 执行构建。
 
 > **部署相关阻断**：由 [HIGH_RISK.md](HIGH_RISK.md) 处理
 
@@ -131,11 +139,17 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 ┌─────────────────────────────────────────┐
 │ 检测到 APK 构建操作                      │
 │                                         │
+│ 【强制】必须使用统一入口构建：            │
+│   ✅ .\project\apps\mobile\build-apk.ps1 │
+│                                         │
+│ 禁止直接调用：                           │
+│   ❌ wsl -d linkchest-global ...         │
+│   ❌ wsl -d linkchest-cn ...             │
+│   ❌ ./gradlew assembleRelease           │
+│                                         │
 │ 必须确认以下检查项：                    │
 │   ⬜ 已阅读 BUILD.md 第 5 节            │
-│   ⬜ 确认使用正确的 WSL 实例            │
-│     - 国际版: linkchest-global          │
-│     - 国内版: linkchest-cn              │
+│   ⬜ 确认使用 build-apk.ps1 统一入口    │
 │   ⬜ 确认不使用 clean 参数              │
 │   ⬜ 确认 Gradle 镜像已配置             │
 │   ⬜ 确认 Maven 镜像已配置              │
@@ -155,9 +169,27 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 ### 3.1 发现违规时
 
 1. **立即停止**当前操作
-2. **记录违规**到案例集锦
+2. **记录违规**到案例集锦（包括绕过统一入口的行为）
 3. **通知用户**违规的具体行为
-4. **引导正确流程**
+4. **强制使用正确流程** — 即使紧急处理，也必须改用 `build-apk.ps1` 重新执行
+
+### 3.1.1 绕过统一入口的专项处理
+
+当检测到直接调用 WSL 或 gradlew 构建时：
+
+```
+❌ 违规 detected：绕过 build-apk.ps1 统一入口
+
+违规行为：
+  - 直接调用 wsl -d {instance} -- bash build-gradle.sh
+  - 或 ./gradlew assembleRelease
+
+强制纠正：
+  1. 终止当前构建进程
+  2. 使用正确命令重新构建：
+     .\project\apps\mobile\build-apk.ps1 [global|china|all]
+  3. 记录本次违规到案例集锦
+```
 
 ### 3.2 案例记录
 
@@ -266,6 +298,6 @@ fi
 
 ---
 
-*最后更新：2026-05-26*
-*版本：v3.1 — 双 WSL 架构（linkchest-global + linkchest-cn）*
+*最后更新：2026-05-27*
+*版本：v3.2 — 强制统一入口（build-apk.ps1），禁止直接 WSL 调用*
 *优先级：任务触发 - 构建操作时自动加载*

@@ -223,4 +223,12 @@ if (rnVersion < versionToNumber(0, 75, 0)) {
     applyNativeModulesAppBuildGradle(project)
 }
 
-apply plugin: 'com.google.gms.google-services'
+// Google Services 插件：仅海外版需要
+// 国内版跳过，因为包名不同且国内无法访问Google服务
+if (!project.hasProperty("android.injected.invoked.from.ide") || android.defaultConfig.applicationId != "cn.linkchest.app") {
+    // 使用更可靠的方式判断：检查当前构建任务是否包含 "China"
+    def isChinaBuild = gradle.startParameter.taskNames.any { it.toLowerCase().contains('china') }
+    if (!isChinaBuild) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+}
