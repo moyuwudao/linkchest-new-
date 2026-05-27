@@ -8,9 +8,9 @@ export { isValidLocale, detectSystemLocale } from '@linkchest/i18n';
 
 // 根据市场判断默认语言：国内版强制中文，海外版跟随系统
 function getDefaultLocale(): SupportedLocale {
-  const market = Constants.expoConfig?.extra?.market as string | undefined;
+  const extraMarket = Constants.expoConfig?.extra?.market as string | undefined;
   const androidPackage = Constants.expoConfig?.android?.package || '';
-  const isChina = market === 'china' || androidPackage === 'cn.linkchest.app';
+  const isChina = extraMarket === 'china' || androidPackage === 'cn.linkchest.app';
   if (isChina) return 'zh';
   return detectSystemLocale();
 }

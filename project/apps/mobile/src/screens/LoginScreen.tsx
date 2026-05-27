@@ -23,10 +23,14 @@ import { ErrorCodeToI18nKey, AuthErrorCodes } from '../lib/errorCodes';
 import { Ionicons } from '@expo/vector-icons';
 import { usePressableScale } from '../lib/animations';
 import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import { isChinaMarket } from '../lib/market';
+import Constants from 'expo-constants';
 
 WebBrowser.maybeCompleteAuthSession();
+
+// 本地市场判断（与 api.ts 保持一致）
+const extraMarket = Constants.expoConfig?.extra?.market;
+const androidPackage = Constants.expoConfig?.android?.package || '';
+const isChinaMarket = extraMarket === 'china' || androidPackage === 'cn.linkchest.app';
 
 type AccountType = 'email';
 
@@ -114,7 +118,7 @@ export default function LoginScreen() {
   const { setToken, setUser } = useAuthStore();
 
   // 本地市场判断（API 不可用时的回退）
-  const isLocalChina = isChinaMarket();
+  const isLocalChina = isChinaMarket;
 
   // 默认市场配置（API 失败时使用）
   // 注意：Android 国内版不需要 Apple 登录（仅 iOS 需要）
