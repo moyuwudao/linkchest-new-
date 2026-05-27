@@ -292,21 +292,13 @@ export default function CollectionsScreen() {
   const { t } = useI18n();
   const [refreshing, setRefreshing] = useState(false);
 
-  // 彻底隐藏收藏页标题栏返回键，添加日志按钮
+  // 彻底隐藏收藏页标题栏返回键
   useLayoutEffect(() => {
     navigation.setOptions({
       headerLeft: () => null,
       headerBackVisible: false,
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Logs' as never)}
-          style={{ marginRight: 16, padding: 4 }}
-        >
-          <Ionicons name="bug-outline" size={22} color={colors.primary} />
-        </TouchableOpacity>
-      ),
     });
-  }, [navigation, colors.primary]);
+  }, [navigation]);
   const [searchQuery, setSearchQuery] = useState('');
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState('');

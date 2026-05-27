@@ -16,7 +16,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initAnalytics, logEvent, logScreenView, setUserId, setUserProperties } from './src/lib/analytics';
 import { initNotifications, getPushToken } from './src/lib/notifications';
 import { CollectionViewsProvider } from './src/lib/collectionViewsContext';
-import { appLogger, interceptConsole } from './src/lib/logger';
 
 // 页面
 import LoginScreen from './src/screens/LoginScreen';
@@ -40,7 +39,6 @@ import TrashScreen from './src/screens/TrashScreen';
 import DuplicateDetectScreen from './src/screens/DuplicateDetectScreen';
 import AutoBackupScreen from './src/screens/AutoBackupScreen';
 import ExportScreen from './src/screens/ExportScreen';
-import LogsScreen from './src/screens/LogsScreen';
 
 const Stack = createStackNavigator();
 const queryClient = new QueryClient();
@@ -141,11 +139,6 @@ function AppContent() {
 
   // Firebase Analytics & Push 初始化
   useEffect(() => {
-    // 初始化日志系统
-    appLogger.init().then(() => {
-      interceptConsole();
-      appLogger.info('App started', { market: Constants.expoConfig?.extra?.market });
-    });
     initAnalytics().catch(() => {});
     initNotifications().catch(() => {});
   }, []);
@@ -866,13 +859,6 @@ function AppContent() {
             options={{ 
               headerShown: true,
               title: t('export.title'),
-            }}
-          />
-          <Stack.Screen 
-            name="Logs" 
-            component={LogsScreen}
-            options={{ 
-              headerShown: false,
             }}
           />
         </Stack.Navigator>
