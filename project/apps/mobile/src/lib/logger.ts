@@ -105,21 +105,42 @@ export function interceptConsole() {
   const originalWarn = console.warn;
   const originalError = console.error;
 
+  // 安全序列化：处理循环引用
+  const safeStringify = (obj: any): string => {
+    try {
+      return JSON.stringify(obj);
+    } catch {
+      return '[Circular/Non-serializable]';
+    }
+  };
+
   console.log = (...args: any[]) => {
-    const message = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    appLogger.info(message);
+    try {
+      const message = args.map(a => typeof a === 'object' ? safeStringify(a) : String(a)).join(' ');
+      appLogger.info(message);
+    } catch {
+      // 静默失败，不影响原始 console
+    }
     originalLog.apply(console, args);
   };
 
   console.warn = (...args: any[]) => {
-    const message = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    appLogger.warn(message);
+    try {
+      const message = args.map(a => typeof a === 'object' ? safeStringify(a) : String(a)).join(' ');
+      appLogger.warn(message);
+    } catch {
+      // 静默失败
+    }
     originalWarn.apply(console, args);
   };
 
   console.error = (...args: any[]) => {
-    const message = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-    appLogger.error(message);
+    try {
+      const message = args.map(a => typeof a === 'object' ? safeStringify(a) : String(a)).join(' ');
+      appLogger.error(message);
+    } catch {
+      // 静默失败
+    }
     originalError.apply(console, args);
   };
 }
