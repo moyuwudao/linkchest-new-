@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initAnalytics, logEvent, logScreenView, setUserId, setUserProperties } from './src/lib/analytics';
 import { initNotifications, getPushToken } from './src/lib/notifications';
 import { CollectionViewsProvider } from './src/lib/collectionViewsContext';
-import Constants from 'expo-constants';
+import { appLogger, interceptConsole } from './src/lib/logger';
 
 // 页面
 import LoginScreen from './src/screens/LoginScreen';
@@ -40,7 +40,7 @@ import TrashScreen from './src/screens/TrashScreen';
 import DuplicateDetectScreen from './src/screens/DuplicateDetectScreen';
 import AutoBackupScreen from './src/screens/AutoBackupScreen';
 import ExportScreen from './src/screens/ExportScreen';
-
+import LogsScreen from './src/screens/LogsScreen';
 
 const Stack = createStackNavigator();
 const queryClient = new QueryClient();
@@ -141,6 +141,11 @@ function AppContent() {
 
   // Firebase Analytics & Push 初始化
   useEffect(() => {
+    // 初始化日志系统
+    appLogger.init().then(() => {
+      interceptConsole();
+      appLogger.info('App started', { market: Constants.expoConfig?.extra?.market });
+    });
     initAnalytics().catch(() => {});
     initNotifications().catch(() => {});
   }, []);
@@ -571,21 +576,13 @@ function AppContent() {
     };
 
     checkClipboardRef.current = checkClipboard as any;
-    // 延迟启动剪贴板检测，避免启动时竞争
-    const initTimer = setTimeout(() => {
-      checkClipboard();
-    }, 2000);
+    checkClipboard();
 
     // ★ 主要检测机制：剪贴板内容变化时主动触发
-    let clipboardSubscription: any;
-    try {
-      clipboardSubscription = Clipboard.addClipboardListener(() => {
-        console.log('[Clipboard] Clipboard changed, trigger check');
-        setTimeout(() => checkClipboard(), 300);
-      });
-    } catch (e) {
-      console.warn('[Clipboard] Failed to add clipboard listener:', e);
-    }
+    const clipboardSubscription = Clipboard.addClipboardListener(() => {
+      console.log('[Clipboard] Clipboard changed, trigger check');
+      setTimeout(() => checkClipboard(), 300);
+    });
 
     // 补充检测：App 回到前台时触发（处理后台期间剪贴板已变化的情况）
     const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
@@ -596,10 +593,7 @@ function AppContent() {
     });
 
     return () => {
-      clearTimeout(initTimer);
-      if (clipboardSubscription?.remove) {
-        clipboardSubscription.remove();
-      }
+      clipboardSubscription.remove();
       appStateSubscription.remove();
     };
   }, []); // 空依赖，永不重装
@@ -872,6 +866,13 @@ function AppContent() {
             options={{ 
               headerShown: true,
               title: t('export.title'),
+            }}
+          />
+          <Stack.Screen 
+            name="Logs" 
+            component={LogsScreen}
+            options={{ 
+              headerShown: false,
             }}
           />
         </Stack.Navigator>
