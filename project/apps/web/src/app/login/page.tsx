@@ -444,16 +444,17 @@ function LoginForm() {
       </div>
 
       {/* 右侧登录区 */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-paper dark:bg-ink p-6 relative">
-        <div className="w-full max-w-md flex-1 flex flex-col justify-center">
-          {/* Logo 移动端 */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <Logo size={40} variant="light" />
-            <span className="text-xl font-bold text-charcoal dark:text-parchment">{t('sidebar.appName')}</span>
-          </div>
+      <div className="flex-1 flex flex-col bg-paper dark:bg-ink p-6 relative">
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="w-full max-w-md">
+            {/* Logo 移动端 */}
+            <div className="lg:hidden flex items-center gap-3 mb-8">
+              <Logo size={40} variant="light" />
+              <span className="text-xl font-bold text-charcoal dark:text-parchment">{t('sidebar.appName')}</span>
+            </div>
 
-          {/* 卡片 */}
-          <div className="bg-white dark:bg-chest-800/50 rounded-lg border border-chest-500/[0.06] dark:border-parchment/5 p-8 relative">
+            {/* 卡片 */}
+            <div className="bg-white dark:bg-chest-800/50 rounded-lg border border-chest-500/[0.06] dark:border-parchment/5 p-8 relative">
             {/* 语言切换 */}
             <div className="absolute top-5 right-5" ref={langDropdownRef}>
               <button
@@ -622,7 +623,9 @@ function LoginForm() {
             </div>
           </div>
         </div>
-        <ICPFiling />
+        <div className="w-full flex justify-center pb-4">
+          <ICPFiling />
+        </div>
       </div>
 
       {/* 注册弹窗 */}
