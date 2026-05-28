@@ -14,8 +14,9 @@ import { getMarketConfig, MarketConfig } from '@/lib/api/market';
 import ICPFiling from '@/components/ICPFiling';
 
 // 动态导入 Google 组件，避免服务端渲染问题
-// 不再在模块级别判断，改为在组件内根据市场配置动态渲染
-const GoogleLoginButton = lazy(() => import('@/components/GoogleLoginButton'));
+const GoogleLoginButton = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  ? lazy(() => import('@/components/GoogleLoginButton'))
+  : null;
 
 import type { CredentialResponse } from '@react-oauth/google';
 
@@ -289,6 +290,20 @@ function LoginForm() {
     window.location.href = url;
   };
 
+  // 支付宝登录
+  const handleAlipayLogin = () => {
+    setError('');
+    const appId = process.env.NEXT_PUBLIC_ALIPAY_APP_ID;
+    if (!appId) {
+      setError('支付宝登录未配置');
+      return;
+    }
+    const redirectUri = encodeURIComponent(`${window.location.origin}/api/auth/alipay/callback`);
+    const state = btoa(JSON.stringify({ redirect, lang }));
+    const url = `https://openauth.alipay.com/oauth2/publicAppAuthorize.htm?app_id=${appId}&scope=auth_user&redirect_uri=${redirectUri}&state=${state}`;
+    window.location.href = url;
+  };
+
   // 通用 OAuth 登录处理
   const handleOAuthLogin = async (provider: string, credential: string) => {
     setLoading(true);
@@ -444,19 +459,18 @@ function LoginForm() {
       </div>
 
       {/* 右侧登录区 */}
-      <div className="flex-1 flex flex-col bg-paper dark:bg-ink p-6 relative">
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="w-full max-w-md">
-            {/* Logo 移动端 */}
-            <div className="lg:hidden flex items-center gap-3 mb-8">
-              <Logo size={40} variant="light" />
-              <span className="text-xl font-bold text-charcoal dark:text-parchment">{t('sidebar.appName')}</span>
-            </div>
+      <div className="flex-1 flex items-center justify-center bg-paper dark:bg-ink p-6">
+        <div className="w-full max-w-md">
+          {/* Logo 移动端 */}
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <Logo size={40} variant="light" />
+            <span className="text-xl font-bold text-charcoal dark:text-parchment">{t('sidebar.appName')}</span>
+          </div>
 
-            {/* 卡片 */}
-            <div className="bg-white dark:bg-chest-800/50 rounded-lg border border-chest-500/[0.06] dark:border-parchment/5 p-8 relative">
-              {/* 语言切换 */}
-              <div className="absolute top-5 right-5" ref={langDropdownRef}>
+          {/* 卡片 */}
+          <div className="bg-white dark:bg-chest-800/50 rounded-lg border border-chest-500/[0.06] dark:border-parchment/5 p-8 relative">
+            {/* 语言切换 */}
+            <div className="absolute top-5 right-5" ref={langDropdownRef}>
               <button
                 onClick={() => setShowLangDropdown(!showLangDropdown)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-chest-500/10 bg-chest-500/5 text-taupe hover:text-charcoal dark:hover:text-parchment transition-colors cursor-pointer"
@@ -492,8 +506,6 @@ function LoginForm() {
               )}
             </div>
 
-            {/* 卡片内容 */}
-            <div>
             {/* 标题 */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-charcoal dark:text-parchment">
@@ -586,12 +598,11 @@ function LoginForm() {
                       <div className="flex-1 border-t border-taupe/15 dark:border-parchment/10" />
                     </div>
                     <div className="flex justify-center gap-3 pt-2">
-                      {marketConfig.authProviders.google && (
+                      {GoogleLoginButton && marketConfig.authProviders.google && (
                         <Suspense fallback={<div className="w-10 h-10" />}>
                           <GoogleLoginButton
                             onSuccess={handleGoogleSuccess}
                             onError={handleGoogleError}
-                            clientId={marketConfig.clientIds?.google || undefined}
                           />
                         </Suspense>
                       )}
@@ -617,26 +628,36 @@ function LoginForm() {
                           </svg>
                         </button>
                       )}
-
+                      {marketConfig.authProviders.alipay_auth && (
+                        <button
+                          onClick={handleAlipayLogin}
+                          className="w-10 h-10 rounded-full bg-[#1677FF] text-white flex items-center justify-center hover:bg-[#1565D8] transition-colors"
+                          title="支付宝登录"
+                        >
+                          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                            <path d="M5.5 2h13A2.5 2.5 0 0 1 21 4.5v15a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 19.5v-15A2.5 2.5 0 0 1 5.5 2zm2.646 5.854a.5.5 0 0 0-.707-.708l-1.5 1.5a.5.5 0 0 0 0 .708l1.5 1.5a.5.5 0 0 0 .707-.708L6.707 9.5H10a.5.5 0 0 0 0-1H6.707l1.439-1.646zm7.354 3.292a.5.5 0 0 0 .707.708l1.5-1.5a.5.5 0 0 0 0-.708l-1.5-1.5a.5.5 0 1 0-.707.708L17.293 9.5H14a.5.5 0 0 0 0 1h3.293l-1.439 1.646z"/>
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   </div>
                 )
               )}
             </div>
+          </div>
+          {/* 底部链接和备案信息 */}
+          <div className="w-full flex flex-col items-center pb-4 gap-2 mt-4">
+            <div className="flex items-center gap-4 text-xs text-taupe">
+              <a href="/privacy" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
+                {t('common.privacy') || 'Privacy Policy'}
+              </a>
+              <span>|</span>
+              <a href="/terms" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
+                {t('common.terms') || 'Terms of Service'}
+              </a>
             </div>
+            <ICPFiling />
           </div>
-        </div>
-        <div className="w-full flex flex-col items-center pb-4 gap-2">
-          <div className="flex items-center gap-4 text-xs text-taupe">
-            <a href="/privacy" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
-              {t('common.privacy')}
-            </a>
-            <span>|</span>
-            <a href="/terms" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
-              {t('common.terms')}
-            </a>
-          </div>
-          <ICPFiling />
         </div>
       </div>
 
