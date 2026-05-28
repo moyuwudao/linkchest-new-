@@ -2,6 +2,8 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
+// 极光推送 iOS SDK
+#import <RCTJPushModule.h>
 
 @implementation AppDelegate
 
@@ -9,6 +11,9 @@
 {
   self.moduleName = @"main";
 
+  // 极光推送初始化
+  [RCTJPushModule initJPush:launchOptions];
+  
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
@@ -41,21 +46,24 @@
   return [super application:application continueUserActivity:userActivity restorationHandler:restorationHandler] || result;
 }
 
-// Explicitly define remote notification delegates to ensure compatibility with some third-party libraries
+// 极光推送 - 注册远程通知成功
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 {
+  [RCTJPushModule didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
   return [super application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
 
-// Explicitly define remote notification delegates to ensure compatibility with some third-party libraries
+// 极光推送 - 注册远程通知失败
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 {
+  [RCTJPushModule didFailToRegisterForRemoteNotificationsWithError:error];
   return [super application:application didFailToRegisterForRemoteNotificationsWithError:error];
 }
 
-// Explicitly define remote notification delegates to ensure compatibility with some third-party libraries
+// 极光推送 - 接收远程通知
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
 {
+  [RCTJPushModule didReceiveRemoteNotification:userInfo];
   return [super application:application didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
 }
 

@@ -12,6 +12,7 @@ import { checkQuota, checkQuotaBatch, invalidateQuotaCache } from '../services/q
 import { enqueueMetadataFetch } from '../services/metadata-queue'
 import { recordCollectionCreated } from '../services/prom-metrics'
 import { emitEvent } from '../lib/eventBus'
+import { moderateCollectionTitle, moderateCollectionNote } from '../services/contentModeration'
 
 import fetch from 'node-fetch'
 import { CollectionErrorCodes, ListErrorCodes, CommonErrorCodes, UploadErrorCodes, QuotaErrorCodes, errorResponse } from '../lib/errorCodes'
@@ -404,6 +405,18 @@ router.post('/', authenticate, [
   const platform = detectPlatform(url)
 
   try {
+    // 内容安全审核（国内版）
+    const titleCheck = await moderateCollectionTitle(title)
+    if (!titleCheck.safe) {
+      return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '标题包含违规内容')
+    }
+    if (note) {
+      const noteCheck = await moderateCollectionNote(note)
+      if (!noteCheck.safe) {
+        return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '备注包含违规内容')
+      }
+    }
+
     // 配额检查
     const quotaError = await checkQuota(userId, 'collections')
     if (quotaError) {

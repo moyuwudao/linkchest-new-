@@ -20,6 +20,7 @@ import { ensureHttps } from '../lib/utils'
 import logger from '../lib/logger'
 import { emitEvent } from '../lib/eventBus'
 import { invalidateShareCache } from '../routes/public'
+import { moderateShareTitle, moderateShareDescription } from '../services/contentModeration'
 import { getPlatformConfig, generateDefaultCover } from '../services/platforms'
 
 const router = Router()
@@ -120,6 +121,18 @@ router.post('/', authenticate, [
   const normalizedType = normalizeShareType(type as string)
 
   try {
+    // 内容安全审核（国内版）
+    const titleCheck = await moderateShareTitle(title)
+    if (!titleCheck.safe) {
+      return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '标题包含违规内容')
+    }
+    if (description) {
+      const descCheck = await moderateShareDescription(description)
+      if (!descCheck.safe) {
+        return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '描述包含违规内容')
+      }
+    }
+
     // 配额检查
     const quotaError = await checkQuota(userId, 'shares')
     if (quotaError) {

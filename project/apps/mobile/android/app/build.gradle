@@ -216,6 +216,18 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // 极光推送 - 国内版厂商通道
+    // 华为
+    implementation 'com.huawei.hms:push:6.11.0.300'
+    // 小米
+    implementation 'com.xiaomi.mipush:mipush-sdk:5.9.9'
+    // OPPO
+    implementation 'com.heytap.msp:push:3.5.2'
+    // vivo
+    implementation 'com.vivo.push:sdk:3.0.0.7'
+    // 荣耀
+    implementation 'com.hihonor.mcs:push:7.0.61.303'
 }
 
 if (rnVersion < versionToNumber(0, 75, 0)) {

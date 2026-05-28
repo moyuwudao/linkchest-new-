@@ -30,10 +30,20 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setUser: (user: User) => {
     set({ user });
+    // 国内版：设置极光推送别名
+    if (user?.id) {
+      import('../lib/jpush').then(({ setJPushAlias }) => {
+        setJPushAlias(user.id).catch(() => {});
+      });
+    }
   },
 
   logout: async () => {
     await SecureStore.deleteItemAsync('linkchest_token');
+    // 国内版：清除极光推送别名
+    import('../lib/jpush').then(({ deleteJPushAlias }) => {
+      deleteJPushAlias().catch(() => {});
+    });
     set({ token: null, user: null });
   },
 

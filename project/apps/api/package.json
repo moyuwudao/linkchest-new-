@@ -30,6 +30,7 @@
     "googleapis": "^171.4.0",
     "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
+    "jpush-async": "^4.2.0",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^4.0.1",
     "lru-cache": "^9.1.2",
@@ -44,7 +45,7 @@
     "redlock": "^4.2.0",
     "sharp": "^0.33.1",
     "stripe": "^16.12.0",
-    "tencentcloud-sdk-nodejs": "^4.0.0"
+    "tencentcloud-sdk-nodejs": "^4.1.238"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

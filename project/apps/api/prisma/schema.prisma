@@ -52,6 +52,7 @@ model User {
   subscriptions    Subscription[]
   referralCode     ReferralCode?
   referralUse      ReferralUse?
+  pushTokens       PushToken[]
 
   @@index([status])
   @@index([createdAt])
@@ -426,4 +427,20 @@ model ReferralUse {
   @@index([referralCodeId])
   @@index([refereeId])
   @@map("referral_uses")
+}
+
+// 推送 Token 表
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String
+  platform  String   // jpush | fcm | expo
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@index([token])
+  @@map("push_tokens")
 }

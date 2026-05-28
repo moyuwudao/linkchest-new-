@@ -15,6 +15,7 @@ import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initAnalytics, logEvent, logScreenView, setUserId, setUserProperties } from './src/lib/analytics';
 import { initNotifications, getPushToken } from './src/lib/notifications';
+import { initJPush, setJPushAlias, deleteJPushAlias } from './src/lib/jpush';
 import { CollectionViewsProvider } from './src/lib/collectionViewsContext';
 
 // 页面
@@ -141,6 +142,8 @@ function AppContent() {
   useEffect(() => {
     initAnalytics().catch(() => {});
     initNotifications().catch(() => {});
+    // 国内版初始化极光推送
+    initJPush().catch(() => {});
   }, []);
 
   // 剪贴板检测全局状态

@@ -330,6 +330,10 @@ export default function CollectionFormScreen() {
       queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'tags' });
       queryClient.invalidateQueries({ queryKey: ['quota'] });
       logEvent('add_collection', { platform, mode });
+      // 国内版：收藏成功本地提醒
+      import('../lib/jpush').then(({ notifyCollectionSuccess }) => {
+        notifyCollectionSuccess(title).catch(() => {});
+      });
       Alert.alert(t('common.success'), t('add.addedSuccess'));
       navigation.goBack();
     },
