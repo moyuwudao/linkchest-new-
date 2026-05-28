@@ -626,7 +626,16 @@ function LoginForm() {
             </div>
           </div>
         </div>
-        <div className="w-full flex justify-center pb-4">
+        <div className="w-full flex flex-col items-center pb-4 gap-2">
+          <div className="flex items-center gap-4 text-xs text-taupe">
+            <a href="/privacy" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
+              {t('common.privacy')}
+            </a>
+            <span>|</span>
+            <a href="/terms" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
+              {t('common.terms')}
+            </a>
+          </div>
           <ICPFiling />
         </div>
       </div>

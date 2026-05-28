@@ -896,7 +896,9 @@
     "copy": "Copy",
     "search": "Search",
     "noResults": "No results",
-    "clear": "Clear"
+    "clear": "Clear",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
   },
   "error": {
     "unknown": "An unknown error occurred",

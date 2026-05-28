@@ -525,7 +525,9 @@
     "copy": "复制",
     "search": "搜索",
     "noResults": "暂无结果",
-    "clear": "清除"
+    "clear": "清除",
+    "privacy": "隐私政策",
+    "terms": "服务条款"
   },
   "settings": {
     "title": "设置",
