@@ -587,17 +587,6 @@ function LoginForm() {
                 </button>
               </p>
 
-              {/* 隐私政策和服务条款 */}
-              <div className="flex items-center justify-center gap-4 text-xs text-taupe py-2">
-                <a href="/privacy" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
-                  {t('common.privacy') || 'Privacy Policy'}
-                </a>
-                <span>|</span>
-                <a href="/terms" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
-                  {t('common.terms') || 'Terms of Service'}
-                </a>
-              </div>
-
               {/* 第三方登录 */}
               {!marketLoading && marketConfig && (
                 (marketConfig.authProviders.google || marketConfig.authProviders.apple || 
@@ -607,6 +596,16 @@ function LoginForm() {
                       <div className="flex-1 border-t border-taupe/15 dark:border-parchment/10" />
                       <span className="px-3 text-xs text-taupe dark:text-taupe-light/70">{t('login.otherLoginMethods')}</span>
                       <div className="flex-1 border-t border-taupe/15 dark:border-parchment/10" />
+                    </div>
+                    {/* 隐私政策和服务条款 - 放在框图内侧 */}
+                    <div className="flex items-center justify-center gap-4 text-xs text-taupe py-2">
+                      <a href="/privacy" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
+                        {t('common.privacy') || 'Privacy Policy'}
+                      </a>
+                      <span>|</span>
+                      <a href="/terms" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
+                        {t('common.terms') || 'Terms of Service'}
+                      </a>
                     </div>
                     <div className="flex justify-center gap-3 pt-2">
                       {GoogleLoginButton && marketConfig.authProviders.google && (
@@ -656,12 +655,11 @@ function LoginForm() {
               )}
             </div>
           </div>
+          {/* 备案信息 - 右侧底部居中 */}
+          <div className="w-full flex justify-center py-4 mt-4">
+            <ICPFiling />
+          </div>
         </div>
-      </div>
-
-      {/* 页面底部备案信息 */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center py-2 bg-paper/80 dark:bg-ink/80 backdrop-blur-sm z-10">
-        <ICPFiling />
       </div>
 
       {/* 注册弹窗 */}
