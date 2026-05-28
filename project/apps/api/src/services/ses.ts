@@ -22,14 +22,37 @@ const clientConfig: ClientConfig = {
 
 const client = new SesClient(clientConfig)
 
+// 获取当前市场配置
+const MARKET = process.env.MARKET || 'global'
+
+// 根据市场返回对应的发件邮箱
+function getFromEmail(): string {
+  if (MARKET === 'china') {
+    return process.env.SES_FROM_EMAIL_CN || process.env.SES_FROM_EMAIL || 'noreply@linkchest.cn'
+  }
+  return process.env.SES_FROM_EMAIL_GLOBAL || process.env.SES_FROM_EMAIL || 'noreply@linkchest.net'
+}
+
+// 根据市场返回对应的验证码模板ID
+function getVerificationTemplateId(): number {
+  if (MARKET === 'china') {
+    const templateId = process.env.SES_VERIFY_TEMPLATE_ID_CN || process.env.SES_VERIFY_TEMPLATE_ID
+    return templateId ? parseInt(templateId, 10) : 49526
+  }
+  const templateId = process.env.SES_VERIFY_TEMPLATE_ID_GLOBAL || process.env.SES_VERIFY_TEMPLATE_ID
+  return templateId ? parseInt(templateId, 10) : 175148
+}
+
 // 启动时检查 SES 配置
-const SES_FROM_EMAIL = process.env.SES_FROM_EMAIL
+const SES_FROM_EMAIL = getFromEmail()
 if (!SES_FROM_EMAIL) {
   logger.warn('[SES] SES_FROM_EMAIL 环境变量未配置，邮件发送将失败')
 }
 if (!process.env.TENCENTCLOUD_SECRET_ID || !process.env.TENCENTCLOUD_SECRET_KEY) {
   logger.warn('[SES] 腾讯云 SecretId/SecretKey 环境变量未配置，邮件发送将失败')
 }
+
+logger.info({ market: MARKET, fromEmail: SES_FROM_EMAIL, templateId: getVerificationTemplateId() }, '[SES] 邮箱配置已加载')
 
 export interface SendTemplateEmailParams {
   /** 收件人邮箱列表（单次最多50人） */
@@ -105,22 +128,29 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams) {
 
 /**
  * 发送验证码邮件（快捷方法）
+ * 根据 MARKET 环境变量自动选择对应市场的模板
  */
 export async function sendVerificationCode(
   to: string,
   code: string,
-  templateId: number,
+  templateId?: number,
   expireMinutes = 5
 ) {
+  // 如果未指定模板ID，根据市场自动选择
+  const effectiveTemplateId = templateId ?? getVerificationTemplateId()
+  
+  // 根据市场选择发件人别名
+  const fromAlias = MARKET === 'china' ? '链藏' : 'LinkChest'
+  
   return sendTemplateEmail({
     to: [to],
-    subject: "验证码",
-    templateId,
+    subject: MARKET === 'china' ? "【链藏】验证码" : "[LinkChest] Verification Code",
+    templateId: effectiveTemplateId,
     templateData: {
       code,
       expire: String(expireMinutes),
     },
-    fromAlias: "LinkChest",
+    fromAlias,
     triggerType: 1,
   })
 }
