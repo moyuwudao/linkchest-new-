@@ -1,16 +1,6 @@
-'use client';
-
 // 国内版备案信息组件
-// 根据市场配置动态显示，仅在国内版显示
+// 在国内服务器上始终显示备案号
 export default function ICPFiling() {
-  const isChinaMarket = typeof window !== 'undefined' && 
-    window.location.hostname === 'linkchest.cn';
-
-  // 仅在国内版显示备案号
-  if (!isChinaMarket) {
-    return null;
-  }
-
   return (
     <div className="text-center text-xs text-taupe py-2">
       <a
