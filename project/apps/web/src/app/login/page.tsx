@@ -492,6 +492,8 @@ function LoginForm() {
               )}
             </div>
 
+            {/* 卡片内容 */}
+            <div>
             {/* 标题 */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-charcoal dark:text-parchment">
@@ -620,6 +622,7 @@ function LoginForm() {
                   </div>
                 )
               )}
+            </div>
             </div>
           </div>
         </div>
