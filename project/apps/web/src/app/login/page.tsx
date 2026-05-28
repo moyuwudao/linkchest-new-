@@ -458,8 +458,8 @@ function LoginForm() {
       </div>
 
       {/* 右侧登录区 */}
-      <div className="flex-1 flex items-center justify-center bg-paper dark:bg-ink p-6">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex flex-col items-center justify-center bg-paper dark:bg-ink p-6 relative">
+        <div className="w-full max-w-md flex-1 flex flex-col justify-center">
           {/* Logo 移动端 */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <Logo size={40} variant="light" />
@@ -645,8 +645,8 @@ function LoginForm() {
               )}
             </div>
           </div>
-          <ICPFiling />
         </div>
+        <ICPFiling />
       </div>
 
       {/* 注册弹窗 */}
