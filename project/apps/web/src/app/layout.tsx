@@ -3,7 +3,6 @@ import './globals.css';
 import { Providers } from './providers';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import PwaInstallBanner from '@/components/PwaInstallBanner';
-import ICPFiling from '@/components/ICPFiling';
 import FontLoader from './FontLoader';
 
 export const metadata: Metadata = {
@@ -75,7 +74,6 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <Providers>{children}</Providers>
         <PwaInstallBanner />
-        <ICPFiling />
       </body>
     </html>
   );

@@ -6,9 +6,9 @@ export default function ICPFiling() {
   if (market !== 'china') return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-paper/80 dark:bg-ink/80 backdrop-blur-sm border-t border-chest-400/10 py-1.5 text-center text-xs text-taupe">
+    <div className="text-center text-xs text-taupe mt-4">
       <a
-        href="https://beian.miit.gov.cn/"
+        href="https://beian.miit.gov.cn/#/Integrated/index"
         target="_blank"
         rel="noopener noreferrer"
         className="hover:text-chest-600 dark:hover:text-chest-400 transition-colors"

@@ -11,6 +11,7 @@ import { useToast } from '@/components/Toast';
 import Logo from '@/components/Logo';
 import { getErrorMessage } from '@linkchest/i18n';
 import { getMarketConfig, MarketConfig } from '@/lib/api/market';
+import ICPFiling from '@/components/ICPFiling';
 
 // 动态导入 Google 组件，避免服务端渲染问题
 // 不再在模块级别判断，改为在组件内根据市场配置动态渲染
@@ -644,6 +645,7 @@ function LoginForm() {
               )}
             </div>
           </div>
+          <ICPFiling />
         </div>
       </div>
 
