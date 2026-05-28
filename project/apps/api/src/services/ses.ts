@@ -4,30 +4,43 @@ import logger from '../lib/logger'
 
 const SesClient = tencentcloud.ses.v20201002.Client
 
-// SES 客户端配置
-const clientConfig: ClientConfig = {
-  credential: {
-    secretId: process.env.TENCENTCLOUD_SECRET_ID || "",
-    secretKey: process.env.TENCENTCLOUD_SECRET_KEY || "",
-  },
-  region: process.env.SES_REGION || "ap-guangzhou",
-  profile: {
-    signMethod: "TC3-HMAC-SHA256",
-    httpProfile: {
-      reqMethod: "POST",
-      reqTimeout: 30,
+// 延迟初始化 SES 客户端，确保 dotenv 已加载
+let client: ReturnType<typeof createClient> | null = null
+
+function createClient() {
+  const clientConfig: ClientConfig = {
+    credential: {
+      secretId: process.env.TENCENTCLOUD_SECRET_ID || "",
+      secretKey: process.env.TENCENTCLOUD_SECRET_KEY || "",
     },
-  },
+    region: process.env.SES_REGION || "ap-guangzhou",
+    profile: {
+      signMethod: "TC3-HMAC-SHA256",
+      httpProfile: {
+        reqMethod: "POST",
+        reqTimeout: 30,
+      },
+    },
+  }
+  return new SesClient(clientConfig)
 }
 
-const client = new SesClient(clientConfig)
+function getClient() {
+  if (!client) {
+    client = createClient()
+  }
+  return client
+}
 
 // 获取当前市场配置
-const MARKET = process.env.MARKET || 'global'
+function getMarket(): string {
+  return process.env.MARKET || 'global'
+}
 
 // 根据市场返回对应的发件邮箱
 function getFromEmail(): string {
-  if (MARKET === 'china') {
+  const market = getMarket()
+  if (market === 'china') {
     return process.env.SES_FROM_EMAIL_CN || process.env.SES_FROM_EMAIL || 'noreply@linkchest.cn'
   }
   return process.env.SES_FROM_EMAIL_GLOBAL || process.env.SES_FROM_EMAIL || 'noreply@linkchest.net'
@@ -35,7 +48,8 @@ function getFromEmail(): string {
 
 // 根据市场返回对应的验证码模板ID
 function getVerificationTemplateId(): number {
-  if (MARKET === 'china') {
+  const market = getMarket()
+  if (market === 'china') {
     const templateId = process.env.SES_VERIFY_TEMPLATE_ID_CN || process.env.SES_VERIFY_TEMPLATE_ID
     return templateId ? parseInt(templateId, 10) : 49526
   }
@@ -43,16 +57,22 @@ function getVerificationTemplateId(): number {
   return templateId ? parseInt(templateId, 10) : 175148
 }
 
-// 启动时检查 SES 配置
-const SES_FROM_EMAIL = getFromEmail()
-if (!SES_FROM_EMAIL) {
-  logger.warn('[SES] SES_FROM_EMAIL 环境变量未配置，邮件发送将失败')
+// 启动时检查 SES 配置（延迟到首次调用时检查）
+let configChecked = false
+function checkConfig() {
+  if (configChecked) return
+  configChecked = true
+  
+  const SES_FROM_EMAIL = getFromEmail()
+  if (!SES_FROM_EMAIL) {
+    logger.warn('[SES] SES_FROM_EMAIL 环境变量未配置，邮件发送将失败')
+  }
+  if (!process.env.TENCENTCLOUD_SECRET_ID || !process.env.TENCENTCLOUD_SECRET_KEY) {
+    logger.warn('[SES] 腾讯云 SecretId/SecretKey 环境变量未配置，邮件发送将失败')
+  }
+  
+  logger.info({ market: getMarket(), fromEmail: SES_FROM_EMAIL, templateId: getVerificationTemplateId() }, '[SES] 邮箱配置已加载')
 }
-if (!process.env.TENCENTCLOUD_SECRET_ID || !process.env.TENCENTCLOUD_SECRET_KEY) {
-  logger.warn('[SES] 腾讯云 SecretId/SecretKey 环境变量未配置，邮件发送将失败')
-}
-
-logger.info({ market: MARKET, fromEmail: SES_FROM_EMAIL, templateId: getVerificationTemplateId() }, '[SES] 邮箱配置已加载')
 
 export interface SendTemplateEmailParams {
   /** 收件人邮箱列表（单次最多50人） */
@@ -80,7 +100,10 @@ export interface SendTemplateEmailParams {
  * 注意：个人认证用户仅支持 API 发信，不支持 SMTP
  */
 export async function sendTemplateEmail(params: SendTemplateEmailParams) {
-  if (!SES_FROM_EMAIL) {
+  checkConfig()
+  
+  const fromEmail = getFromEmail()
+  if (!fromEmail) {
     throw new Error("SES_FROM_EMAIL 环境变量未配置")
   }
   if (!process.env.TENCENTCLOUD_SECRET_ID || !process.env.TENCENTCLOUD_SECRET_KEY) {
@@ -88,8 +111,8 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams) {
   }
 
   const fromAddress = params.fromAlias
-    ? `${params.fromAlias} <${SES_FROM_EMAIL}>`
-    : SES_FROM_EMAIL
+    ? `${params.fromAlias} <${fromEmail}>`
+    : fromEmail
 
   const req = {
     FromEmailAddress: fromAddress,
@@ -106,7 +129,7 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams) {
   }
 
   try {
-    const res = await client.SendEmail(req)
+    const res = await getClient().SendEmail(req)
     logger.info({ messageId: res.MessageId, to: params.to.join(', ') }, '[SES] 邮件发送成功')
     return {
       success: true,
@@ -140,11 +163,12 @@ export async function sendVerificationCode(
   const effectiveTemplateId = templateId ?? getVerificationTemplateId()
   
   // 根据市场选择发件人别名
-  const fromAlias = MARKET === 'china' ? '链藏' : 'LinkChest'
+  const market = getMarket()
+  const fromAlias = market === 'china' ? '链藏' : 'LinkChest'
   
   return sendTemplateEmail({
     to: [to],
-    subject: MARKET === 'china' ? "【链藏】验证码" : "[LinkChest] Verification Code",
+    subject: market === 'china' ? "【链藏】验证码" : "[LinkChest] Verification Code",
     templateId: effectiveTemplateId,
     templateData: {
       code,
@@ -164,7 +188,9 @@ export async function sendHtmlEmail(
   htmlBody: string,
   options?: { fromAlias?: string; replyTo?: string; cc?: string[]; bcc?: string[]; triggerType?: 0 | 1 }
 ) {
-  const fromEmail = process.env.SES_FROM_EMAIL
+  checkConfig()
+  
+  const fromEmail = getFromEmail()
   if (!fromEmail) {
     throw new Error("SES_FROM_EMAIL 环境变量未配置")
   }
@@ -193,7 +219,7 @@ export async function sendHtmlEmail(
   }
 
   try {
-    const res = await client.SendEmail(req)
+    const res = await getClient().SendEmail(req)
     logger.info({ messageId: res.MessageId, to: to.join(', ') }, '[SES] HTML 邮件发送成功')
     return {
       success: true,
@@ -222,7 +248,9 @@ export async function sendAlertEmail(
   message: string,
   priority: string
 ) {
-  const fromEmail = process.env.SES_FROM_EMAIL
+  checkConfig()
+  
+  const fromEmail = getFromEmail()
   if (!fromEmail) {
     throw new Error("SES_FROM_EMAIL 环境变量未配置")
   }
@@ -266,7 +294,7 @@ export async function sendAlertEmail(
   }
 
   try {
-    const res = await client.SendEmail(req)
+    const res = await getClient().SendEmail(req)
     logger.info({ messageId: res.MessageId, to: to.join(', ') }, '[SES] 告警邮件发送成功')
     return {
       success: true,
