@@ -587,6 +587,17 @@ function LoginForm() {
                 </button>
               </p>
 
+              {/* 隐私政策和服务条款 */}
+              <div className="flex items-center justify-center gap-4 text-xs text-taupe py-2">
+                <a href="/privacy" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
+                  {t('common.privacy') || 'Privacy Policy'}
+                </a>
+                <span>|</span>
+                <a href="/terms" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
+                  {t('common.terms') || 'Terms of Service'}
+                </a>
+              </div>
+
               {/* 第三方登录 */}
               {!marketLoading && marketConfig && (
                 (marketConfig.authProviders.google || marketConfig.authProviders.apple || 
@@ -645,20 +656,12 @@ function LoginForm() {
               )}
             </div>
           </div>
-          {/* 底部链接和备案信息 */}
-          <div className="w-full flex flex-col items-center pb-4 gap-2 mt-4">
-            <div className="flex items-center gap-4 text-xs text-taupe">
-              <a href="/privacy" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
-                {t('common.privacy') || 'Privacy Policy'}
-              </a>
-              <span>|</span>
-              <a href="/terms" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">
-                {t('common.terms') || 'Terms of Service'}
-              </a>
-            </div>
-            <ICPFiling />
-          </div>
         </div>
+      </div>
+
+      {/* 页面底部备案信息 */}
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center py-2 bg-paper/80 dark:bg-ink/80 backdrop-blur-sm z-10">
+        <ICPFiling />
       </div>
 
       {/* 注册弹窗 */}
