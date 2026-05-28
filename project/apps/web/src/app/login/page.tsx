@@ -455,8 +455,8 @@ function LoginForm() {
 
             {/* 卡片 */}
             <div className="bg-white dark:bg-chest-800/50 rounded-lg border border-chest-500/[0.06] dark:border-parchment/5 p-8 relative">
-            {/* 语言切换 */}
-            <div className="absolute top-5 right-5" ref={langDropdownRef}>
+              {/* 语言切换 */}
+              <div className="absolute top-5 right-5" ref={langDropdownRef}>
               <button
                 onClick={() => setShowLangDropdown(!showLangDropdown)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-chest-500/10 bg-chest-500/5 text-taupe hover:text-charcoal dark:hover:text-parchment transition-colors cursor-pointer"
