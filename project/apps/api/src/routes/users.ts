@@ -311,7 +311,7 @@ router.post('/push-token', authenticate, [
 ], async (req: AuthenticatedRequest, res) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
-    return errorResponse(res, 400, CommonErrorCodes.VALIDATION_ERROR, errors.array()[0].msg)
+    return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, errors.array()[0].msg)
   }
 
   const userId = req.user!.id

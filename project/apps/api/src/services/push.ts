@@ -4,7 +4,7 @@
  */
 
 import JPush from 'jpush-async';
-import { prisma } from '../lib/prisma';
+import prisma from '../lib/prisma';
 
 // 初始化极光推送客户端
 let jpushClient: any = null;
