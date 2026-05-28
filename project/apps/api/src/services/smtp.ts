@@ -48,4 +48,6 @@ export interface SendEmailParams {
   html: string
   /** 纯文本内容（可选） */
   text?: string
-  /** 发件人别名
+  /** 发件人别名 */
+  fromAlias?: string
+}
