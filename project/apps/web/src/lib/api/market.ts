@@ -40,6 +40,48 @@ export interface MarketConfig {
 }
 
 export async function getMarketConfig(): Promise<MarketConfig> {
-  const res = await api.get('/market/config');
-  return res.data.data;
+  try {
+    const res = await api.get('/market/config');
+    return res.data.data;
+  } catch (error) {
+    // 服务端渲染或API调用失败时返回默认值
+    return {
+      market: 'global',
+      paymentProviders: {
+        paypal: true,
+        google_pay: false,
+        apple_iap: false,
+        google_play_billing: false,
+        wechat_pay: false,
+        alipay: false,
+      },
+      authProviders: {
+        email: true,
+        google: true,
+        apple: false,
+        facebook: false,
+        wechat: false,
+        alipay_auth: false,
+      },
+      pricing: {
+        primaryCurrency: 'USD',
+        showCny: false,
+        showUsd: true,
+      },
+      platforms: {
+        bilibili: false,
+        xiaohongshu: false,
+        douyin: false,
+        youtube: true,
+        twitter: true,
+        instagram: true,
+      },
+      clientIds: {
+        google: null,
+        facebook: null,
+        wechat: null,
+        alipay: null,
+      },
+    };
+  }
 }
