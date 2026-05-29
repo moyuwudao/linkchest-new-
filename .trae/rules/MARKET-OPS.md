@@ -951,7 +951,36 @@ aapt dump badging linkchest-china-*.apk | grep application-label
 | 部署脚本 | `deploy/deploy.sh` | 支持 global/china 参数 |
 | Prisma Schema | `apps/api/prisma/schema.prisma` | 国内字段定义 |
 
+### 13.4 运营参考文档（非代码真相源）
+
+> ⚠️ **以下文档为运营团队可读参考文档，所有运营配置的真相源（Single Source of Truth）为：**
+> **`project/apps/mobile/market-config.json`** + **本文档（MARKET-OPS.md）**
+> **修改运营配置时，必须同步更新 `market-config.json`。**
+
+#### 13.4.1 WEB端运营配置
+
+| 文档名称 | 路径 | 说明 |
+|----------|------|------|
+| WEB端国内版运营配置 | `project/docs/运营/WEB端国内版运营配置.md` | 国内WEB版完整运营配置（HTTPS已配置） |
+| WEB端海外版运营配置 | `project/docs/运营/WEB端海外版运营配置.md` | 海外WEB版完整运营配置 |
+
+#### 13.4.2 手机端运营配置
+
+| 文档名称 | 路径 | 说明 |
+|----------|------|------|
+| 手机端国内安卓版运营配置 | `project/docs/运营/手机端国内安卓版运营配置.md` | 国内Android版配置（WSL本地Gradle构建，HTTPS，不支持扫码分享/保存图片） |
+| 手机端国内iOS版运营配置 | `project/docs/运营/手机端国内iOS版运营配置.md` | 国内iOS版配置（仅Apple Pay，HTTPS） |
+| 手机端海外安卓版运营配置 | `project/docs/运营/手机端海外安卓版运营配置.md` | 海外Android版配置 |
+| 手机端海外iOS版运营配置 | `project/docs/运营/手机端海外iOS版运营配置.md` | 海外iOS版配置 |
+
+#### 13.4.3 功能对比与法务运营
+
+| 文档名称 | 路径 | 说明 |
+|----------|------|------|
+| 全平台功能对比表 | `project/docs/运营/全平台功能对比表.md` | WEB+手机端全平台功能对比（含构建工具、API协议、权限限制） |
+| 国内法务运营方案 | `project/docs/运营/国内法务运营方案.md` | 国内合规要求、ICP备案、内容审核、知识产权 |
+
 ---
 
-*最后更新：2026-05-26*
-*版本：v1.3 — 增加market-config.json作为唯一真相源，移除支付宝和Facebook登录*
+*最后更新：2026-05-29*
+*版本：v1.4 — 注册运营配置参考文档，明确market-config.json为唯一真相源*

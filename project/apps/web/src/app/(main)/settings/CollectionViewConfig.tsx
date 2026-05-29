@@ -44,17 +44,20 @@ const FIELD_ICONS: Record<DisplayFieldKey, typeof Image> = {
   createdAt: Clock,
 };
 
-const FIELD_LABELS: Record<DisplayFieldKey, string> = {
-  cover: '封面图',
-  title: '标题',
-  platform: '平台',
-  rating: '评分',
-  pageType: '页面类型',
-  tags: '标签',
-  lists: '分组',
-  note: '备注',
-  createdAt: '创建时间',
-};
+function getFieldLabel(key: DisplayFieldKey, t: (key: string) => string): string {
+  const map: Record<DisplayFieldKey, string> = {
+    cover: 'collectionView.field.cover',
+    title: 'collectionView.field.title',
+    platform: 'collectionView.field.platform',
+    rating: 'collectionView.field.rating',
+    pageType: 'collectionView.field.pageType',
+    tags: 'collectionView.field.tags',
+    lists: 'collectionView.field.lists',
+    note: 'collectionView.field.note',
+    createdAt: 'collectionView.field.createdAt',
+  };
+  return t(map[key]);
+}
 
 type ViewMode = 'webGrid' | 'webList';
 
@@ -138,9 +141,9 @@ export default function CollectionViewConfig() {
 
   const hasChanges = JSON.stringify(views) !== originalSnapshot;
 
-  const modeOptions: { key: ViewMode; label: string; icon: typeof LayoutGrid }[] = [
-    { key: 'webGrid', label: '卡片视图', icon: LayoutGrid },
-    { key: 'webList', label: '列表视图', icon: List },
+  const modeOptions: { key: ViewMode; labelKey: string; icon: typeof LayoutGrid }[] = [
+    { key: 'webGrid', labelKey: 'collectionView.cardView', icon: LayoutGrid },
+    { key: 'webList', labelKey: 'collectionView.listView', icon: List },
   ];
 
   if (!isReady) {
@@ -157,14 +160,14 @@ export default function CollectionViewConfig() {
     <div className="card">
       <div className="px-5 py-3 border-b border-chest-100 dark:border-chest-700/50 flex items-center justify-between">
         <h3 className="text-sm font-medium text-taupe dark:text-parchment/60 uppercase tracking-wide">
-          收藏展示设置
+          {t('collectionView.title')}
         </h3>
       </div>
 
       <div className="px-5 py-4 space-y-5">
         {/* 视图模式切换 */}
         <div>
-          <label className="text-sm text-taupe dark:text-parchment/60 mb-2 block">选择视图模式</label>
+          <label className="text-sm text-taupe dark:text-parchment/60 mb-2 block">{t('collectionView.selectViewMode')}</label>
           <div className="flex gap-2">
             {modeOptions.map((mode) => {
               const Icon = mode.icon;
@@ -180,7 +183,7 @@ export default function CollectionViewConfig() {
                   }`}
                 >
                   <Icon size={16} />
-                  {mode.label}
+                  {t(mode.labelKey)}
                 </button>
               );
             })}
@@ -190,13 +193,13 @@ export default function CollectionViewConfig() {
         {/* 字段配置列表 */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm text-taupe dark:text-parchment/60">显示字段（拖拽调整顺序）</label>
+            <label className="text-sm text-taupe dark:text-parchment/60">{t('collectionView.displayFields')}</label>
             <button
               onClick={handleReset}
               className="flex items-center gap-1 text-xs text-chest-400 hover:text-chest-500 transition-colors cursor-pointer"
             >
               <RotateCcw size={12} />
-              重置默认
+              {t('collectionView.resetDefault')}
             </button>
           </div>
 
@@ -219,7 +222,7 @@ export default function CollectionViewConfig() {
                   <GripVertical size={16} className="text-chest-300 dark:text-parchment/30 flex-shrink-0" />
                   <Icon size={16} className="text-chest-400 dark:text-parchment/50 flex-shrink-0" />
                   <span className="flex-1 text-sm text-charcoal dark:text-parchment/90">
-                    {FIELD_LABELS[field.key]}
+                    {getFieldLabel(field.key, t)}
                   </span>
                   <button
                     onClick={() => toggleField(field.key)}
@@ -230,7 +233,7 @@ export default function CollectionViewConfig() {
                     }`}
                   >
                     {field.enabled ? <Eye size={12} /> : <EyeOff size={12} />}
-                    {field.enabled ? '显示' : '隐藏'}
+                    {field.enabled ? t('collectionView.show') : t('collectionView.hide')}
                   </button>
                 </div>
               );
@@ -246,7 +249,7 @@ export default function CollectionViewConfig() {
             className="flex items-center gap-2 px-5 py-2.5 bg-chest-500 text-white rounded-lg hover:bg-chest-600 disabled:bg-taupe/20 text-sm transition-colors cursor-pointer"
           >
             <Check size={16} />
-            保存设置
+            {t('collectionView.saveSettings')}
           </button>
         </div>
       </div>

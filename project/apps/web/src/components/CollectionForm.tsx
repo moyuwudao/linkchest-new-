@@ -486,7 +486,12 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         className="w-full flex items-center justify-between py-3 px-4 bg-chest-50 dark:bg-chest-800/50 rounded-lg hover:bg-chest-100 dark:hover:bg-chest-700/50 transition-colors"
       >
         <span className="font-medium text-charcoal dark:text-parchment">
-          {t('add.tags')} ({selectedTags.length})
+          {t('add.tags')}{' '}
+          <span className="text-chest-500 dark:text-amber-400 ml-1">
+            ({selectedTags.length > 0 && tagsData
+              ? tagsData.find((tag: Tag) => selectedTags.includes(tag.id))?.name || selectedTags.length
+              : selectedTags.length})
+          </span>
         </span>
         <span className="text-taupe dark:text-parchment/60">
           {tagSectionExpanded ? '▼' : '▶'}
@@ -609,7 +614,10 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         className="w-full flex items-center justify-between py-3 px-4 bg-chest-50 dark:bg-chest-800/50 rounded-lg hover:bg-chest-100 dark:hover:bg-chest-700/50 transition-colors"
       >
         <span className="font-medium text-charcoal dark:text-parchment">
-          {t('collection.pageType')} - {t(`collection.pageType${selectedPageType.charAt(0).toUpperCase() + selectedPageType.slice(1)}`)}
+          {t('collection.pageType')}{' '}
+          <span className="text-chest-500 dark:text-amber-400 ml-1">
+            ({t(`collection.pageType.${selectedPageType}`)})
+          </span>
         </span>
         <span className="text-taupe dark:text-parchment/60">
           {pageTypeSectionExpanded ? '▼' : '▶'}
@@ -620,7 +628,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         <div className="mt-3 p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-lg">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {PAGE_TYPES.map((pt) => {
-              const label = t(`collection.pageType${pt.value.charAt(0).toUpperCase() + pt.value.slice(1)}`)
+              const label = t(`collection.pageType.${pt.value}`)
               return (
                 <button
                   key={pt.value}
@@ -781,7 +789,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         {/* 评分 */}
         <div className="p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-xl">
           <label className="block text-sm font-medium mb-2 text-charcoal dark:text-parchment">
-            {t('collection.detail.rating')}
+            {t('collection.details.rating')}
           </label>
           <StarRating
             value={rating}

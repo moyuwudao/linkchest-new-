@@ -12,7 +12,7 @@ export default function ImportExportSection() {
   const { t } = useI18n();
   const { showToast, showAlert } = useToast();
   const [importProgress, setImportProgress] = useState<{ current: number; total: number } | null>(null);
-  const [importFormat, setImportFormat] = useState<'csv' | 'html'>('csv');
+  const [importFormat, setImportFormat] = useState<'csv' | 'html' | 'json'>('csv');
 
   return (
     <div className="card">
@@ -86,6 +86,12 @@ export default function ImportExportSection() {
             >
               {t('settings.importFormatHtml')}
             </button>
+            <button
+              onClick={() => setImportFormat('json')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${importFormat === 'json' ? 'bg-chest-500 text-white' : 'bg-parchment/20 dark:bg-chest-700/40 text-charcoal/70 dark:text-parchment/70 hover:bg-parchment/30 dark:hover:bg-chest-700/60'}`}
+            >
+              {t('settings.importFormatJson')}
+            </button>
           </div>
 
           {importProgress && (
@@ -108,17 +114,66 @@ export default function ImportExportSection() {
             <span>{t('settings.importSelectFile')}</span>
             <input
               type="file"
-              accept={importFormat === 'csv' ? '.csv' : '.html,.htm'}
+              accept={importFormat === 'csv' ? '.csv' : importFormat === 'json' ? '.json' : '.html,.htm'}
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
 
                 const ext = file.name.split('.').pop()?.toLowerCase();
-                const detectedFormat = ext === 'html' || ext === 'htm' ? 'html' : 'csv';
-                const effectiveFormat = detectedFormat === 'html' ? 'html' : importFormat;
+                let effectiveFormat: 'csv' | 'html' | 'json' = importFormat;
+                if (ext === 'html' || ext === 'htm') effectiveFormat = 'html';
+                else if (ext === 'json') effectiveFormat = 'json';
 
                 try {
-                  if (effectiveFormat === 'html') {
+                  if (effectiveFormat === 'json') {
+                    const jsonContent = await file.text();
+                    let parsedData;
+                    try {
+                      parsedData = JSON.parse(jsonContent);
+                    } catch {
+                      showToast(t('settings.jsonInvalid'), 'error');
+                      e.target.value = '';
+                      return;
+                    }
+                    const dataArray = Array.isArray(parsedData) ? parsedData : parsedData?.data || parsedData?.collections || [];
+                    if (!Array.isArray(dataArray) || dataArray.length === 0) {
+                      showToast(t('settings.jsonEmptyOrInvalid'), 'error');
+                      e.target.value = '';
+                      return;
+                    }
+                    if (!confirm(t('settings.importConfirm', { count: dataArray.length }))) {
+                      e.target.value = '';
+                      return;
+                    }
+                    const BATCH_SIZE = 200;
+                    const totalResult = { success: 0, skipped: 0, error: 0 };
+                    const batches = Math.ceil(dataArray.length / BATCH_SIZE);
+                    setImportProgress({ current: 0, total: dataArray.length });
+                    for (let i = 0; i < batches; i++) {
+                      const batch = dataArray.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
+                      try {
+                        const res = await api.post('/collections/import', { data: batch }, { timeout: 120000 });
+                        const batchResult = res.data.data;
+                        totalResult.success += batchResult.success;
+                        totalResult.skipped += batchResult.skipped;
+                        totalResult.error += batchResult.error;
+                        const processed = Math.min((i + 1) * BATCH_SIZE, dataArray.length);
+                        setImportProgress({ current: processed, total: dataArray.length });
+                      } catch (err: unknown) {
+                        const apiErr = err as ApiError;
+                        if ((err as { code?: string }).code === 'ERR_NETWORK' || apiErr.message === 'Network Error') {
+                          showAlert(t('settings.importNetworkError'), 'error');
+                          e.target.value = '';
+                          setImportProgress(null);
+                          return;
+                        }
+                        totalResult.error += batch.length;
+                      }
+                    }
+                    showToast(t('settings.importComplete', { success: totalResult.success, skipped: totalResult.skipped, error: totalResult.error }), 'success');
+                    setImportProgress(null);
+                    queryClient.invalidateQueries({ queryKey: ['collections'] });
+                  } else if (effectiveFormat === 'html') {
                     const htmlContent = await file.text();
                     if (!htmlContent.trim() || !htmlContent.includes('<')) {
                       showToast(t('settings.htmlEmptyOrInvalid'), 'error');

@@ -2,14 +2,14 @@ import React from 'react'
 import { Home, FileText, List, Search, Compass, BookOpen, Download, CircleDot } from 'lucide-react'
 
 export const PAGE_TYPES = [
-  { value: 'home', icon: 'home', labelKey: 'collection.pageTypeHome' },
-  { value: 'detail', icon: 'document', labelKey: 'collection.pageTypeDetail' },
-  { value: 'list', icon: 'list', labelKey: 'collection.pageTypeList' },
-  { value: 'search', icon: 'search', labelKey: 'collection.pageTypeSearch' },
-  { value: 'navigation', icon: 'compass', labelKey: 'collection.pageTypeNavigation' },
-  { value: 'document', icon: 'book', labelKey: 'collection.pageTypeDocument' },
-  { value: 'download', icon: 'download', labelKey: 'collection.pageTypeDownload' },
-  { value: 'other', icon: 'ellipsis', labelKey: 'collection.pageTypeOther' },
+  { value: 'home', icon: 'home', labelKey: 'collection.pageType.home' },
+  { value: 'detail', icon: 'document', labelKey: 'collection.pageType.detail' },
+  { value: 'list', icon: 'list', labelKey: 'collection.pageType.list' },
+  { value: 'search', icon: 'search', labelKey: 'collection.pageType.search' },
+  { value: 'navigation', icon: 'compass', labelKey: 'collection.pageType.navigation' },
+  { value: 'document', icon: 'book', labelKey: 'collection.pageType.document' },
+  { value: 'download', icon: 'download', labelKey: 'collection.pageType.download' },
+  { value: 'other', icon: 'ellipsis', labelKey: 'collection.pageType.other' },
 ] as const
 
 export const DEFAULT_PAGE_TYPE = 'detail'

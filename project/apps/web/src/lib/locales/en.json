@@ -113,7 +113,10 @@
     "tag": "Tag",
     "removeFromTagConfirm": "Remove from this tag?",
     "clear": "Clear",
-    "allLoaded": "All loaded"
+    "allLoaded": "All loaded",
+    "details": {
+      "rating": "Rating"
+    }
   },
   "group": {
     "management": "Group Management",
@@ -526,6 +529,8 @@
     "csvEmptyOrInvalid": "CSV file is empty or incorrectly formatted",
     "csvMissingUrl": "CSV file missing \"URL\" column",
     "htmlEmptyOrInvalid": "HTML file is empty or incorrectly formatted",
+    "jsonInvalid": "JSON file format is invalid",
+    "jsonEmptyOrInvalid": "JSON file is empty or does not contain valid data",
     "noValidData": "No valid bookmark data found",
     "importConfirm": "Will import {count} bookmarks. Duplicate URLs will be skipped. Continue?",
     "importComplete": "Import complete: {success} succeeded, {skipped} skipped, {error} failed",
@@ -534,6 +539,7 @@
     "importSelectFile": "Select File",
     "importFormatCsv": "CSV Format",
     "importFormatHtml": "HTML Bookmark Format",
+    "importFormatJson": "JSON Format",
     "language": "Language",
     "languageZh": "中文",
     "languageEn": "English",
@@ -938,5 +944,40 @@
     "other": "Other",
     "feedback": "Feedback",
     "feedbackDesc": "Send feedback to support@linkchest.net"
+  },
+  "manage": {
+    "title": "Manage",
+    "lists": "Groups",
+    "tags": "Tags",
+    "shares": "Shares",
+    "trash": "Trash"
+  },
+  "settings": {
+    "exportJson": "Export JSON",
+    "importFormatJson": "JSON Format",
+    "importJson": "Import JSON",
+    "saved": "Saved successfully"
+  },
+  "collectionView": {
+    "title": "Display Settings",
+    "cardView": "Card View",
+    "listView": "List View",
+    "displayFields": "Display Fields (drag to reorder)",
+    "resetDefault": "Reset Default",
+    "show": "Show",
+    "hide": "Hide",
+    "saveSettings": "Save Settings",
+    "field": {
+      "cover": "Cover Image",
+      "title": "Title",
+      "platform": "Platform",
+      "rating": "Rating",
+      "pageType": "Page Type",
+      "tags": "Tags",
+      "lists": "Groups",
+      "note": "Note",
+      "createdAt": "Created Time"
+    },
+    "selectViewMode": "Select View Mode"
   }
 }
