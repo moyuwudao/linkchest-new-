@@ -36,8 +36,9 @@ export default function PwaInstallBanner() {
   const [market, setMarket] = useState<'china' | 'global'>('global');
 
   useEffect(() => {
-    const config = getMarketConfig();
-    setMarket(config.market as 'china' | 'global');
+    getMarketConfig().then(config => {
+      setMarket(config.market as 'china' | 'global');
+    });
   }, []);
 
   useEffect(() => {
