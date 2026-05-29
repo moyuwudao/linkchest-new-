@@ -634,6 +634,8 @@
     "createAccount": "Create Account",
     "enterEmail": "Enter email",
     "enterCode": "Enter verification code",
+    "verificationCode": "Verification Code",
+    "sendCode": "Get Code",
     "getCode": "Get Code",
     "accountPlaceholder": "Email",
     "forgotPassword": "Forgot Password?",

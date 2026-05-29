@@ -153,7 +153,10 @@ function LoginForm() {
       const response = await api.post('/auth/send-code', payload);
       const responseData = response.data as { code?: string };
       if (responseData.code) {
-        showToast(`验证码: ${responseData.code}`, 'success');
+        // 开发环境调试使用，生产环境不显示验证码
+        if (process.env.NODE_ENV !== 'production') {
+          showToast(`验证码: ${responseData.code}`, 'success');
+        }
       } else {
         showToast(t('login.codeSent'), 'success');
       }
@@ -389,7 +392,10 @@ function LoginForm() {
       const response = await api.post('/auth/send-code', payload);
       const responseData = response.data as { code?: string };
       if (responseData.code) {
-        showToast(`验证码: ${responseData.code}`, 'success');
+        // 开发环境调试使用，生产环境不显示验证码
+        if (process.env.NODE_ENV !== 'production') {
+          showToast(`验证码: ${responseData.code}`, 'success');
+        }
       } else {
         showToast(t('login.codeSent'), 'success');
       }
@@ -446,16 +452,20 @@ function LoginForm() {
 
         <div className="relative z-10 flex items-center gap-3">
           <Logo size={40} variant="dark" />
-          <span className="text-xl font-bold text-parchment tracking-tight">{t('sidebar.appName')}</span>
+          <span className={`text-xl text-parchment tracking-tight ${marketConfig?.market === 'china' ? 'font-black' : 'font-bold'}`}>
+            {marketConfig?.market === 'china' ? '链藏' : 'LinkChest'}
+          </span>
         </div>
 
         <div className="relative z-10 space-y-6">
           <h2 className="text-4xl font-extrabold text-parchment leading-tight tracking-tight font-display">
-            {t('login.headline')}
+            {marketConfig?.market === 'china' ? '解锁你的宝库' : 'Unlock Your Collection'}
           </h2>
         </div>
 
-        <p className="relative z-10 text-parchment/40 text-sm">{t('sidebar.appName')} V1.0</p>
+        <p className={`relative z-10 text-parchment/40 text-sm ${marketConfig?.market === 'china' ? 'font-black' : ''}`}>
+          {marketConfig?.market === 'china' ? '链藏' : 'LinkChest'} V1.0
+        </p>
       </div>
 
       {/* 右侧登录区 */}
@@ -508,7 +518,7 @@ function LoginForm() {
 
             {/* 标题 */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-charcoal dark:text-parchment">
+              <h2 className={`text-2xl text-charcoal dark:text-parchment ${marketConfig?.market === 'china' ? 'font-black' : 'font-bold'}`}>
                 {marketConfig?.market === 'china' ? '链藏' : 'LinkChest'}
               </h2>
               <p className="text-sm text-taupe mt-1.5">{t('sidebar.subtitle')}</p>
@@ -659,8 +669,8 @@ function LoginForm() {
         </div>
       </div>
 
-      {/* 页面底部备案信息 - 仅国内版显示 */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center py-2 bg-paper/80 dark:bg-ink/80 backdrop-blur-sm z-10">
+      {/* 页面底部备案信息 - 仅国内版显示，右半边中间置地 */}
+      <div className="fixed bottom-0 right-0 w-1/2 flex justify-center py-2 bg-paper/80 dark:bg-ink/80 backdrop-blur-sm z-10">
         <ICPFiling />
       </div>
 

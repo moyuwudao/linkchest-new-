@@ -613,6 +613,13 @@
     "backupAutoFormat": "自动备份格式",
     "backupRetainHint": "系统保留最近 4 次备份，支持一键恢复历史备份。恢复时只新增不删除现有数据。"
   },
+  "pwa": {
+    "installTitle": "安装链藏到桌面",
+    "installDesc": "像 App 一样快速访问，支持离线浏览",
+    "installNow": "立即安装",
+    "later": "稍后再说",
+    "close": "关闭"
+  },
   "download": {
     "title": "下载 链藏 APP",
     "subtitle": "收藏并分享你的宝藏 — 跨平台内容聚合管理工具",
