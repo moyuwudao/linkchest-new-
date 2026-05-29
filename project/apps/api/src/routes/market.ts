@@ -10,6 +10,9 @@ const router = Router()
 router.get('/config', (req, res) => {
   const features = getMarketFeatures()
 
+  // 兼容多种微信登录环境变量命名
+  const wechatClientId = process.env.WECHAT_APP_ID || process.env.WECHAT_CLIENT_ID || process.env.WECHAT_LOGIN_APPID || null
+
   res.json({
     success: true,
     data: {
@@ -21,7 +24,7 @@ router.get('/config', (req, res) => {
       // 前端需要的配置
       clientIds: {
         google: process.env.GOOGLE_CLIENT_ID || null,
-        wechat: process.env.WECHAT_APP_ID || null,
+        wechat: wechatClientId,
       },
     },
   })

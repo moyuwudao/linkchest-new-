@@ -119,7 +119,8 @@ echo ""
 echo "[6/8] 构建 Web 前端..."
 cd "$WEB_DIR"
 
-NEXT_PUBLIC_API_URL="http://43.136.82.88/api"
+# 优先使用 HTTPS 域名，降级为 IP
+NEXT_PUBLIC_API_URL="https://linkchest.cn/api"
 if [ -f "$BASE_DIR/deploy/web-env-cn" ]; then
   CN_API_URL=$(grep '^NEXT_PUBLIC_API_URL=' "$BASE_DIR/deploy/web-env-cn" | cut -d '=' -f2 | tr -d '"' | tr -d "'")
   if [ -n "$CN_API_URL" ]; then
@@ -128,10 +129,18 @@ if [ -f "$BASE_DIR/deploy/web-env-cn" ]; then
 fi
 
 GOOGLE_CLIENT_ID=$(grep '^GOOGLE_CLIENT_ID=' "$API_DIR/.env" 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+# 读取 WEB 构建所需环境变量（优先 NEXT_PUBLIC_*，兼容旧命名）
+WECHAT_CLIENT_ID=$(grep '^WECHAT_CLIENT_ID=' "$API_DIR/.env.china" 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+if [ -z "$WECHAT_CLIENT_ID" ]; then
+  WECHAT_CLIENT_ID=$(grep '^WECHAT_LOGIN_APPID=' "$API_DIR/.env.china" 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+fi
+ICP_FILING=$(grep '^ICP_FILING=' "$API_DIR/.env.china" 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d "'")
 
 cat > ".env.production" << EOF
 NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+NEXT_PUBLIC_WECHAT_CLIENT_ID=$WECHAT_CLIENT_ID
+NEXT_PUBLIC_ICP_FILING=$ICP_FILING
 NEXT_PUBLIC_MARKET=china
 EOF
 echo "  .env.production: API_URL=$NEXT_PUBLIC_API_URL"
