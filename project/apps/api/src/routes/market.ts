@@ -25,6 +25,7 @@ router.get('/config', (req, res) => {
       clientIds: {
         google: process.env.GOOGLE_CLIENT_ID || null,
         wechat: wechatClientId,
+        apple: process.env.APPLE_CLIENT_ID || null,
       },
     },
   })
