@@ -89,8 +89,8 @@ module.exports = {
       package: marketValue === 'china'
         ? 'cn.linkchest.app'
         : 'com.linkchest.app',
-      // 国内版需要允许 HTTP 明文流量（国内服务器无 HTTPS）
-      usesCleartextTraffic: marketValue === 'china',
+      // 国内服务器已启用HTTPS，无需明文流量
+      usesCleartextTraffic: false,
       permissions: [],
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
@@ -148,14 +148,19 @@ module.exports = {
           ],
         },
       ],
-      googleServicesFile: './google-services.json',
+      googleServicesFile: marketValue === 'global' ? './google-services.json' : undefined,
     },
     scheme: 'com.linkchest.app',
     extra: {
       eas: {
         projectId: '0e21d7b3-d4f6-4cb3-b123-0baf43fcaa00',
       },
-      googleClientId: '320062761256-ij1tcnvnpp93oqtraof0uadu7fu6hkun.apps.googleusercontent.com',
+      googleClientId: marketValue === 'global'
+        ? '76720591248-m75hgr8256hut3m5j835qhgmirr9bnuh.apps.googleusercontent.com'
+        : undefined,
+      googleClientIdAndroid: marketValue === 'global'
+        ? '76720591248-ght8qghfrjiq6bsrjhe5dpv2pmtcu8df.apps.googleusercontent.com'
+        : undefined,
       market: marketValue || 'global',
     },
     plugins: [

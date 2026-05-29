@@ -158,9 +158,12 @@ export default function LoginScreen() {
 
   // Google OAuth 登录
   const googleClientId = Constants.expoConfig?.extra?.googleClientId as string | undefined;
+  const googleClientIdAndroid = Constants.expoConfig?.extra?.googleClientIdAndroid as string | undefined;
   const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
     expoClientId: googleClientId,
-    androidClientId: googleClientId,
+    iosClientId: googleClientId,
+    androidClientId: googleClientIdAndroid || googleClientId,
+    webClientId: googleClientId,
     scopes: ['openid', 'profile', 'email'],
   });
 

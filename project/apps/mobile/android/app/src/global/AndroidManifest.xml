@@ -1,0 +1,16 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
+  <!-- 海外版移除极光推送相关 meta-data（jpush 是共享依赖，其 SDK 会自动合并 meta-data） -->
+  <application>
+    <meta-data android:name="JPUSH_APPKEY" tools:node="remove"/>
+    <meta-data android:name="JPUSH_CHANNEL" tools:node="remove"/>
+    <meta-data android:name="com.huawei.hms.client.appid" tools:node="remove"/>
+    <meta-data android:name="XIAOMI_APPID" tools:node="remove"/>
+    <meta-data android:name="XIAOMI_APPKEY" tools:node="remove"/>
+    <meta-data android:name="OPPO_APPKEY" tools:node="remove"/>
+    <meta-data android:name="OPPO_APPSECRET" tools:node="remove"/>
+    <meta-data android:name="VIVO_APPID" tools:node="remove"/>
+    <meta-data android:name="VIVO_APPKEY" tools:node="remove"/>
+    <meta-data android:name="HONOR_APPID" tools:node="remove"/>
+  </application>
+</manifest>

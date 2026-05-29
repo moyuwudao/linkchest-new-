@@ -6,6 +6,7 @@ import { processPendingBackups } from './backup'
 import logger from '../lib/logger'
 import { withDistributedLock } from '../lib/redlock'
 import { updateUserDistributionMetrics, updateDauMetrics } from './prom-metrics'
+import { syncAllRemoteMetrics } from './remoteMetrics'
 import {
   SHARE_ITEM_RETENTION_DAYS,
   SHARE_ITEM_ACTIVE_RETENTION_DAYS,
@@ -199,6 +200,19 @@ export function initScheduler(): void {
       await updateDauMetrics(prisma)
     })
   }, { timezone: 'Asia/Shanghai' })
+
+  // 每 5 分钟同步远程服务器指标（海外 → 国内监控中心）
+  cron.schedule('*/5 * * * *', async () => {
+    try {
+      const results = await syncAllRemoteMetrics()
+      const successCount = [...results.values()].filter(v => v !== null).length
+      if (successCount > 0) {
+        logger.info({ synced: successCount, total: results.size }, '📡 远程指标同步完成')
+      }
+    } catch (e) {
+      logger.warn({ err: (e as Error).message }, '⚠️ 远程指标同步异常')
+    }
+  })
 
   console.log('✅ 定时任务已注册')
 }

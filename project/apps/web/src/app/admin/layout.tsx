@@ -13,6 +13,7 @@ import {
   Shield,
   LogOut,
   Crown,
+  Server,
 } from 'lucide-react';
 import { getToken, logout, getUser, removeToken, removeUser } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -21,6 +22,7 @@ const navItems = [
   { href: '/admin', label: '仪表盘', icon: LayoutDashboard },
   { href: '/admin/users', label: '用户管理', icon: Users },
   { href: '/admin/tiers', label: '等级管理', icon: Crown },
+  { href: '/admin/server-monitor', label: '服务器监控', icon: Server },
   { href: '/admin/logs', label: '日志查询', icon: Terminal },
   { href: '/admin/errors', label: 'BUG 管理', icon: Bug },
   { href: '/admin/alerts', label: '告警配置', icon: Bell },

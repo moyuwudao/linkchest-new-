@@ -13,6 +13,7 @@ import { getMetadataStats } from '../services/metadata'
 import { queryLogs, getLogFileList } from '../services/logReader'
 import { getAllTierConfigs, createTierConfig, updateTierConfig, deleteTierConfig, clearTierConfigCache, syncTierConfigs, getQuotaConfig } from '../services/tierConfig'
 import { getMetricsText } from '../services/prom-metrics'
+import { getAllServerMetrics, syncAllRemoteMetrics, fetchRemotePm2Status, REMOTE_SERVERS } from '../services/remoteMetrics'
 import { TierErrorCodes, errorResponse, CommonErrorCodes, AuthErrorCodes } from '../lib/errorCodes'
 
 const router = Router()
@@ -789,9 +790,56 @@ router.post('/tiers/sync', async (_req, res) => {
   }
 })
 
+// ===== 服务器监控（统一监控中心） =====
+
+// 获取所有服务器的聚合指标
+router.get('/server-monitor', async (_req, res) => {
+  try {
+    const data = await getAllServerMetrics()
+    res.json(data)
+  } catch (e) {
+    logger.error({ err: (e as Error).message }, 'admin server-monitor failed')
+    return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
+  }
+})
+
+// 手动触发远程服务器指标同步
+router.post('/server-monitor/sync', async (_req, res) => {
+  try {
+    const results = await syncAllRemoteMetrics()
+    const summary: Record<string, boolean> = {}
+    for (const [id, metrics] of results.entries()) {
+      summary[id] = metrics !== null
+    }
+    res.json({ success: true, summary, timestamp: Date.now() })
+  } catch (e) {
+    logger.error({ err: (e as Error).message }, 'admin server-monitor sync failed')
+    return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
+  }
+})
+
+// 获取海外服务器 PM2 状态
+router.get('/server-monitor/pm2-global', async (_req, res) => {
+  try {
+    const processes = await fetchRemotePm2Status()
+    res.json({ processes, timestamp: Date.now() })
+  } catch (e) {
+    logger.error({ err: (e as Error).message }, 'admin pm2-global failed')
+    return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
+  }
+})
+
+// 获取远程服务器配置列表
+router.get('/server-monitor/servers', (_req, res) => {
+  res.json({
+    local: { id: 'china', name: '国内应用层', region: '深圳', url: 'http://localhost:3001' },
+    remote: REMOTE_SERVERS,
+  })
+})
+
 // ===== Prometheus /metrics 端点 =====
 // 注意：生产环境应通过反向代理限制访问（如只允许 Prometheus IP）
-router.get('/metrics', async (_req, res) => {
+router.get('/prometheus-metrics', async (_req, res) => {
   try {
     const metrics = await getMetricsText()
     res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')

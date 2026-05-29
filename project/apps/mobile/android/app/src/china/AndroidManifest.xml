@@ -1,7 +1,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools">
   <!-- 国内版允许 HTTP 明文流量（国内服务器暂无 HTTPS） -->
+  <!-- 国内推送厂商通道 meta-data -->
   <application
     android:usesCleartextTraffic="true"
-    tools:replace="android:usesCleartextTraffic" />
+    tools:replace="android:usesCleartextTraffic">
+    <!-- 极光推送 AppKey -->
+    <meta-data android:name="JPUSH_APPKEY" android:value="${JPUSH_APPKEY}"/>
+    <meta-data android:name="JPUSH_CHANNEL" android:value="${JPUSH_CHANNEL}"/>
+    <!-- 华为推送 AppID -->
+    <meta-data android:name="com.huawei.hms.client.appid" android:value="appid=${HUAWEI_APPID}"/>
+    <!-- 小米推送 AppID -->
+    <meta-data android:name="XIAOMI_APPID" android:value="${XIAOMI_APPID}"/>
+    <meta-data android:name="XIAOMI_APPKEY" android:value="${XIAOMI_APPKEY}"/>
+    <!-- OPPO推送 AppKey -->
+    <meta-data android:name="OPPO_APPKEY" android:value="${OPPO_APPKEY}"/>
+    <meta-data android:name="OPPO_APPSECRET" android:value="${OPPO_APPSECRET}"/>
+    <!-- vivo推送 AppID -->
+    <meta-data android:name="VIVO_APPID" android:value="${VIVO_APPID}"/>
+    <meta-data android:name="VIVO_APPKEY" android:value="${VIVO_APPKEY}"/>
+    <!-- 荣耀推送 AppID -->
+    <meta-data android:name="HONOR_APPID" android:value="${HONOR_APPID}"/>
+  </application>
 </manifest>
