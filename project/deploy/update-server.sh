@@ -143,11 +143,16 @@ if [ -f "$BASE_DIR/deploy/web-env" ]; then
   fi
 fi
 
+# 读取 Apple 登录配置
+APPLE_CLIENT_ID=$(grep '^APPLE_CLIENT_ID=' "$API_DIR/.env.global" 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+
 cat > ".env.production" << EOF
 NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+NEXT_PUBLIC_APPLE_CLIENT_ID=$APPLE_CLIENT_ID
+NEXT_PUBLIC_MARKET=global
 EOF
-echo "  Web .env.production 已更新 (API_URL=$NEXT_PUBLIC_API_URL)"
+echo "  Web .env.production 已更新 (API_URL=$NEXT_PUBLIC_API_URL, APPLE=$APPLE_CLIENT_ID)"
 
 # 回到根目录安装 workspace 依赖，确保 @linkchest/i18n 等包被正确链接
 cd "$BASE_DIR"

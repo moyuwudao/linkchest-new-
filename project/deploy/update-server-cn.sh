@@ -135,12 +135,14 @@ if [ -z "$WECHAT_CLIENT_ID" ]; then
   WECHAT_CLIENT_ID=$(grep '^WECHAT_LOGIN_APPID=' "$API_DIR/.env.china" 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d "'")
 fi
 ICP_FILING=$(grep '^ICP_FILING=' "$API_DIR/.env.china" 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+APPLE_CLIENT_ID=$(grep '^APPLE_CLIENT_ID=' "$API_DIR/.env.china" 2>/dev/null | cut -d '=' -f2 | tr -d '"' | tr -d "'")
 
 cat > ".env.production" << EOF
 NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
 NEXT_PUBLIC_WECHAT_CLIENT_ID=$WECHAT_CLIENT_ID
 NEXT_PUBLIC_ICP_FILING=$ICP_FILING
+NEXT_PUBLIC_APPLE_CLIENT_ID=$APPLE_CLIENT_ID
 NEXT_PUBLIC_MARKET=china
 EOF
 echo "  .env.production: API_URL=$NEXT_PUBLIC_API_URL"
