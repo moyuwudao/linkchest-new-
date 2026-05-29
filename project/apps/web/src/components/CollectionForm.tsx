@@ -486,7 +486,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         className="w-full flex items-center justify-between py-3 px-4 bg-chest-50 dark:bg-chest-800/50 rounded-lg hover:bg-chest-100 dark:hover:bg-chest-700/50 transition-colors"
       >
         <span className="font-medium text-charcoal dark:text-parchment">
-          {t('add.tags')}{' '}
+          {t('add.tags')} *{' '}
           <span className="text-chest-500 dark:text-amber-400 ml-1">
             ({selectedTags.length > 0 && tagsData
               ? tagsData.find((tag: Tag) => selectedTags.includes(tag.id))?.name || selectedTags.length
@@ -540,7 +540,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         className="w-full flex items-center justify-between py-3 px-4 bg-chest-50 dark:bg-chest-800/50 rounded-lg hover:bg-chest-100 dark:hover:bg-chest-700/50 transition-colors"
       >
         <span className="font-medium text-charcoal dark:text-parchment">
-          {t('add.addToGroup')}{' '}
+          {t('add.addToGroup')} *{' '}
           {selectedListIds.length > 0 && listsData && (
             <span className="text-chest-500 dark:text-amber-400 ml-1">
               ({(() => {
@@ -614,7 +614,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         className="w-full flex items-center justify-between py-3 px-4 bg-chest-50 dark:bg-chest-800/50 rounded-lg hover:bg-chest-100 dark:hover:bg-chest-700/50 transition-colors"
       >
         <span className="font-medium text-charcoal dark:text-parchment">
-          {t('collection.pageType')}{' '}
+          {t('collection.pageType')} *{' '}
           <span className="text-chest-500 dark:text-amber-400 ml-1">
             ({t(`collection.pageType.${selectedPageType}`)})
           </span>

@@ -579,7 +579,10 @@
     "upgradeHint": "Upgrade your plan to use this feature",
     "legal": "Legal",
     "backupAutoFormat": "Backup Format",
-    "backupRetainHint": "Backups are retained for 30 days"
+    "backupRetainHint": "Backups are retained for 30 days",
+    "saved": "Saved successfully",
+    "exportJson": "Export JSON",
+    "importJson": "Import JSON"
   },
   "download": {
     "title": "Download LinkChest APP",
@@ -951,12 +954,6 @@
     "tags": "Tags",
     "shares": "Shares",
     "trash": "Trash"
-  },
-  "settings": {
-    "exportJson": "Export JSON",
-    "importFormatJson": "JSON Format",
-    "importJson": "Import JSON",
-    "saved": "Saved successfully"
   },
   "collectionView": {
     "title": "Display Settings",
