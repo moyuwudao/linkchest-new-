@@ -3,9 +3,10 @@ import { getErrorMessage } from '@linkchest/i18n';
 import { getToken, logout } from '../auth';
 
 const isBrowser = typeof window !== 'undefined';
+// 服务端渲染时，优先使用环境变量配置的API地址，如果没有则使用相对路径（通过Nginx转发）
 const API_BASE_URL = isBrowser
   ? '/api'
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api');
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001/api');
 const PUBLIC_BASE_URL = isBrowser
   ? ''
   : API_BASE_URL.replace(/\/api$/, '');
