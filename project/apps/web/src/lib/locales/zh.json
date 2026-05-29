@@ -72,6 +72,7 @@
       "rating": "评分",
       "hasRating": "有评分",
       "noRating": "无评分",
+      "pageType": "页面类型",
       "allTags": "全部标签",
       "allGroups": "全部分组",
       "clear": "清除"

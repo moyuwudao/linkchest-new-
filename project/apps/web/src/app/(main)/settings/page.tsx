@@ -447,6 +447,17 @@ export default function SettingsPage() {
   const [user, setLocalUser] = useState<Record<string, unknown> | null>(null);
   const [modal, setModal] = useState<string | null>(null);
 
+  // 判断是否为国内环境（通过URL判断）
+  const [isChinaEnv, setIsChinaEnv] = useState(false);
+  useEffect(() => {
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    setIsChinaEnv(
+      hostname.includes('43.136.82.88') ||
+      hostname === 'linkchest.cn' ||
+      hostname.endsWith('.linkchest.cn')
+    );
+  }, []);
+
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const langDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -888,13 +899,23 @@ export default function SettingsPage() {
               <p className="text-sm text-taupe/70 dark:text-parchment/50">{t('settings.appDownloadDesc')}</p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <a
-                  href={process.env.NEXT_PUBLIC_APP_STORE_URL || 'https://a.app.qq.com/o/simple.jsp?pkgid=com.linkchest.app'}
+                  href={isChinaEnv ? (process.env.NEXT_PUBLIC_YINGYONGBAO_URL || 'https://a.app.qq.com/o/simple.jsp?pkgid=com.linkchest.app') : 'https://play.google.com/store/apps/details?id=com.linkchest.app'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 py-2.5 bg-chest-500 text-white rounded-lg hover:bg-chest-600 flex items-center justify-center gap-2 transition-colors"
                 >
                   <Smartphone size={16} />
-                  <span>{process.env.NEXT_PUBLIC_ENV === 'global' ? 'Google Play' : t('settings.downloadYingYongBao') || '应用宝'}</span>
+                  <span>{isChinaEnv ? t('settings.downloadYingYongBao') : 'Google Play'}</span>
+                  <ExternalLink size={14} className="opacity-70" />
+                </a>
+                <a
+                  href={isChinaEnv ? (process.env.NEXT_PUBLIC_IOS_DOWNLOAD_URL_CN || 'https://apps.apple.com/app/linkchest/id6744165709') : (process.env.NEXT_PUBLIC_IOS_DOWNLOAD_URL || 'https://apps.apple.com/app/linkchest/id6744165709')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-2.5 bg-parchment/20 dark:bg-chest-700/40 text-charcoal/80 dark:text-parchment/80 border-2 border-solid border-chest-200 dark:border-chest-600/40 rounded-lg hover:bg-chest-500/5 dark:hover:bg-chest-700/60 flex items-center justify-center gap-2 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.71 19.91c-.36.36-.84.56-1.35.56-.51 0-.99-.2-1.35-.56-.36-.36-.56-.84-.56-1.35s.2-.99.56-1.35c.36-.36.84-.56 1.35-.56.51 0 .99.2 1.35.56.36.36.56.84.56 1.35s-.2.99-.56 1.35zM12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/></svg>
+                  <span>{t('settings.downloadIOS')}</span>
                   <ExternalLink size={14} className="opacity-70" />
                 </a>
                 <a
@@ -905,16 +926,6 @@ export default function SettingsPage() {
                 >
                   <Upload size={16} />
                   <span>{t('settings.downloadApk')}</span>
-                  <ExternalLink size={14} className="opacity-70" />
-                </a>
-                <a
-                  href={process.env.NEXT_PUBLIC_IOS_DOWNLOAD_URL || 'https://apps.apple.com/app/linkchest/id6744165709'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 py-2.5 bg-parchment/20 dark:bg-chest-700/40 text-charcoal/80 dark:text-parchment/80 border-2 border-solid border-chest-200 dark:border-chest-600/40 rounded-lg hover:bg-chest-500/5 dark:hover:bg-chest-700/60 flex items-center justify-center gap-2 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/><path d="M8 12l2 2 4-4"/></svg>
-                  <span>{t('settings.downloadIOS')}</span>
                   <ExternalLink size={14} className="opacity-70" />
                 </a>
               </div>
