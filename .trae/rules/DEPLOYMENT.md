@@ -856,5 +856,5 @@ docker exec linkchest-db pg_dump -U linkchest linkchest > backup.sql
 
 ---
 
-*最后更新：2026-05-26*
-*版本：v2.4 — 强制 Git-Only 部署策略*
+*最后更新：2026-05-29*
+*版本：v2.5 — 添加 NEXT_PUBLIC_MARKET 环境变量说明*

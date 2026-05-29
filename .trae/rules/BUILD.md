@@ -128,8 +128,15 @@ npm run start
 
 | 变量 | 说明 | 示例 |
 |------|------|------|
-| `NEXT_PUBLIC_API_URL` | API 地址 | `http://localhost:3000` |
+| `NEXT_PUBLIC_API_URL` | API 地址 | `/api` |
+| `NEXT_PUBLIC_MARKET` | 市场标识（区分海外/国内版本） | `global` 或 `china` |
 | `NEXT_PUBLIC_APP_URL` | 应用地址 | `http://localhost:3001` |
+
+> **⚠️ 重要**：`NEXT_PUBLIC_MARKET` 是必需的环境变量，用于区分海外版和国内版的显示内容。
+> - 海外版：`NEXT_PUBLIC_MARKET=global`（显示 Google Play 下载按钮）
+> - 国内版：`NEXT_PUBLIC_MARKET=china`（显示应用宝下载按钮）
+> 
+> **构建时必须确保 `.env.production` 文件中包含此变量**。此变量必须在构建前注入，不能通过 PM2 运行时设置。
 
 ### 4.3 构建产物
 
@@ -749,5 +756,5 @@ jobs:
 
 ---
 
-*最后更新：2026-05-26*
-*版本：v1.1 — 统一文档日期和版本*
+*最后更新：2026-05-29*
+*版本：v1.2 — 添加 NEXT_PUBLIC_MARKET Web 环境变量说明*
