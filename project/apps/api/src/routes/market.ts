@@ -21,9 +21,7 @@ router.get('/config', (req, res) => {
       // 前端需要的配置
       clientIds: {
         google: process.env.GOOGLE_CLIENT_ID || null,
-        facebook: process.env.FACEBOOK_APP_ID || null,
         wechat: process.env.WECHAT_APP_ID || null,
-        alipay: process.env.ALIPAY_AUTH_APP_ID || null,
       },
     },
   })

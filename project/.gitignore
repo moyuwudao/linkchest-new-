@@ -81,6 +81,8 @@ apps/chrome-extension/dist.zip
 # Web build artifacts
 apps/web/public/fallback-*.js
 apps/web/public/workbox-*.js
+apps/web/public/sw.js
+apps/web/.build-logs/
 
 # Mobile build artifacts
 apps/mobile/android/.gradle/

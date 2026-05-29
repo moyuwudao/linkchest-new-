@@ -20,17 +20,9 @@ const providerLoaders: Record<AuthSource, () => Promise<AuthProvider>> = {
     const { AppleAuthProvider } = await import('./apple')
     return new AppleAuthProvider()
   },
-  facebook: async () => {
-    const { FacebookAuthProvider } = await import('./facebook')
-    return new FacebookAuthProvider()
-  },
   wechat: async () => {
     const { WechatAuthProvider } = await import('./wechat')
     return new WechatAuthProvider()
-  },
-  alipay_auth: async () => {
-    const { AlipayAuthProvider } = await import('./alipayAuth')
-    return new AlipayAuthProvider()
   },
 }
 

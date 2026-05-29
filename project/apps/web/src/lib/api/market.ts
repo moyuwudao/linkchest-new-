@@ -14,9 +14,7 @@ export interface MarketConfig {
     email: boolean;
     google: boolean;
     apple: boolean;
-    facebook: boolean;
     wechat: boolean;
-    alipay_auth: boolean;
   };
   pricing: {
     primaryCurrency: 'CNY' | 'USD';
@@ -33,9 +31,7 @@ export interface MarketConfig {
   };
   clientIds: {
     google: string | null;
-    facebook: string | null;
     wechat: string | null;
-    alipay: string | null;
   };
 }
 
@@ -59,9 +55,7 @@ export async function getMarketConfig(): Promise<MarketConfig> {
         email: true,
         google: true,
         apple: false,
-        facebook: false,
         wechat: false,
-        alipay_auth: false,
       },
       pricing: {
         primaryCurrency: 'USD',
@@ -78,9 +72,7 @@ export async function getMarketConfig(): Promise<MarketConfig> {
       },
       clientIds: {
         google: null,
-        facebook: null,
         wechat: null,
-        alipay: null,
       },
     };
   }

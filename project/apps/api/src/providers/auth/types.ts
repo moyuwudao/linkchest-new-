@@ -1,6 +1,6 @@
 /**
  * 认证 Provider 统一接口
- * 所有登录渠道（邮箱、Google、Apple、Facebook、微信、支付宝）
+ * 所有登录渠道（邮箱、Google、Apple、微信）
  * 必须实现此接口，确保核心认证流程统一
  */
 
@@ -9,9 +9,7 @@ export type AuthSource =
   | 'email'
   | 'google'
   | 'apple'
-  | 'facebook'
   | 'wechat'
-  | 'alipay_auth'
 
 /** 第三方登录凭证 */
 export interface OAuthCredential {

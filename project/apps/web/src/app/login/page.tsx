@@ -294,20 +294,6 @@ function LoginForm() {
     window.location.href = url;
   };
 
-  // 支付宝登录
-  const handleAlipayLogin = () => {
-    setError('');
-    const appId = process.env.NEXT_PUBLIC_ALIPAY_APP_ID;
-    if (!appId) {
-      setError('支付宝登录未配置');
-      return;
-    }
-    const redirectUri = encodeURIComponent(`${window.location.origin}/api/auth/alipay/callback`);
-    const state = btoa(JSON.stringify({ redirect, lang }));
-    const url = `https://openauth.alipay.com/oauth2/publicAppAuthorize.htm?app_id=${appId}&scope=auth_user&redirect_uri=${redirectUri}&state=${state}`;
-    window.location.href = url;
-  };
-
   // 通用 OAuth 登录处理
   const handleOAuthLogin = async (provider: string, credential: string) => {
     setLoading(true);
@@ -612,7 +598,7 @@ function LoginForm() {
               {/* 第三方登录 */}
               {!marketLoading && marketConfig && (
                 (marketConfig.authProviders.google || marketConfig.authProviders.apple || 
-                 marketConfig.authProviders.wechat || marketConfig.authProviders.alipay_auth) && (
+                 marketConfig.authProviders.wechat) && (
                   <div className="pt-4 border-t border-chest-500/[0.06] dark:border-parchment/5">
                     <div className="relative flex items-center py-2">
                       <div className="flex-1 border-t border-taupe/15 dark:border-parchment/10" />
@@ -650,17 +636,7 @@ function LoginForm() {
                           </svg>
                         </button>
                       )}
-                      {marketConfig.authProviders.alipay_auth && (
-                        <button
-                          onClick={handleAlipayLogin}
-                          className="w-10 h-10 rounded-full bg-[#1677FF] text-white flex items-center justify-center hover:bg-[#1565D8] transition-colors"
-                          title="支付宝登录"
-                        >
-                          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                            <path d="M5.5 2h13A2.5 2.5 0 0 1 21 4.5v15a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 19.5v-15A2.5 2.5 0 0 1 5.5 2zm2.646 5.854a.5.5 0 0 0-.707-.708l-1.5 1.5a.5.5 0 0 0 0 .708l1.5 1.5a.5.5 0 0 0 .707-.708L6.707 9.5H10a.5.5 0 0 0 0-1H6.707l1.439-1.646zm7.354 3.292a.5.5 0 0 0 .707.708l1.5-1.5a.5.5 0 0 0 0-.708l-1.5-1.5a.5.5 0 1 0-.707.708L17.293 9.5H14a.5.5 0 0 0 0 1h3.293l-1.439 1.646z"/>
-                          </svg>
-                        </button>
-                      )}
+
                     </div>
                   </div>
                 )

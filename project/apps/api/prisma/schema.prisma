@@ -14,15 +14,13 @@ model User {
   email            String?  @unique
   googleId         String?  @unique
   appleId          String?  @unique
-  facebookId       String?  @unique
   wechatOpenId     String?  @unique
   wechatUnionId    String?
-  alipayId         String?  @unique
   username         String?  @unique
   nickname         String?
   avatar           String?
   passwordHash     String?
-  authSource       String   @default("email") // email | google | apple | facebook | wechat | alipay_auth — 用户原始注册来源
+  authSource       String   @default("email") // email | google | apple | wechat — 用户原始注册来源
   emailVerified    Boolean  @default(false) // 邮箱是否已验证（用户手动维护）
   passwordSet      Boolean  @default(false) // 是否已设置密码
   realNameVerified Boolean  @default(false) // 实名认证状态（国内市场）

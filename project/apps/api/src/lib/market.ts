@@ -37,9 +37,7 @@ export interface MarketFeatures {
     email: boolean
     google: boolean
     apple: boolean
-    facebook: boolean
     wechat: boolean
-    alipay_auth: boolean
   }
   // 合规功能
   compliance: {
@@ -85,9 +83,7 @@ const CHINA_FEATURES: MarketFeatures = {
     email: true,
     google: false,
     apple: true,
-    facebook: false,
     wechat: true,
-    alipay_auth: false,
   },
   compliance: {
     contentModeration: true,
@@ -129,9 +125,7 @@ const GLOBAL_FEATURES: MarketFeatures = {
     email: true,
     google: true,
     apple: true,
-    facebook: false,  // Web端海外版不启用Facebook登录
     wechat: false,
-    alipay_auth: false,
   },
   compliance: {
     contentModeration: false,
