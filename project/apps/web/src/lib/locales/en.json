@@ -582,7 +582,12 @@
     "backupRetainHint": "Backups are retained for 30 days",
     "saved": "Saved successfully",
     "exportJson": "Export JSON",
-    "importJson": "Import JSON"
+    "importJson": "Import JSON",
+    "noDuplicates": "No duplicates found",
+    "keepNewest": "Keep Newest",
+    "legalTerms": "Legal Terms",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
   },
   "download": {
     "title": "Download LinkChest APP",

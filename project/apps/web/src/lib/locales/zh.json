@@ -617,7 +617,12 @@
     "upgradeHint": "升级套餐以使用此功能",
     "legal": "法律信息",
     "backupAutoFormat": "自动备份格式",
-    "backupRetainHint": "系统保留最近 4 次备份，支持一键恢复历史备份。恢复时只新增不删除现有数据。"
+    "backupRetainHint": "系统保留最近 4 次备份，支持一键恢复历史备份。恢复时只新增不删除现有数据。",
+    "saved": "保存成功",
+    "importJson": "导入 JSON",
+    "legalTerms": "法务条款",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款"
   },
   "pwa": {
     "installTitle": "安装链藏到桌面",
