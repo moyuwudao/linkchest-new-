@@ -614,7 +614,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         className="w-full flex items-center justify-between py-3 px-4 bg-chest-50 dark:bg-chest-800/50 rounded-lg hover:bg-chest-100 dark:hover:bg-chest-700/50 transition-colors"
       >
         <span className="font-medium text-charcoal dark:text-parchment">
-          {t('collection.pageType')} *{' '}
+          {t('collection.filter.pageType')} *{' '}
           <span className="text-chest-500 dark:text-amber-400 ml-1">
             ({t(`collection.pageType.${selectedPageType}`)})
           </span>
@@ -628,7 +628,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         <div className="mt-3 p-4 bg-white dark:bg-chest-800 border border-chest-100 dark:border-chest-700/50 rounded-lg">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {PAGE_TYPES.map((pt) => {
-              const label = t(`collection.pageType.${pt.value}`)
+              const label = t(pt.labelKey)
               return (
                 <button
                   key={pt.value}

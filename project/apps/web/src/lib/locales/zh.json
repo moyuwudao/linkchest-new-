@@ -99,7 +99,6 @@
     "removeFromTagConfirm": "确定从此标签移除？",
     "clear": "清除",
     "allLoaded": "已加载全部",
-    "pageType": "页面类型",
     "pageType": {
       "home": "主页",
       "detail": "详情页",
@@ -594,6 +593,7 @@
     "appDownloadDesc": "下载 链藏 APP，收藏并分享你的宝藏",
     "downloadApk": "下载 APK",
     "downloadIOS": "App Store 下载",
+    "downloadYingYongBao": "应用宝下载",
     "duplicateDetect": "重复检测",
     "scanDuplicates": "扫描重复",
     "duplicateGroupsFound": "发现 {count} 组重复",
