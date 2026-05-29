@@ -447,16 +447,9 @@ export default function SettingsPage() {
   const [user, setLocalUser] = useState<Record<string, unknown> | null>(null);
   const [modal, setModal] = useState<string | null>(null);
 
-  // 判断是否为国内环境（通过URL判断）
-  const [isChinaEnv, setIsChinaEnv] = useState(false);
-  useEffect(() => {
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    setIsChinaEnv(
-      hostname.includes('43.136.82.88') ||
-      hostname === 'linkchest.cn' ||
-      hostname.endsWith('.linkchest.cn')
-    );
-  }, []);
+  // 使用构建时环境变量判断市场（china/global）
+  // NEXT_PUBLIC_MARKET 在 .env.china 或 .env.production 中设置
+  const isChinaEnv = process.env.NEXT_PUBLIC_MARKET === 'china';
 
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const langDropdownRef = useRef<HTMLDivElement>(null);
