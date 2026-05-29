@@ -118,6 +118,7 @@ function LoginForm() {
 
   // 点击外部关闭语言下拉
   useEffect(() => {
+    if (typeof document === 'undefined') return;
     function handleClickOutside(event: MouseEvent) {
       if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) {
         setShowLangDropdown(false);
