@@ -244,6 +244,22 @@ function LoginForm() {
     setError('');
     setLoading(true);
     try {
+      // 从 API 获取 Apple Client ID
+      let appleClientId = process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
+      if (!appleClientId) {
+        try {
+          const configRes = await api.get('/market/config');
+          appleClientId = configRes.data.data?.clientIds?.apple;
+        } catch {
+          // 忽略错误
+        }
+      }
+      if (!appleClientId) {
+        setError(t('login.appleLoginFailed'));
+        setLoading(false);
+        return;
+      }
+
       // 加载 Apple Sign In JS SDK
       const AppleID = (window as any).AppleID;
       if (!AppleID) {
@@ -252,7 +268,7 @@ function LoginForm() {
         script.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
         script.onload = () => {
           (window as any).AppleID.auth.init({
-            clientId: process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || '',
+            clientId: appleClientId,
             scope: 'name email',
             redirectURI: `${window.location.origin}/api/auth/apple/callback`,
             usePopup: true,
@@ -268,6 +284,12 @@ function LoginForm() {
         document.head.appendChild(script);
         return;
       }
+      (window as any).AppleID.auth.init({
+        clientId: appleClientId,
+        scope: 'name email',
+        redirectURI: `${window.location.origin}/api/auth/apple/callback`,
+        usePopup: true,
+      });
       const res = await AppleID.auth.signIn();
       if (res.authorization?.id_token) {
         await handleOAuthLogin('apple', res.authorization.id_token);
@@ -348,7 +370,7 @@ function LoginForm() {
     } finally { setRegisterLoading(false); }
   };
 
-  // 设置 Google 密码
+  // 设置第三方登录密码
   const handleSetGooglePassword = async () => {
     if (!googlePassword) { setError(t('login.enterPassword')); return; }
     try {
@@ -356,6 +378,9 @@ function LoginForm() {
       setError('');
       await api.post('/auth/set-password', { password: googlePassword });
       setShowGooglePasswordModal(false);
+      setGooglePassword('');
+      // 显示成功提示
+      alert(t('login.passwordSetSuccess'));
       router.push(redirect);
     } catch (err: unknown) {
       const errCode = (err as ApiError).response?.data?.error;
@@ -715,11 +740,12 @@ function LoginForm() {
         </div>
       )}
 
-      {/* Google密码设置弹窗 */}
+      {/* 第三方登录密码设置弹窗 */}
       {showGooglePasswordModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-chest-800 rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-bold text-charcoal dark:text-parchment mb-4">{t('login.setPassword')}</h3>
+            <p className="text-sm text-taupe mb-4">{t('login.setPasswordPrompt')}</p>
             <div className="space-y-3">
               <input
                 type="password"
@@ -735,6 +761,15 @@ function LoginForm() {
                 className="w-full btn-primary"
               >
                 {googlePasswordLoading ? t('common.saving') : t('common.save')}
+              </button>
+              <button
+                onClick={() => {
+                  setShowGooglePasswordModal(false);
+                  router.push(redirect);
+                }}
+                className="w-full btn-ghost"
+              >
+                {t('login.setPasswordLater')}
               </button>
             </div>
           </div>
