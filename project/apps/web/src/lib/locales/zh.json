@@ -100,14 +100,16 @@
     "clear": "清除",
     "allLoaded": "已加载全部",
     "pageType": "页面类型",
-    "pageTypeHome": "主页",
-    "pageTypeDetail": "详情页",
-    "pageTypeList": "列表页",
-    "pageTypeSearch": "搜索页",
-    "pageTypeNavigation": "导航页",
-    "pageTypeDocument": "文档页",
-    "pageTypeDownload": "下载页",
-    "pageTypeOther": "其他",
+    "pageType": {
+      "home": "主页",
+      "detail": "详情页",
+      "list": "列表页",
+      "search": "搜索页",
+      "navigation": "导航页",
+      "document": "文档页",
+      "download": "下载页",
+      "other": "其他"
+    },
     "details": {
       "rating": "评分"
     }
@@ -870,7 +872,7 @@
     "tags": "标签",
     "selectTags": "选择标签",
     "selectedTags": "已选",
-    "addToGroup": "添加到分组 *",
+    "addToGroup": "添加到分组",
     "selectGroup": "选择分组",
     "pleaseEnterValidLink": "请输入有效的链接或分享文本",
     "pleaseSelectGroup": "请选择一个分组",

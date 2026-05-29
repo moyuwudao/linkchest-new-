@@ -980,7 +980,22 @@ aapt dump badging linkchest-china-*.apk | grep application-label
 | 全平台功能对比表 | `project/docs/运营/全平台功能对比表.md` | WEB+手机端全平台功能对比（含构建工具、API协议、权限限制） |
 | 国内法务运营方案 | `project/docs/运营/国内法务运营方案.md` | 国内合规要求、ICP备案、内容审核、知识产权 |
 
+#### 13.4.4 上架发布文档
+
+> 以下文档为应用商店上架发布相关文档，包含产品信息、材料清单和各平台上架流程。
+
+| 文档名称 | 路径 | 说明 |
+|----------|------|------|
+| 产品基础信息 | `project/docs/上架/产品基础信息.md` | 所有平台通用的产品信息、描述、关键词 |
+| 上架清单总览 | `project/docs/上架/上架清单总览.md` | 所有应用商店上架状态一览 |
+| 第三方平台申请清单 | `project/docs/上架/第三方平台申请清单.md` | 微信/支付宝/Apple/Google等开发者账号状态 |
+| 上架材料清单 | `project/docs/上架/上架材料清单.md` | 各平台所需的截图/文案/规格汇总 |
+| 小米应用商店上架指南 | `project/docs/上架/国内Android上架/小米应用商店上架指南.md` | 国内Android上架流程 |
+| OPPO软件商店上架指南 | `project/docs/上架/国内Android上架/OPPO软件商店上架指南.md` | 国内Android上架流程 |
+| vivo应用商店上架指南 | `project/docs/上架/国内Android上架/vivo应用商店上架指南.md` | 国内Android上架流程 |
+| Google Play Store上架指南 | `project/docs/上架/海外Android上架/Google Play Store上架指南.md` | 海外Android上架流程 |
+
 ---
 
 *最后更新：2026-05-29*
-*版本：v1.4 — 注册运营配置参考文档，明确market-config.json为唯一真相源*
+*版本：v1.5 — 新增上架发布文档体系*
