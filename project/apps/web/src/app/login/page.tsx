@@ -143,6 +143,62 @@ function LoginForm() {
     fetchMarketConfig();
   }, []);
 
+  // 处理微信登录回调
+  useEffect(() => {
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    
+    if (code && state) {
+      // 解析 state 获取 redirect 和 lang
+      let redirectUrl = '/';
+      let callbackLang = locale;
+      try {
+        const stateData = JSON.parse(atob(state));
+        redirectUrl = stateData.redirect || '/';
+        callbackLang = stateData.lang || locale;
+      } catch {
+        // 解析失败使用默认值
+      }
+
+      // 使用 code 登录
+      async function handleWechatCallback() {
+        setLoading(true);
+        setError('');
+        try {
+          const response = await api.post('/auth/wechat', { 
+            credential: code, 
+            lang: callbackLang 
+          });
+          const { token, user, needsEmailSetup } = response.data;
+          
+          if (!token) {
+            setError(t('login.wechatLoginFailed'));
+            return;
+          }
+
+          setToken(token);
+          setUser(user);
+
+          // 如果需要设置密码，显示密码设置弹窗
+          if (needsEmailSetup || !user.hasPassword) {
+            setShowGooglePasswordModal(true);
+            return;
+          }
+
+          // 否则直接跳转
+          window.location.href = redirectUrl;
+        } catch (err: unknown) {
+          const errCode = (err as ApiError).response?.data?.error;
+          setError(getErrorMessage(errCode || '') || t('login.wechatLoginFailed'));
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      handleWechatCallback();
+    }
+  }, [searchParams, locale]);
+
   // 发送验证码
   const sendCode = async (target: string) => {
     if (!target) { setError(t('login.enterEmail')); return; }
