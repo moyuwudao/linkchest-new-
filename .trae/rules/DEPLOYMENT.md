@@ -847,7 +847,68 @@ docker exec linkchest-db pg_dump -U linkchest linkchest > backup.sql
 
 ---
 
-## 12. 部署经验总结
+## 12. 微信登录弹窗方案（国内版）
+
+> **记录微信 OAuth 弹窗登录的完整实现方案，确保后续修改和部署时遵循此方案。**
+
+### 12.1 方案概述
+
+微信登录采用 **弹窗（window.open）+ localStorage 标记 + 父窗口轮询刷新** 方案：
+
+```
+1. 用户点击"微信登录" → window.open() 弹出微信扫码页
+2. 用户扫码授权 → 微信重定向到 /api/auth/wechat/callback?code=xxx
+3. 后端回调路由 → 只重定向到 /login?code=xxx（不做后端登录逻辑）
+4. 弹窗中加载 /login 页面 → 检测到 code 参数 → 调 API 换 token
+5. 弹窗写入 token 到 localStorage + cookie → 标记 localStorage('wechat_popup_closed')
+6. 弹窗延迟 300ms 后 window.close()
+7. 父窗口轮询检测到标记 → window.location.reload()
+8. 刷新后 isLoggedIn() 检测到已登录 → 自动跳转首页
+```
+
+### 12.2 关键设计决策
+
+| 决策 | 说明 |
+|------|------|
+| **后端回调只重定向** | `GET /wechat/callback` 不做任何登录逻辑，只 `res.redirect('/login?code=xxx')` |
+| **弹窗不调用 setToken()** | 直接写 `localStorage.setItem('linkchest_token', token)` + `document.cookie`，避免 React 重渲染导致弹窗自己跳转 |
+| **localStorage 而非 sessionStorage** | `sessionStorage` 每个窗口独立，父窗口读不到弹窗数据 |
+| **轮询而非事件** | `storage` 事件和 `BroadcastChannel` 在弹窗场景下不可靠 |
+| **弹窗跳过轮询** | URL 有 `code`/`error` 参数时跳过轮询，避免弹窗检测到自己写的标记导致无限刷新 |
+| **刷新而非状态传递** | 父窗口刷新后 `isLoggedIn()` 自动处理登录跳转，无需跨窗口传递 token |
+| **弹窗显示空白页** | URL 有 `code`/`error` 时返回 `<div className="min-h-screen" />`，避免短暂显示登录表单 |
+| **删除密码设置弹窗** | OAuth 登录成功后直接跳转，无密码用户通过 `lc_needs_password_setup` 标记，在收藏页做提醒 |
+
+### 12.3 涉及文件
+
+| 文件 | 职责 |
+|------|------|
+| `apps/web/src/app/login/page.tsx` | 登录页：弹窗打开、轮询检测、弹窗回调处理、空白页判断 |
+| `apps/api/src/routes/auth.ts` | 后端：`GET /wechat/callback` 重定向、`POST /auth/wechat` 用 code 换 token |
+| `apps/api/src/providers/auth/wechat.ts` | 微信 provider：code 换 access_token + openid |
+
+### 12.4 禁止修改的行为
+
+| 禁止 | 原因 |
+|------|------|
+| ❌ 弹窗中调用 `setToken()` | 触发 React 重渲染，弹窗自己跳转到首页 |
+| ❌ 使用 `sessionStorage` | 父窗口读不到弹窗数据 |
+| ❌ 弹窗不跳过轮询 | 弹窗检测到自己写的标记 → 无限刷新 → 触发频率限制 |
+| ❌ 后端回调做登录逻辑 | 微信 code 只能用一次，后端做了前端就没法做 |
+| ❌ 使用 iframe 内嵌 | 用户反馈"只看到二维码感觉不是正规网站" |
+
+### 12.5 Apple/Google 登录对比
+
+| 特性 | Apple/Google | 微信 |
+|------|-------------|------|
+| 授权方式 | JS SDK 弹窗 | 网页跳转弹窗 |
+| Token 获取 | 当前页面直接获取 | 只能通过回调 URL 获取 code |
+| 跨窗口通信 | 不需要 | localStorage 标记 + 轮询 |
+| 后端回调 | 不需要 | 必须配置，只做重定向 |
+
+---
+
+## 13. 部署经验总结
 
 > **部署最佳实践和经验总结已移入案例集锦和 Skill：**
 > - 部署经验 → 使用 `deploy-linkchest` Skill 引导完整部署流程
@@ -856,5 +917,5 @@ docker exec linkchest-db pg_dump -U linkchest linkchest > backup.sql
 
 ---
 
-*最后更新：2026-05-29*
-*版本：v2.5 — 添加 NEXT_PUBLIC_MARKET 环境变量说明*
+*最后更新：2026-05-30*
+*版本：v2.6 — 添加微信登录弹窗方案文档*
