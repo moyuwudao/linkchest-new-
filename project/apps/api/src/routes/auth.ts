@@ -1279,19 +1279,11 @@ router.get('/wechat/callback', async (req, res) => {
       { expiresIn: '7d' }
     )
 
-    // 设置 cookie
-    res.cookie('lc_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    })
-
-    // 直接跳转到登录页或目标页
+    // 通过 URL 参数传递 token 跳转到前端
     if (!user.passwordHash) {
-      res.redirect(`/login?needs_password_setup=1&redirect=${encodeURIComponent(redirectUrl)}`)
+      res.redirect(`/login?wechat_token=${token}&needs_password_setup=1&redirect=${encodeURIComponent(redirectUrl)}`)
     } else {
-      res.redirect(redirectUrl)
+      res.redirect(`/login?wechat_token=${token}&redirect=${encodeURIComponent(redirectUrl)}`)
     }
   } catch (error: unknown) {
     const err = error as { message?: string }

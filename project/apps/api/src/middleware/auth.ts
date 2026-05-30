@@ -54,7 +54,7 @@ async function setCachedUser(user: SafeUser): Promise<void> {
 
 export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.lc_token
+    const token = req.headers.authorization?.replace('Bearer ', '')
     
     if (!token) {
       return errorResponse(res, 401, AuthErrorCodes.UNAUTHORIZED)

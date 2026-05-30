@@ -123,15 +123,18 @@ function LoginForm() {
   // 处理 URL 参数中的错误
   useEffect(() => {
     const error = searchParams.get('error');
+    const wechatToken = searchParams.get('wechat_token');
     const needsPasswordSetup = searchParams.get('needs_password_setup');
     const redirectParam = searchParams.get('redirect');
-    const wechatSuccess = searchParams.get('wechat_success');
 
     if (error) {
       setError(getErrorMessage(error) || t('login.wechatLoginFailed'));
     }
 
-    if (wechatSuccess === '1') {
+    if (wechatToken) {
+      // 微信登录成功，token 通过 URL 传递
+      setToken(wechatToken);
+      // 获取用户信息
       (async () => {
         try {
           const meRes = await api.get('/users/me');

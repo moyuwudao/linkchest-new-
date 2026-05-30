@@ -3,7 +3,6 @@ import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import compression from 'compression'
-import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import prisma, { connectWithRetry } from './lib/prisma'
 import { getRedisClient, isRedisAvailable } from './lib/redis'
@@ -93,9 +92,6 @@ app.use(helmet({
 
 // 解析 JSON 请求体 - 增大限制到 10MB 以支持大量数据导入
 app.use(express.json({ limit: JSON_BODY_LIMIT }))
-
-// 解析 cookie
-app.use(cookieParser())
 
 // 全局限流中间件（排除健康检查）
 const globalLimiter = rateLimit({
