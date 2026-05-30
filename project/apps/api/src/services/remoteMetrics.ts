@@ -87,16 +87,16 @@ export async function fetchRemoteMetrics(server: RemoteServerConfig): Promise<Se
       return null
     }
 
-    const data = await res.json()
+    const data = await res.json() as Record<string, unknown>
 
     return {
       server: server.id,
-      totalRequests: data.totalRequests || data.overview?.requests1h || 0,
-      totalErrors: data.totalErrors || Math.round((data.overview?.errorRate1h || 0) * (data.overview?.requests1h || 0)) || 0,
-      avgDuration: data.avgDuration || data.overview?.avgDuration1h || 0,
-      errorRate: data.errorRate || data.overview?.errorRate1h || 0,
-      statusDistribution: data.statusDistribution || {},
-      system: data.system,
+      totalRequests: (data as any).totalRequests || (data as any).overview?.requests1h || 0,
+      totalErrors: (data as any).totalErrors || Math.round(((data as any).overview?.errorRate1h || 0) * ((data as any).overview?.requests1h || 0)) || 0,
+      avgDuration: (data as any).avgDuration || (data as any).overview?.avgDuration1h || 0,
+      errorRate: (data as any).errorRate || (data as any).overview?.errorRate1h || 0,
+      statusDistribution: (data as any).statusDistribution || {},
+      system: (data as any).system,
       timestamp: Date.now(),
     }
   } catch (e) {
@@ -234,8 +234,8 @@ export async function fetchRemotePm2Status(): Promise<Record<string, unknown>[]>
     clearTimeout(timeoutId)
 
     if (!res.ok) return []
-    const data = await res.json()
-    return data.processes || []
+    const data = await res.json() as Record<string, unknown>
+    return (data as any).processes || []
   } catch (e) {
     logger.warn({ err: (e as Error).message }, 'fetchRemotePm2Status failed')
     return []
