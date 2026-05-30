@@ -92,11 +92,6 @@ function LoginForm() {
   const [countdown, setCountdown] = useState(0);
   const [registerLoading, setRegisterLoading] = useState(false);
 
-  // Google 密码设置弹窗
-  const [showGooglePasswordModal, setShowGooglePasswordModal] = useState(false);
-  const [googlePassword, setGooglePassword] = useState('');
-  const [googlePasswordLoading, setGooglePasswordLoading] = useState(false);
-
   // 忘记密码弹窗
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
@@ -136,11 +131,10 @@ function LoginForm() {
           const meRes = await api.get('/users/me');
           if (meRes.data) {
             setUser(meRes.data);
-            if (data.needsPassword === '1' || !meRes.data.hasPassword) {
-              setShowGooglePasswordModal(true);
-            } else {
-              router.replace(data.redirect || '/');
+            if (!meRes.data.hasPassword) {
+              localStorage.setItem('lc_needs_password_setup', '1');
             }
+            router.replace(data.redirect || '/');
           }
         } catch {
           setError(t('login.wechatLoginFailed'));
@@ -161,11 +155,10 @@ function LoginForm() {
               const meRes = await api.get('/users/me');
               if (meRes.data) {
                 setUser(meRes.data);
-                if (data.needsPassword === '1' || !meRes.data.hasPassword) {
-                  setShowGooglePasswordModal(true);
-                } else {
-                  router.replace(data.redirect || '/');
+                if (!meRes.data.hasPassword) {
+                  localStorage.setItem('lc_needs_password_setup', '1');
                 }
+                router.replace(data.redirect || '/');
               }
             } catch {
               setError(t('login.wechatLoginFailed'));
@@ -348,14 +341,12 @@ function LoginForm() {
       setToken(token);
       setUser(user);
       if (needsEmailSetup) {
-        // 存储标记，跳转到首页后显示邮箱补充提醒
         localStorage.setItem('lc_needs_email_setup', '1');
-        router.push(redirect);
-      } else if (!user.hasPassword) {
-        setShowGooglePasswordModal(true);
-      } else {
-        router.push(redirect);
       }
+      if (!user.hasPassword) {
+        localStorage.setItem('lc_needs_password_setup', '1');
+      }
+      router.push(redirect);
     } catch (err: unknown) {
       const errCode = (err as ApiError).response?.data?.error;
       setError(getErrorMessage(errCode || '') || t('login.loginFailed'));
@@ -480,12 +471,11 @@ function LoginForm() {
       setUser(user);
       if (needsEmailSetup) {
         localStorage.setItem('lc_needs_email_setup', '1');
-        router.push(redirect);
-      } else if (!user.hasPassword) {
-        setShowGooglePasswordModal(true);
-      } else {
-        router.push(redirect);
       }
+      if (!user.hasPassword) {
+        localStorage.setItem('lc_needs_password_setup', '1');
+      }
+      router.push(redirect);
     } catch (err: unknown) {
       const errCode = (err as ApiError).response?.data?.error;
       setError(getErrorMessage(errCode || '') || t('login.loginFailed'));
@@ -517,24 +507,6 @@ function LoginForm() {
       const errCode = (err as ApiError).response?.data?.error;
       setError(getErrorMessage(errCode || '') || t('login.registerFailed'));
     } finally { setRegisterLoading(false); }
-  };
-
-  // 设置第三方登录密码
-  const handleSetGooglePassword = async () => {
-    if (!googlePassword) { setError(t('login.enterPassword')); return; }
-    try {
-      setGooglePasswordLoading(true);
-      setError('');
-      await api.post('/auth/set-password', { password: googlePassword });
-      setShowGooglePasswordModal(false);
-      setGooglePassword('');
-      // 显示成功提示
-      alert(t('login.passwordSetSuccess'));
-      router.push(redirect);
-    } catch (err: unknown) {
-      const errCode = (err as ApiError).response?.data?.error;
-      setError(getErrorMessage(errCode || '') || t('login.setPasswordFailed'));
-    } finally { setGooglePasswordLoading(false); }
   };
 
   // 忘记密码
@@ -589,9 +561,14 @@ function LoginForm() {
     } finally { setForgotLoading(false); }
   };
 
+  const isWechatCallback = !!searchParams.get('code') || (searchParams.get('error') && !searchParams.get('logout'));
+
+  if (isWechatCallback) {
+    return <div className="min-h-screen bg-white dark:bg-ink" />;
+  }
+
   return (
     <div className="min-h-screen flex">
-      {/* 左侧品牌区 */}
       <div className="hidden lg:flex w-1/2 bg-chest-500 relative overflow-hidden flex-col justify-between p-12">
         <div className="absolute inset-0 opacity-[0.03]">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -883,42 +860,6 @@ function LoginForm() {
                 className="w-full btn-ghost"
               >
                 {t('common.cancel')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 第三方登录密码设置弹窗 */}
-      {showGooglePasswordModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-chest-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold text-charcoal dark:text-parchment mb-4">{t('login.setPassword')}</h3>
-            <p className="text-sm text-taupe mb-4">{t('login.setPasswordPrompt')}</p>
-            <div className="space-y-3">
-              <input
-                type="password"
-                placeholder={t('login.password')}
-                value={googlePassword}
-                onChange={(e) => setGooglePassword(e.target.value)}
-                className="input"
-              />
-              {error && <p className="text-rust text-sm">{error}</p>}
-              <button
-                onClick={handleSetGooglePassword}
-                disabled={googlePasswordLoading}
-                className="w-full btn-primary"
-              >
-                {googlePasswordLoading ? t('common.saving') : t('common.save')}
-              </button>
-              <button
-                onClick={() => {
-                  setShowGooglePasswordModal(false);
-                  router.push(redirect);
-                }}
-                className="w-full btn-ghost"
-              >
-                {t('login.setPasswordLater')}
               </button>
             </div>
           </div>
