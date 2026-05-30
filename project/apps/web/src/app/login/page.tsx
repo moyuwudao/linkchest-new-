@@ -119,31 +119,11 @@ function LoginForm() {
     if (typeof window === 'undefined') return;
 
     const pollInterval = setInterval(() => {
-      const raw = localStorage.getItem('wechat_login_result');
-      if (!raw) return;
-      try {
-        const data = JSON.parse(raw);
-        localStorage.removeItem('wechat_login_result');
-        if (data.success && data.token) {
-          setToken(data.token);
-          (async () => {
-            try {
-              const meRes = await api.get('/users/me');
-              if (meRes.data) {
-                setUser(meRes.data);
-                if (!meRes.data.hasPassword) {
-                  localStorage.setItem('lc_needs_password_setup', '1');
-                }
-                router.replace(data.redirect || '/');
-              }
-            } catch {
-              setError(t('login.wechatLoginFailed'));
-            }
-          })();
-        } else {
-          setError(t('login.wechatLoginFailed'));
-        }
-      } catch {}
+      const popupClosed = sessionStorage.getItem('wechat_popup_closed');
+      if (!popupClosed) return;
+      sessionStorage.removeItem('wechat_popup_closed');
+      clearInterval(pollInterval);
+      window.location.reload();
     }, 300);
 
     return () => clearInterval(pollInterval);
@@ -162,29 +142,22 @@ function LoginForm() {
             lang: locale,
           });
           const { token, user } = response.data;
-          if (!token) {
-            localStorage.setItem('wechat_login_result', JSON.stringify({ success: false }));
-            setTimeout(() => window.close(), 500);
-            return;
+          if (token) {
+            setToken(token);
+            if (!user.hasPassword) {
+              localStorage.setItem('lc_needs_password_setup', '1');
+            }
           }
-          localStorage.setItem('wechat_login_result', JSON.stringify({
-            success: true,
-            token,
-            needsPassword: (!user.hasPassword) ? '1' : '0',
-            redirect: redirect || '/',
-          }));
-          setTimeout(() => window.close(), 500);
-        } catch {
-          localStorage.setItem('wechat_login_result', JSON.stringify({ success: false }));
-          setTimeout(() => window.close(), 500);
-        }
+        } catch {}
+        sessionStorage.setItem('wechat_popup_closed', '1');
+        setTimeout(() => window.close(), 300);
       })();
       return;
     }
 
     if (error) {
-      localStorage.setItem('wechat_login_result', JSON.stringify({ success: false, error }));
-      setTimeout(() => window.close(), 500);
+      sessionStorage.setItem('wechat_popup_closed', '1');
+      setTimeout(() => window.close(), 300);
     }
   }, [searchParams]);
 
