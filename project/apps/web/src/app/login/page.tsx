@@ -119,9 +119,9 @@ function LoginForm() {
     if (typeof window === 'undefined') return;
 
     const pollInterval = setInterval(() => {
-      const popupClosed = sessionStorage.getItem('wechat_popup_closed');
+      const popupClosed = localStorage.getItem('wechat_popup_closed');
       if (!popupClosed) return;
-      sessionStorage.removeItem('wechat_popup_closed');
+      localStorage.removeItem('wechat_popup_closed');
       clearInterval(pollInterval);
       window.location.reload();
     }, 300);
@@ -149,14 +149,14 @@ function LoginForm() {
             }
           }
         } catch {}
-        sessionStorage.setItem('wechat_popup_closed', '1');
+        localStorage.setItem('wechat_popup_closed', '1');
         setTimeout(() => window.close(), 300);
       })();
       return;
     }
 
     if (error) {
-      sessionStorage.setItem('wechat_popup_closed', '1');
+      localStorage.setItem('wechat_popup_closed', '1');
       setTimeout(() => window.close(), 300);
     }
   }, [searchParams]);
