@@ -117,6 +117,8 @@ function LoginForm() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('code') || params.get('error')) return;
 
     const pollInterval = setInterval(() => {
       const popupClosed = localStorage.getItem('wechat_popup_closed');
