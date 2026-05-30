@@ -163,63 +163,56 @@ function LoginForm() {
 
   // 处理 URL 参数（弹窗中的回调页面会走到这里）
   useEffect(() => {
+    const wechatCode = searchParams.get('code');
+    const wechatState = searchParams.get('state');
     const error = searchParams.get('error');
-    const wechatToken = searchParams.get('wechat_token');
-    const needsPasswordSetup = searchParams.get('needs_password_setup');
-    const redirectParam = searchParams.get('redirect');
 
-    if (error) {
-      // 如果是弹窗，写入 localStorage 通知父窗口
-      try {
-        localStorage.setItem('wechat_login_result', JSON.stringify({ success: false, error }));
-        // 尝试关闭弹窗
-        if (window.opener) window.close();
-      } catch {
-        // 忽略
-      }
-      setError(getErrorMessage(error) || t('login.wechatLoginFailed'));
-    }
-
-    if (wechatToken) {
-      // 写入 localStorage 通知父窗口
-      try {
-        localStorage.setItem('wechat_login_result', JSON.stringify({
-          success: true,
-          token: wechatToken,
-          needsPassword: needsPasswordSetup || '0',
-          redirect: redirectParam || '/',
-        }));
-      } catch {
-        // 忽略
-      }
-
-      // 尝试关闭弹窗
-      try {
-        if (window.opener) {
-          window.close();
-          return;
-        }
-      } catch {
-        // 忽略
-      }
-
-      // 如果不是弹窗（window.opener 为空），直接处理登录
-      setToken(wechatToken);
+    if (wechatCode) {
       (async () => {
         try {
-          const meRes = await api.get('/users/me');
-          if (meRes.data) {
-            setUser(meRes.data);
-            if (needsPasswordSetup === '1' || !meRes.data.hasPassword) {
+          const response = await api.post('/auth/wechat', {
+            credential: wechatCode,
+            lang: locale,
+          });
+          const { token, user } = response.data;
+          if (!token) {
+            localStorage.setItem('wechat_login_result', JSON.stringify({ success: false }));
+            if (window.opener) window.close();
+            return;
+          }
+          localStorage.setItem('wechat_login_result', JSON.stringify({
+            success: true,
+            token,
+            needsPassword: (!user.hasPassword) ? '1' : '0',
+            redirect: redirect || '/',
+          }));
+          if (window.opener) {
+            window.close();
+          } else {
+            setToken(token);
+            setUser(user);
+            if (!user.hasPassword) {
               setShowGooglePasswordModal(true);
             } else {
-              router.replace(redirectParam || '/');
+              router.replace(redirect || '/');
             }
           }
         } catch {
-          setError(t('login.wechatLoginFailed'));
+          localStorage.setItem('wechat_login_result', JSON.stringify({ success: false }));
+          if (window.opener) window.close();
+          else setError(t('login.wechatLoginFailed'));
         }
       })();
+      return;
+    }
+
+    if (error) {
+      if (window.opener) {
+        localStorage.setItem('wechat_login_result', JSON.stringify({ success: false, error }));
+        window.close();
+      } else {
+        setError(getErrorMessage(error) || t('login.wechatLoginFailed'));
+      }
     }
   }, [searchParams]);
 
@@ -249,37 +242,6 @@ function LoginForm() {
     }
     fetchMarketConfig();
   }, []);
-
-  // 处理微信登录回调后的场景
-  useEffect(() => {
-    const error = searchParams.get('error');
-    const needsPasswordSetup = searchParams.get('needs_password_setup');
-    const redirectParam = searchParams.get('redirect');
-    
-    if (error) {
-      // 显示错误
-      setError(getErrorMessage(error) || t('login.wechatLoginFailed'));
-    }
-
-    if (needsPasswordSetup === '1') {
-      // 如果用户已经通过 cookie 登录，需要获取用户信息后显示设置密码弹窗
-      (async () => {
-        try {
-          const meRes = await api.get('/users/me');
-          if (meRes.data) {
-            setUser(meRes.data);
-            setShowGooglePasswordModal(true);
-          }
-        } catch {
-          // 如果获取用户信息失败，可能是 cookie 过期了
-          setError(t('login.wechatLoginFailed'));
-        }
-      })();
-    } else if (isLoggedIn()) {
-      // 如果已经登录，直接跳转
-      router.replace(redirectParam || '/');
-    }
-  }, [searchParams]);
 
   // 发送验证码
   const sendCode = async (target: string) => {
