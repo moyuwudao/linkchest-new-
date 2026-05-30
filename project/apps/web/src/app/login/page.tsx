@@ -118,35 +118,11 @@ function LoginForm() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const bc = new BroadcastChannel('wechat_login');
-    bc.onmessage = (e) => {
-      const data = e.data;
-      if (!data || !data.success || !data.token) {
-        setError(t('login.wechatLoginFailed'));
-        return;
-      }
-      setToken(data.token);
-      (async () => {
-        try {
-          const meRes = await api.get('/users/me');
-          if (meRes.data) {
-            setUser(meRes.data);
-            if (!meRes.data.hasPassword) {
-              localStorage.setItem('lc_needs_password_setup', '1');
-            }
-            router.replace(data.redirect || '/');
-          }
-        } catch {
-          setError(t('login.wechatLoginFailed'));
-        }
-      })();
-    };
-
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key !== 'wechat_login_result') return;
-      if (!e.newValue) return;
+    const pollInterval = setInterval(() => {
+      const raw = localStorage.getItem('wechat_login_result');
+      if (!raw) return;
       try {
-        const data = JSON.parse(e.newValue);
+        const data = JSON.parse(raw);
         localStorage.removeItem('wechat_login_result');
         if (data.success && data.token) {
           setToken(data.token);
@@ -168,13 +144,9 @@ function LoginForm() {
           setError(t('login.wechatLoginFailed'));
         }
       } catch {}
-    };
+    }, 300);
 
-    window.addEventListener('storage', handleStorage);
-    return () => {
-      bc.close();
-      window.removeEventListener('storage', handleStorage);
-    };
+    return () => clearInterval(pollInterval);
   }, []);
 
   // 处理 URL 参数（弹窗中的回调页面会走到这里）
@@ -191,48 +163,28 @@ function LoginForm() {
           });
           const { token, user } = response.data;
           if (!token) {
-            try {
-              const bc = new BroadcastChannel('wechat_login');
-              bc.postMessage({ success: false });
-              bc.close();
-            } catch {}
-            window.close();
+            localStorage.setItem('wechat_login_result', JSON.stringify({ success: false }));
+            setTimeout(() => window.close(), 500);
             return;
           }
-          const payload = {
+          localStorage.setItem('wechat_login_result', JSON.stringify({
             success: true,
             token,
             needsPassword: (!user.hasPassword) ? '1' : '0',
             redirect: redirect || '/',
-          };
-          try {
-            const bc = new BroadcastChannel('wechat_login');
-            bc.postMessage(payload);
-            bc.close();
-          } catch {}
-          localStorage.setItem('wechat_login_result', JSON.stringify(payload));
-          window.close();
+          }));
+          setTimeout(() => window.close(), 500);
         } catch {
-          try {
-            const bc = new BroadcastChannel('wechat_login');
-            bc.postMessage({ success: false });
-            bc.close();
-          } catch {}
           localStorage.setItem('wechat_login_result', JSON.stringify({ success: false }));
-          window.close();
+          setTimeout(() => window.close(), 500);
         }
       })();
       return;
     }
 
     if (error) {
-      try {
-        const bc = new BroadcastChannel('wechat_login');
-        bc.postMessage({ success: false, error });
-        bc.close();
-      } catch {}
       localStorage.setItem('wechat_login_result', JSON.stringify({ success: false, error }));
-      window.close();
+      setTimeout(() => window.close(), 500);
     }
   }, [searchParams]);
 
