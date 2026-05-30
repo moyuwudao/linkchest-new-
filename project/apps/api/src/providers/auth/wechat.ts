@@ -6,8 +6,9 @@
 import type { AuthProvider, OAuthCredential, AuthResult } from './types'
 import logger from '../../lib/logger'
 
-const WECHAT_APP_ID = process.env.WECHAT_APP_ID || ''
-const WECHAT_APP_SECRET = process.env.WECHAT_APP_SECRET || ''
+// 兼容多种微信登录环境变量命名
+const WECHAT_APP_ID = process.env.WECHAT_APP_ID || process.env.WECHAT_CLIENT_ID || process.env.WECHAT_LOGIN_APPID || ''
+const WECHAT_APP_SECRET = process.env.WECHAT_APP_SECRET || process.env.WECHAT_LOGIN_SECRET || ''
 
 export class WechatAuthProvider implements AuthProvider {
   readonly name = 'wechat' as const

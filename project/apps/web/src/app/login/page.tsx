@@ -302,18 +302,33 @@ function LoginForm() {
   };
 
   // 微信登录
-  const handleWechatLogin = () => {
+  const handleWechatLogin = async () => {
     setError('');
-    const appId = process.env.NEXT_PUBLIC_WECHAT_APP_ID;
-    if (!appId) {
-      setError('微信登录未配置');
-      return;
+    setLoading(true);
+    try {
+      // 从 API 获取微信 AppID
+      let wechatClientId = process.env.NEXT_PUBLIC_WECHAT_APP_ID;
+      if (!wechatClientId) {
+        try {
+          const configRes = await api.get('/market/config');
+          wechatClientId = configRes.data.data?.clientIds?.wechat;
+        } catch {
+          // 忽略错误
+        }
+      }
+      if (!wechatClientId) {
+        setError(t('login.wechatLoginFailed'));
+        setLoading(false);
+        return;
+      }
+      const redirectUri = encodeURIComponent(`${window.location.origin}/api/auth/wechat/callback`);
+      const state = btoa(JSON.stringify({ redirect, lang }));
+      const scope = 'snsapi_login';
+      const url = `https://open.weixin.qq.com/connect/qrconnect?appid=${wechatClientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}#wechat_redirect`;
+      window.location.href = url;
+    } finally {
+      setLoading(false);
     }
-    const redirectUri = encodeURIComponent(`${window.location.origin}/api/auth/wechat/callback`);
-    const state = btoa(JSON.stringify({ redirect, lang }));
-    const scope = 'snsapi_login';
-    const url = `https://open.weixin.qq.com/connect/qrconnect?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}#wechat_redirect`;
-    window.location.href = url;
   };
 
   // 通用 OAuth 登录处理

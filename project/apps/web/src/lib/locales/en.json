@@ -664,6 +664,7 @@
     "otherLoginMethods": "Other Login Methods",
     "googleLoginFailed": "Google login failed, please try again",
     "appleLoginFailed": "Apple login failed, please try again",
+    "wechatLoginFailed": "WeChat login failed, please try again",
     "googleSetPasswordPrompt": "You logged in via Google. Setting a separate password lets you log in with email + password directly.",
     "setPasswordPrompt": "Setting a separate password lets you log in with email + password directly.",
     "setPasswordLater": "Set Later",
