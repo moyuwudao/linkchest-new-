@@ -120,42 +120,48 @@ function LoginForm() {
     }
   }, [router, redirect, isLogoutFlow]);
 
-  // 监听微信弹窗 postMessage 回调
+  // 监听 localStorage 变化（微信弹窗登录成功后写入）
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      const data = event.data;
-      if (data?.type !== 'wechat_login') return;
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key !== 'wechat_login_result') return;
+      if (!e.newValue) return;
 
-      if (data.success && data.token) {
-        setToken(data.token);
-        (async () => {
-          try {
-            const meRes = await api.get('/users/me');
-            if (meRes.data) {
-              setUser(meRes.data);
-              if (data.needsPassword === '1' || !meRes.data.hasPassword) {
-                setShowGooglePasswordModal(true);
-              } else {
-                router.replace(data.redirect || '/');
+      try {
+        const data = JSON.parse(e.newValue);
+        localStorage.removeItem('wechat_login_result');
+
+        if (data.success && data.token) {
+          setToken(data.token);
+          (async () => {
+            try {
+              const meRes = await api.get('/users/me');
+              if (meRes.data) {
+                setUser(meRes.data);
+                if (data.needsPassword === '1' || !meRes.data.hasPassword) {
+                  setShowGooglePasswordModal(true);
+                } else {
+                  router.replace(data.redirect || '/');
+                }
               }
+            } catch {
+              setError(t('login.wechatLoginFailed'));
             }
-          } catch {
-            setError(t('login.wechatLoginFailed'));
-          }
-        })();
-      } else {
-        setError(t('login.wechatLoginFailed'));
+          })();
+        } else {
+          setError(t('login.wechatLoginFailed'));
+        }
+      } catch {
+        // 忽略解析错误
       }
     };
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  // 处理 URL 参数（回退方案：弹窗未关闭时直接在弹窗中跳转）
+  // 处理 URL 参数（弹窗中的回调页面会走到这里）
   useEffect(() => {
     const error = searchParams.get('error');
     const wechatToken = searchParams.get('wechat_token');
@@ -163,10 +169,41 @@ function LoginForm() {
     const redirectParam = searchParams.get('redirect');
 
     if (error) {
+      // 如果是弹窗，写入 localStorage 通知父窗口
+      try {
+        localStorage.setItem('wechat_login_result', JSON.stringify({ success: false, error }));
+        // 尝试关闭弹窗
+        if (window.opener) window.close();
+      } catch {
+        // 忽略
+      }
       setError(getErrorMessage(error) || t('login.wechatLoginFailed'));
     }
 
     if (wechatToken) {
+      // 写入 localStorage 通知父窗口
+      try {
+        localStorage.setItem('wechat_login_result', JSON.stringify({
+          success: true,
+          token: wechatToken,
+          needsPassword: needsPasswordSetup || '0',
+          redirect: redirectParam || '/',
+        }));
+      } catch {
+        // 忽略
+      }
+
+      // 尝试关闭弹窗
+      try {
+        if (window.opener) {
+          window.close();
+          return;
+        }
+      } catch {
+        // 忽略
+      }
+
+      // 如果不是弹窗（window.opener 为空），直接处理登录
       setToken(wechatToken);
       (async () => {
         try {

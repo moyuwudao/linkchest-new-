@@ -1279,33 +1279,17 @@ router.get('/wechat/callback', async (req, res) => {
       { expiresIn: '7d' }
     )
 
-    // 返回 HTML 页面，通过 postMessage 通知父窗口并关闭弹窗
-    const needsPassword = !user.passwordHash ? '1' : '0'
-    return res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>登录成功</title></head>
-<body style="display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui,sans-serif;background:#f9fafb">
-<div style="text-align:center"><div style="font-size:48px;margin-bottom:16px">✅</div><p style="color:#374151;font-size:18px">登录成功</p><p style="color:#9ca3af;font-size:14px">正在返回...</p></div>
-<script>
-(function(){
-  var data = {type:'wechat_login',success:true,token:'${token}',needsPassword:'${needsPassword}',redirect:'${redirectUrl}'};
-  try{if(window.opener&&!window.opener.closed){window.opener.postMessage(data,window.location.origin);window.close();return;}}catch(e){}
-  try{if(window.parent&&window.parent!==window){window.parent.postMessage(data,window.location.origin);return;}}catch(e){}
-  window.location.href='/login?wechat_token=${token}&needs_password_setup=${needsPassword}&redirect=${encodeURIComponent('${redirectUrl}')}';
-})();
-</script></body></html>`)
+    // 通过 URL 参数传递 token，前端负责存储和跨窗口通信
+    if (!user.passwordHash) {
+      res.redirect(`/login?wechat_token=${token}&needs_password_setup=1&redirect=${encodeURIComponent(redirectUrl)}`)
+    } else {
+      res.redirect(`/login?wechat_token=${token}&redirect=${encodeURIComponent(redirectUrl)}`)
+    }
   } catch (error: unknown) {
     const err = error as { message?: string }
     logger.error({ err: err.message }, '微信登录回调错误')
     res.locals.errorMessage = err.message
-    return res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>登录失败</title></head>
-<body style="display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui,sans-serif;background:#f9fafb">
-<div style="text-align:center"><div style="font-size:48px;margin-bottom:16px">❌</div><p style="color:#dc2626;font-size:18px">登录失败</p><p style="color:#9ca3af;font-size:14px">请重新扫码</p></div>
-<script>
-(function(){
-  var data = {type:'wechat_login',success:false,error:'login_failed'};
-  try{if(window.opener&&!window.opener.closed){window.opener.postMessage(data,window.location.origin);window.close();return;}}catch(e){}
-  window.location.href='/login?error=login_failed';
-})();
-</script></body></html>`)
+    res.redirect('/login?error=login_failed')
   }
 })
 
