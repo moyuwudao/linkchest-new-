@@ -120,18 +120,40 @@ function LoginForm() {
     }
   }, [router, redirect, isLogoutFlow]);
 
-  // 监听 localStorage 变化（微信弹窗登录成功后写入）
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    const bc = new BroadcastChannel('wechat_login');
+    bc.onmessage = (e) => {
+      const data = e.data;
+      if (!data || !data.success || !data.token) {
+        setError(t('login.wechatLoginFailed'));
+        return;
+      }
+      setToken(data.token);
+      (async () => {
+        try {
+          const meRes = await api.get('/users/me');
+          if (meRes.data) {
+            setUser(meRes.data);
+            if (data.needsPassword === '1' || !meRes.data.hasPassword) {
+              setShowGooglePasswordModal(true);
+            } else {
+              router.replace(data.redirect || '/');
+            }
+          }
+        } catch {
+          setError(t('login.wechatLoginFailed'));
+        }
+      })();
+    };
 
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== 'wechat_login_result') return;
       if (!e.newValue) return;
-
       try {
         const data = JSON.parse(e.newValue);
         localStorage.removeItem('wechat_login_result');
-
         if (data.success && data.token) {
           setToken(data.token);
           (async () => {
@@ -152,19 +174,19 @@ function LoginForm() {
         } else {
           setError(t('login.wechatLoginFailed'));
         }
-      } catch {
-        // 忽略解析错误
-      }
+      } catch {}
     };
 
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    return () => {
+      bc.close();
+      window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   // 处理 URL 参数（弹窗中的回调页面会走到这里）
   useEffect(() => {
     const wechatCode = searchParams.get('code');
-    const wechatState = searchParams.get('state');
     const error = searchParams.get('error');
 
     if (wechatCode) {
@@ -176,43 +198,48 @@ function LoginForm() {
           });
           const { token, user } = response.data;
           if (!token) {
-            localStorage.setItem('wechat_login_result', JSON.stringify({ success: false }));
-            if (window.opener) window.close();
+            try {
+              const bc = new BroadcastChannel('wechat_login');
+              bc.postMessage({ success: false });
+              bc.close();
+            } catch {}
+            window.close();
             return;
           }
-          localStorage.setItem('wechat_login_result', JSON.stringify({
+          const payload = {
             success: true,
             token,
             needsPassword: (!user.hasPassword) ? '1' : '0',
             redirect: redirect || '/',
-          }));
-          if (window.opener) {
-            window.close();
-          } else {
-            setToken(token);
-            setUser(user);
-            if (!user.hasPassword) {
-              setShowGooglePasswordModal(true);
-            } else {
-              router.replace(redirect || '/');
-            }
-          }
+          };
+          try {
+            const bc = new BroadcastChannel('wechat_login');
+            bc.postMessage(payload);
+            bc.close();
+          } catch {}
+          localStorage.setItem('wechat_login_result', JSON.stringify(payload));
+          window.close();
         } catch {
+          try {
+            const bc = new BroadcastChannel('wechat_login');
+            bc.postMessage({ success: false });
+            bc.close();
+          } catch {}
           localStorage.setItem('wechat_login_result', JSON.stringify({ success: false }));
-          if (window.opener) window.close();
-          else setError(t('login.wechatLoginFailed'));
+          window.close();
         }
       })();
       return;
     }
 
     if (error) {
-      if (window.opener) {
-        localStorage.setItem('wechat_login_result', JSON.stringify({ success: false, error }));
-        window.close();
-      } else {
-        setError(getErrorMessage(error) || t('login.wechatLoginFailed'));
-      }
+      try {
+        const bc = new BroadcastChannel('wechat_login');
+        bc.postMessage({ success: false, error });
+        bc.close();
+      } catch {}
+      localStorage.setItem('wechat_login_result', JSON.stringify({ success: false, error }));
+      window.close();
     }
   }, [searchParams]);
 

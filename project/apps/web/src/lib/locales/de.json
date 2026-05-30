@@ -644,7 +644,8 @@
     "feature3Label": "Link teilen",
     "feature3Desc": "Gute Inhalte mit einem Klick teilen",
     "langZh": "Chinesisch",
-    "referralCode": "Empfehlungscode (optional)"
+    "referralCode": "Empfehlungscode (optional)",
+    "setPassword": "Passwort festlegen"
   },
   "terms": {
     "title": "Nutzungsbedingungen"

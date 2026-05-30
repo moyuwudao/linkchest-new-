@@ -737,7 +737,8 @@
     "feature3Label": "链接分享",
     "feature3Desc": "一键分享好内容",
     "langZh": "中文",
-    "referralCode": "邀请码（选填）"
+    "referralCode": "邀请码（选填）",
+    "setPassword": "设置密码"
   },
   "terms": {
     "title": "服务条款"

@@ -691,7 +691,8 @@
     "feature3Label": "Share Links",
     "feature3Desc": "Share with Ease",
     "langZh": "中文",
-    "referralCode": "Referral Code (optional)"
+    "referralCode": "Referral Code (optional)",
+    "setPassword": "Set Password"
   },
   "payment": {
     "success": "Payment successful! Plan upgraded",

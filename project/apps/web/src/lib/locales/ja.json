@@ -649,7 +649,8 @@
     "feature3Label": "リンク共有",
     "feature3Desc": "ワンクリックで好内容を共有",
     "langZh": "中文",
-    "referralCode": "紹介コード（任意）"
+    "referralCode": "紹介コード（任意）",
+    "setPassword": "パスワードを設定"
   },
   "terms": {
     "title": "利用規約"

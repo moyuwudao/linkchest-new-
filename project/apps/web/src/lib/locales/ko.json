@@ -614,7 +614,8 @@
     "feature3Label": "링크 공유",
     "feature3Desc": "쉽게 공유하기",
     "langZh": "중국어",
-    "referralCode": "추천 코드 (선택)"
+    "referralCode": "추천 코드 (선택)",
+    "setPassword": "비밀번호 설정"
   },
   "terms": {
     "title": "서비스 약관"
