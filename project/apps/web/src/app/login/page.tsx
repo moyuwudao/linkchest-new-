@@ -37,6 +37,10 @@ const ERROR_CODE_MAP: Record<string, string> = {
   ERR_GOOGLE_AUTH_FAILED: 'googleAuthFailed',
   ERR_GOOGLE_EMAIL_MISSING: 'googleEmailMissing',
   ERR_SERVER_ERROR: 'serverError',
+  // 微信登录错误
+  invalid_code: 'wechatInvalidCode',
+  invalid_credential: 'wechatInvalidCredential',
+  login_failed: 'loginFailed',
 };
 
 function getAccountType(value: string): 'email' | 'phone' | null {
@@ -101,6 +105,10 @@ function LoginForm() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotCountdown, setForgotCountdown] = useState(0);
   const [forgotLoading, setForgotLoading] = useState(false);
+
+  // 微信扫码弹窗
+  const [showWechatModal, setShowWechatModal] = useState(false);
+  const [wechatAppId, setWechatAppId] = useState<string | null>(null);
 
   // 语言下拉
   const [showLangDropdown, setShowLangDropdown] = useState(false);
@@ -332,10 +340,9 @@ function LoginForm() {
     }
   };
 
-  // 微信登录
+  // 微信登录 - 打开弹窗
   const handleWechatLogin = async () => {
     setError('');
-    setLoading(true);
     try {
       // 从 API 获取微信 AppID
       let wechatClientId = process.env.NEXT_PUBLIC_WECHAT_APP_ID;
@@ -349,16 +356,12 @@ function LoginForm() {
       }
       if (!wechatClientId) {
         setError(t('login.wechatLoginFailed'));
-        setLoading(false);
         return;
       }
-      const redirectUri = encodeURIComponent(`${window.location.origin}/api/auth/wechat/callback`);
-      const state = btoa(JSON.stringify({ redirect, lang }));
-      const scope = 'snsapi_login';
-      const url = `https://open.weixin.qq.com/connect/qrconnect?appid=${wechatClientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}#wechat_redirect`;
-      window.location.href = url;
-    } finally {
-      setLoading(false);
+      setWechatAppId(wechatClientId);
+      setShowWechatModal(true);
+    } catch {
+      setError(t('login.wechatLoginFailed'));
     }
   };
 
@@ -882,6 +885,32 @@ function LoginForm() {
                 {t('common.cancel')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 微信扫码登录弹窗 */}
+      {showWechatModal && wechatAppId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowWechatModal(false)}>
+          <div className="bg-white dark:bg-chest-800 rounded-lg p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-charcoal dark:text-parchment mb-4 text-center">{t('login.wechatLogin')}</h3>
+            <div className="flex justify-center">
+              <iframe
+                src={`https://open.weixin.qq.com/connect/qrconnect?appid=${wechatAppId}&redirect_uri=${encodeURIComponent(`${window.location.origin}/api/auth/wechat/callback`)}&response_type=code&scope=snsapi_login&state=${btoa(JSON.stringify({ redirect, lang }))}#wechat_redirect`}
+                width="300"
+                height="300"
+                frameBorder="0"
+                scrolling="no"
+                className="rounded-lg"
+              />
+            </div>
+            <p className="text-sm text-taupe text-center mt-4">使用微信扫一扫登录</p>
+            <button
+              onClick={() => setShowWechatModal(false)}
+              className="w-full btn-ghost mt-4"
+            >
+              {t('common.cancel')}
+            </button>
           </div>
         </div>
       )}

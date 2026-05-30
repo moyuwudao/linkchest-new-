@@ -709,6 +709,8 @@
     "googleLoginFailed": "Google 登录失败，请重试",
     "appleLoginFailed": "Apple 登录失败，请重试",
     "wechatLoginFailed": "微信登录失败，请重试",
+    "wechatInvalidCode": "微信授权码无效，请重新扫码",
+    "wechatInvalidCredential": "微信登录凭证无效，请重新扫码",
     "googleSetPasswordPrompt": "检测到您通过 Google 登录，建议设置独立密码，以便日后使用邮箱+密码直接登录",
     "setPasswordPrompt": "建议设置独立密码，以便日后使用邮箱+密码直接登录",
     "setPasswordLater": "稍后设置",
