@@ -120,7 +120,42 @@ function LoginForm() {
     }
   }, [router, redirect, isLogoutFlow]);
 
-  // 处理 URL 参数中的错误
+  // 监听微信弹窗 postMessage 回调
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      const data = event.data;
+      if (data?.type !== 'wechat_login') return;
+
+      if (data.success && data.token) {
+        setToken(data.token);
+        (async () => {
+          try {
+            const meRes = await api.get('/users/me');
+            if (meRes.data) {
+              setUser(meRes.data);
+              if (data.needsPassword === '1' || !meRes.data.hasPassword) {
+                setShowGooglePasswordModal(true);
+              } else {
+                router.replace(data.redirect || '/');
+              }
+            }
+          } catch {
+            setError(t('login.wechatLoginFailed'));
+          }
+        })();
+      } else {
+        setError(t('login.wechatLoginFailed'));
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // 处理 URL 参数（回退方案：弹窗未关闭时直接在弹窗中跳转）
   useEffect(() => {
     const error = searchParams.get('error');
     const wechatToken = searchParams.get('wechat_token');
@@ -132,9 +167,7 @@ function LoginForm() {
     }
 
     if (wechatToken) {
-      // 微信登录成功，token 通过 URL 传递
       setToken(wechatToken);
-      // 获取用户信息
       (async () => {
         try {
           const meRes = await api.get('/users/me');
