@@ -17,7 +17,7 @@ interface SafeUser {
   googleId: string | null
   appleId: string | null
   wechatOpenId: string | null
-  alipayId: string | null
+  wechatUnionId: string | null
 }
 
 export type AuthRequest = Request & { user?: SafeUser }
@@ -98,7 +98,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
         googleId: user.googleId,
         appleId: user.appleId,
         wechatOpenId: user.wechatOpenId,
-        alipayId: user.alipayId,
+        wechatUnionId: user.wechatUnionId,
       }
 
       // 写入 Redis 缓存（异步，不阻塞请求）
