@@ -161,7 +161,7 @@ function LoginForm() {
       }
 
       // 使用 code 登录
-      async function handleWechatCallback() {
+      (async () => {
         setLoading(true);
         setError('');
         try {
@@ -193,9 +193,7 @@ function LoginForm() {
         } finally {
           setLoading(false);
         }
-      }
-
-      handleWechatCallback();
+      })();
     }
   }, [searchParams, locale]);
 
