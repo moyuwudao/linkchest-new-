@@ -120,6 +120,72 @@ function LoginForm() {
     }
   }, [router, redirect, isLogoutFlow]);
 
+  // 监听微信弹窗消息
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      
+      const data = event.data;
+      if (data?.type !== 'wechat_login') return;
+
+      setLoading(false);
+
+      if (data.success) {
+        // 登录成功
+        try {
+          const meRes = await api.get('/users/me');
+          if (meRes.data) {
+            setUser(meRes.data);
+            if (data.needsPassword === '1' || !meRes.data.hasPassword) {
+              setShowGooglePasswordModal(true);
+            } else {
+              window.location.href = data.redirect || '/';
+            }
+          }
+        } catch {
+          setError(t('login.wechatLoginFailed'));
+        }
+      } else {
+        setError(t('login.wechatLoginFailed'));
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [locale]);
+
+  // 处理 URL 参数中的错误
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const needsPasswordSetup = searchParams.get('needs_password_setup');
+    const redirectParam = searchParams.get('redirect');
+    const wechatSuccess = searchParams.get('wechat_success');
+
+    if (error) {
+      setError(getErrorMessage(error) || t('login.wechatLoginFailed'));
+    }
+
+    if (wechatSuccess === '1') {
+      (async () => {
+        try {
+          const meRes = await api.get('/users/me');
+          if (meRes.data) {
+            setUser(meRes.data);
+            if (needsPasswordSetup === '1' || !meRes.data.hasPassword) {
+              setShowGooglePasswordModal(true);
+            } else {
+              router.replace(redirectParam || '/');
+            }
+          }
+        } catch {
+          setError(t('login.wechatLoginFailed'));
+        }
+      })();
+    }
+  }, [searchParams]);
+
   // 点击外部关闭语言下拉
   useEffect(() => {
     if (typeof document === 'undefined') return;
