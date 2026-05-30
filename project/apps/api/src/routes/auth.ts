@@ -1165,6 +1165,143 @@ router.post('/wechat', async (req, res) => {
   }
 })
 
+// ===== 微信登录回调 =====
+router.get('/wechat/callback', async (req, res) => {
+  const reqId = req.reqId
+  try {
+    const { code, state } = req.query
+    if (!code) {
+      return res.redirect('/login?error=invalid_code')
+    }
+
+    const { getAuthProvider } = await import('../providers/auth')
+    const provider = await getAuthProvider('wechat')
+    
+    if (!provider.isConfigured()) {
+      logger.error({}, '[WeChat Auth] 微信登录未配置')
+      return res.redirect('/login?error=server_error')
+    }
+
+    const result = await provider.verifyCredential({ token: code as string })
+    
+    if (!result.success) {
+      return res.redirect('/login?error=invalid_credential')
+    }
+
+    const wechatId = result.providerUserId
+    const email = result.email || null
+    const name = result.name || '用户'
+    const picture = result.avatar
+
+    // 解析 state 参数获取 redirect 和 lang
+    let redirectUrl = '/'
+    let lang = 'zh'
+    if (state) {
+      try {
+        const stateData = JSON.parse(atob(state as string))
+        redirectUrl = stateData.redirect || '/'
+        lang = stateData.lang || 'zh'
+      } catch {
+        // 解析失败使用默认值
+      }
+    }
+
+    let user = await prisma.user.findUnique({ where: { wechatOpenId: wechatId } })
+
+    if (!user && email) {
+      user = await prisma.user.findUnique({ where: { email } })
+      if (user) {
+        if (user.status === 'banned') {
+          return res.redirect('/login?error=account_banned')
+        }
+        if (user.status === 'suspended') {
+          return res.redirect('/login?error=account_suspended')
+        }
+        if (user.lockedUntil && new Date() < user.lockedUntil) {
+          return res.redirect('/login?error=account_locked')
+        }
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { wechatOpenId: wechatId, lastLoginAt: new Date() },
+        })
+      }
+    }
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: email || undefined,
+          wechatOpenId: wechatId,
+          nickname: name,
+          avatar: picture,
+          lang,
+          authSource: 'wechat',
+        },
+      })
+
+      await prisma.list.create({
+        data: {
+          userId: user.id,
+          name: DEFAULT_LIST_KEY,
+          description: DEFAULT_LIST_DESC,
+        },
+      })
+
+      await createDefaultTags(user.id, lang)
+
+      recordUserRegistered('wechat')
+    } else {
+      if (user.status === 'banned') {
+        return res.redirect('/login?error=account_banned')
+      }
+      if (user.status === 'suspended') {
+        return res.redirect('/login?error=account_suspended')
+      }
+      if (user.lockedUntil && new Date() < user.lockedUntil) {
+        return res.redirect('/login?error=account_locked')
+      }
+      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+        || req.socket.remoteAddress
+        || undefined
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lastLoginAt: new Date(),
+          lastLoginIp: clientIp,
+          loginAttempts: 0,
+          lockedUntil: null,
+        },
+      })
+    }
+
+    const token = jwt.sign(
+      { userId: user.id },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    )
+
+    // 设置 cookie，然后重定向
+    res.cookie('lc_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+
+    // 如果需要设置密码，重定向到登录页并显示设置密码弹窗
+    if (!user.passwordHash) {
+      res.redirect(`/login?needs_password_setup=1&redirect=${encodeURIComponent(redirectUrl)}`)
+    } else {
+      res.redirect(redirectUrl)
+    }
+  } catch (error: unknown) {
+    const err = error as { message?: string }
+    logger.error({ err: err.message }, '微信登录回调错误')
+    res.locals.errorMessage = err.message
+    return res.redirect('/login?error=login_failed')
+  }
+})
+
 // ===== 支付宝登录 =====
 router.post('/alipay', async (req, res) => {
   const reqId = req.reqId

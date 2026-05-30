@@ -143,59 +143,36 @@ function LoginForm() {
     fetchMarketConfig();
   }, []);
 
-  // 处理微信登录回调
+  // 处理微信登录回调后的场景
   useEffect(() => {
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
+    const error = searchParams.get('error');
+    const needsPasswordSetup = searchParams.get('needs_password_setup');
+    const redirectParam = searchParams.get('redirect');
     
-    if (code && state) {
-      // 解析 state 获取 redirect 和 lang
-      let redirectUrl = '/';
-      let callbackLang = locale;
-      try {
-        const stateData = JSON.parse(atob(state));
-        redirectUrl = stateData.redirect || '/';
-        callbackLang = stateData.lang || locale;
-      } catch {
-        // 解析失败使用默认值
-      }
+    if (error) {
+      // 显示错误
+      setError(getErrorMessage(error) || t('login.wechatLoginFailed'));
+    }
 
-      // 使用 code 登录
+    if (needsPasswordSetup === '1') {
+      // 如果用户已经通过 cookie 登录，需要获取用户信息后显示设置密码弹窗
       (async () => {
-        setLoading(true);
-        setError('');
         try {
-          const response = await api.post('/auth/wechat', { 
-            credential: code, 
-            lang: callbackLang 
-          });
-          const { token, user, needsEmailSetup } = response.data;
-          
-          if (!token) {
-            setError(t('login.wechatLoginFailed'));
-            return;
-          }
-
-          setToken(token);
-          setUser(user);
-
-          // 如果需要设置密码，显示密码设置弹窗
-          if (needsEmailSetup || !user.hasPassword) {
+          const meRes = await api.get('/users/me');
+          if (meRes.data) {
+            setUser(meRes.data);
             setShowGooglePasswordModal(true);
-            return;
           }
-
-          // 否则直接跳转
-          window.location.href = redirectUrl;
-        } catch (err: unknown) {
-          const errCode = (err as ApiError).response?.data?.error;
-          setError(getErrorMessage(errCode || '') || t('login.wechatLoginFailed'));
-        } finally {
-          setLoading(false);
+        } catch {
+          // 如果获取用户信息失败，可能是 cookie 过期了
+          setError(t('login.wechatLoginFailed'));
         }
       })();
+    } else if (isLoggedIn()) {
+      // 如果已经登录，直接跳转
+      router.replace(redirectParam || '/');
     }
-  }, [searchParams, locale]);
+  }, [searchParams]);
 
   // 发送验证码
   const sendCode = async (target: string) => {
