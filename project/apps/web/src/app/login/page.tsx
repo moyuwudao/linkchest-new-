@@ -143,7 +143,11 @@ function LoginForm() {
           });
           const { token, user } = response.data;
           if (token) {
-            setToken(token);
+            localStorage.setItem('linkchest_token', token);
+            document.cookie = `linkchest_token=${encodeURIComponent(token)}; Path=/; Max-Age=${30*24*60*60}; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
+            if (user) {
+              localStorage.setItem('linkchest_user', JSON.stringify(user));
+            }
             if (!user.hasPassword) {
               localStorage.setItem('lc_needs_password_setup', '1');
             }
