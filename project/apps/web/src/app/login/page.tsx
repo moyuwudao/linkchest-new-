@@ -120,42 +120,6 @@ function LoginForm() {
     }
   }, [router, redirect, isLogoutFlow]);
 
-  // 监听微信弹窗消息
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      
-      const data = event.data;
-      if (data?.type !== 'wechat_login') return;
-
-      setLoading(false);
-
-      if (data.success) {
-        // 登录成功
-        try {
-          const meRes = await api.get('/users/me');
-          if (meRes.data) {
-            setUser(meRes.data);
-            if (data.needsPassword === '1' || !meRes.data.hasPassword) {
-              setShowGooglePasswordModal(true);
-            } else {
-              window.location.href = data.redirect || '/';
-            }
-          }
-        } catch {
-          setError(t('login.wechatLoginFailed'));
-        }
-      } else {
-        setError(t('login.wechatLoginFailed'));
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [locale]);
-
   // 处理 URL 参数中的错误
   useEffect(() => {
     const error = searchParams.get('error');

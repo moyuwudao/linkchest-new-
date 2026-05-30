@@ -1287,58 +1287,17 @@ router.get('/wechat/callback', async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
 
-    // 返回 HTML 页面关闭弹窗并通知父窗口刷新
-    const needsPassword = !user.passwordHash ? '1' : '0'
-    return res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head><meta charset="utf-8"><title>登录成功</title></head>
-      <body style="display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;">
-        <script>
-          // 通知父窗口刷新
-          if (window.opener && !window.opener.closed) {
-            window.opener.postMessage({
-              type: 'wechat_login',
-              success: true,
-              needsPassword: ${needsPassword},
-              redirect: '${redirectUrl}'
-            }, window.location.origin);
-            window.close();
-          } else {
-            // 回退方案：直接跳转
-            window.location.href = '/login?wechat_success=1&needs_password_setup=${needsPassword}&redirect=${encodeURIComponent(redirectUrl)}';
-          }
-        </script>
-        <p style="text-align:center;color:#666;">登录成功，正在关闭...</p>
-      </body>
-      </html>
-    `)
+    // 直接跳转到登录页或目标页
+    if (!user.passwordHash) {
+      res.redirect(`/login?needs_password_setup=1&redirect=${encodeURIComponent(redirectUrl)}`)
+    } else {
+      res.redirect(redirectUrl)
+    }
   } catch (error: unknown) {
     const err = error as { message?: string }
     logger.error({ err: err.message }, '微信登录回调错误')
     res.locals.errorMessage = err.message
-    // 登录失败也返回 HTML 关闭弹窗
-    return res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head><meta charset="utf-8"><title>登录失败</title></head>
-      <body style="display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;">
-        <script>
-          if (window.opener && !window.opener.closed) {
-            window.opener.postMessage({
-              type: 'wechat_login',
-              success: false,
-              error: 'login_failed'
-            }, window.location.origin);
-            window.close();
-          } else {
-            window.location.href = '/login?error=login_failed';
-          }
-        </script>
-        <p style="text-align:center;color:#c00;">登录失败，正在关闭...</p>
-      </body>
-      </html>
-    `)
+    res.redirect('/login?error=login_failed')
   }
 })
 
