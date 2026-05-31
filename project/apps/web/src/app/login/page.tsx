@@ -658,6 +658,24 @@ function LoginForm() {
                 ) : t('login.login')}
               </button>
 
+              {/* APK下载入口 - 放在登录按钮下方更显眼 */}
+              <a 
+                href="/download" 
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-chest-500/5 dark:bg-amber-400/5 border border-chest-500/10 dark:border-amber-400/10 hover:bg-chest-500/10 dark:hover:bg-amber-400/10 transition-colors group"
+              >
+                <svg className="w-5 h-5 text-chest-500 dark:text-amber-400 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span className="text-sm font-medium text-chest-600 dark:text-amber-300">
+                  {t('login.downloadApk') || '下载安卓客户端'}
+                </span>
+                <span className="text-xs text-taupe dark:text-taupe-light/60 ml-1">
+                  Android / iOS
+                </span>
+              </a>
+
               {/* 注册提示 */}
               <p className="text-center text-sm text-taupe dark:text-taupe-light/70 pt-1">
                 {t('login.noAccount')}
@@ -665,21 +683,6 @@ function LoginForm() {
                   {t('login.register')}
                 </button>
               </p>
-
-              {/* APK下载入口 */}
-              <div className="flex items-center justify-center gap-2 py-3">
-                <a 
-                  href="/download" 
-                  className="inline-flex items-center gap-1.5 text-sm text-chest-500 dark:text-amber-400 hover:text-chest-600 dark:hover:text-amber-300 font-medium transition-colors"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                  {t('login.downloadApk') || '下载安卓客户端'}
-                </a>
-              </div>
 
               {/* 隐私政策和服务条款 - 注册下方，其他登录方式上方 */}
               <div className="flex items-center justify-center gap-4 text-xs text-taupe py-3">

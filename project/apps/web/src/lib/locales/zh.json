@@ -706,6 +706,7 @@
     "privacyLink": "《隐私政策》",
     "termsSuffix": "",
     "otherLoginMethods": "其他登录方式",
+    "downloadApk": "下载安卓客户端",
     "googleLoginFailed": "Google 登录失败，请重试",
     "appleLoginFailed": "Apple 登录失败，请重试",
     "wechatLoginFailed": "微信登录失败，请重试",

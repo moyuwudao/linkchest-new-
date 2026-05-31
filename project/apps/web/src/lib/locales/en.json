@@ -662,6 +662,7 @@
     "privacyLink": "Privacy Policy",
     "termsSuffix": "",
     "otherLoginMethods": "Other Login Methods",
+    "downloadApk": "Download Android App",
     "googleLoginFailed": "Google login failed, please try again",
     "appleLoginFailed": "Apple login failed, please try again",
     "wechatLoginFailed": "WeChat login failed, please try again",
