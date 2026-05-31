@@ -94,7 +94,7 @@ echo "数据库迁移完成 ✓"
 echo ""
 echo "[5/7] 安装 API 依赖..."
 cd "$API_DIR"
-npm install --production 2>/dev/null || true
+npm install 2>/dev/null || true
 
 # ===== 5.5 MARKET 环境变量验证 =====
 echo ""

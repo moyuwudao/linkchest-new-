@@ -72,7 +72,7 @@ dos2unix "$BASE_DIR/project/deploy/start-web.sh" 2>/dev/null || sed -i 's/\r$//'
 chmod +x "$BASE_DIR/project/deploy/start-api.sh" "$BASE_DIR/project/deploy/start-web.sh"
 
 DATABASE_URL="$DATABASE_URL" npx prisma generate
-npm install --production 2>/dev/null || true
+npm install 2>/dev/null || true
 
 # ===== 4. 数据库迁移 =====
 echo ""
