@@ -38,8 +38,8 @@ if [ -z "$TARGET" ]; then
 fi
 
 case "$TARGET" in
-    global) SERVER_IP="$GLOBAL_APP_IP"; UPDATE_SCRIPT="deploy/update-server.sh"; PM2_API="linkchest-api-global" ;;
-    china)  SERVER_IP="$CHINA_APP_IP";  UPDATE_SCRIPT="deploy/update-server-cn.sh"; PM2_API="linkchest-api-china" ;;
+    global) SERVER_IP="$GLOBAL_APP_IP"; UPDATE_SCRIPT="project/deploy/update-server.sh"; PM2_API="linkchest-api-global" ;;
+    china)  SERVER_IP="$CHINA_APP_IP";  UPDATE_SCRIPT="project/deploy/update-server-cn.sh"; PM2_API="linkchest-api-china" ;;
     *)
         echo -e "${RED}❌ 未知目标: $TARGET${NC} (可用: global, china)"
         exit 1

@@ -4,15 +4,16 @@
 # 架构: 应用层(雅加达) + 数据层(新加坡) 分离架构
 # 数据库: PostgreSQL 16 (新加坡数据层，通过 SSH 隧道 5433 连接)
 # 服务器结构: /opt/linkchest/api 是 git 仓库根目录
-#   API: apps/api/src  (tsx 运行)
-#   Web: apps/web      (next build)
+#   代码在 project/ 子目录中
+#   API: project/apps/api/src  (tsx 运行)
+#   Web: project/apps/web      (next build)
 #   DB:  远程 PostgreSQL (通过 autossh 隧道连接)
-# 使用: bash deploy/update-server.sh
+# 使用: bash project/deploy/update-server.sh
 # ============================================================
 
 set -e
 
-BASE_DIR="/opt/linkchest/api"
+BASE_DIR="/opt/linkchest/api/project"
 API_DIR="$BASE_DIR/apps/api"
 WEB_DIR="$BASE_DIR/apps/web"
 
