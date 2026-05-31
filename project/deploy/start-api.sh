@@ -3,6 +3,15 @@
 # 由 PM2 调用，确保在正确的工作目录下启动 Express 服务
 
 cd /opt/linkchest/api/project/apps/api
+
+# 加载 .env 文件（如果存在）
+if [ -f .env ]; then
+  set -a
+  source .env
+  set +a
+  echo "[API] 已加载 .env 配置"
+fi
+
 # 清除 tsx/esbuild 缓存，确保代码更新生效
 rm -rf ../../node_modules/.cache/tsx 2>/dev/null || true
 rm -rf /tmp/tsx-* 2>/dev/null || true

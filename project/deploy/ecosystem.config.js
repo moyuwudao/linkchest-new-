@@ -27,8 +27,6 @@ module.exports = {
       interpreter: '/bin/bash',
       env: {
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://linkchest:LinkChest_DB_2026!@114.132.81.246:5432/linkchest',
-        REDIS_URL: 'redis://localhost:6379',
       },
       autorestart: true,
       watch: false,
