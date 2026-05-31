@@ -6,7 +6,7 @@ import { useI18n } from '@/lib/i18n';
 import Link from 'next/link';
 import { isLoggedIn } from '@/lib/auth';
 import { getMarketConfig, MarketConfig } from '@/lib/api/market';
-import { Download, Smartphone, Shield, Zap, Globe, ArrowLeft, CheckCircle, Info, Star, Users, Palette, Languages } from 'lucide-react';
+import { Download, Smartphone, Shield, Zap, Globe, ArrowLeft, CheckCircle, Info, Star, Users } from 'lucide-react';
 import ICPFiling from '@/components/ICPFiling';
 
 const APK_DOWNLOAD_URL = '/LinkChest.apk';
@@ -19,29 +19,6 @@ interface VersionInfo {
   size?: string;
   minAndroid: string;
   forceUpdate: boolean;
-}
-
-// 使用 Google Chart API 生成真实二维码
-function QRCodeImage({ url }: { url: string }) {
-  const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(url)}`;
-  return (
-    <div className="w-32 h-32 bg-white p-2 rounded-lg shadow-card">
-      <img 
-        src={qrUrl} 
-        alt="扫码下载" 
-        className="w-full h-full"
-        onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          const parent = target.parentElement;
-          if (parent) {
-            parent.innerHTML = '<div class="w-full h-full flex items-center justify-center text-xs text-gray-400">扫码下载</div>';
-          }
-        }}
-      />
-      <p className="text-[10px] text-center text-taupe mt-1">扫码下载</p>
-    </div>
-  );
 }
 
 // 语言切换按钮组件
@@ -134,7 +111,6 @@ export default function DownloadPage() {
   const appName = isChina ? '链藏' : 'LinkChest';
   const supportEmail = isChina ? 'support@linkchest.cn' : 'support@linkchest.net';
   const officialUrl = isChina ? 'https://linkchest.cn' : 'https://linkchest.net';
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : officialUrl;
 
   // 根据当前语言显示内容（优先使用locale，而不是market）
   const texts = isZh ? {
@@ -212,13 +188,8 @@ export default function DownloadPage() {
     { icon: <Globe className="w-6 h-6" />, title: texts.feature2.title, desc: texts.feature2.desc },
     { icon: <Shield className="w-6 h-6" />, title: texts.feature3.title, desc: texts.feature3.desc },
     { icon: <Smartphone className="w-6 h-6" />, title: texts.feature4.title, desc: texts.feature4.desc },
-  ];
-
-  const highlights = [
-    { icon: <Star className="w-5 h-5" />, title: texts.highlight1.title, desc: texts.highlight1.desc },
-    { icon: <Users className="w-5 h-5" />, title: texts.highlight2.title, desc: texts.highlight2.desc },
-    { icon: <Palette className="w-5 h-5" />, title: texts.highlight3.title, desc: texts.highlight3.desc },
-    { icon: <Languages className="w-5 h-5" />, title: texts.highlight4.title, desc: texts.highlight4.desc },
+    { icon: <Star className="w-6 h-6" />, title: texts.highlight1.title, desc: texts.highlight1.desc },
+    { icon: <Users className="w-6 h-6" />, title: texts.highlight2.title, desc: texts.highlight2.desc },
   ];
 
   const installSteps = [texts.step1, texts.step2, texts.step3, texts.step4];
@@ -286,12 +257,6 @@ export default function DownloadPage() {
               <span>{versionInfo.minAndroid || MIN_ANDROID_VERSION}</span>
             </div>
 
-            {/* QR Code - only show on desktop */}
-            {!isMobile && (
-              <div className="mt-4">
-                <QRCodeImage url={currentUrl} />
-              </div>
-            )}
           </div>
         </div>
 
@@ -309,7 +274,7 @@ export default function DownloadPage() {
         </div>
 
         {/* Core Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
           {coreFeatures.map((feature, index) => (
             <div
               key={index}
@@ -322,22 +287,6 @@ export default function DownloadPage() {
                 <h3 className="font-semibold text-charcoal dark:text-parchment mb-1">{feature.title}</h3>
                 <p className="text-sm text-taupe leading-relaxed">{feature.desc}</p>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Highlights */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-          {highlights.map((item, index) => (
-            <div
-              key={index}
-              className="text-center p-4 rounded-xl bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5"
-            >
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-chest-500/10 text-chest-500 mb-2">
-                {item.icon}
-              </div>
-              <h4 className="font-medium text-charcoal dark:text-parchment text-sm mb-1">{item.title}</h4>
-              <p className="text-xs text-taupe">{item.desc}</p>
             </div>
           ))}
         </div>

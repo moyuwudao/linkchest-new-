@@ -20,8 +20,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-GLOBAL_IP="43.133.44.232"
-CHINA_IP="43.136.82.88"
+GLOBAL_APP_IP="43.157.240.68"
+GLOBAL_DB_IP="43.133.44.232"
+CHINA_APP_IP="43.136.82.88"
+CHINA_DB_IP="114.132.81.246"
 REMOTE_DIR="/opt/linkchest/api"
 
 TARGET="${1:-}"
@@ -30,14 +32,14 @@ if [ -z "$TARGET" ]; then
     echo ""
     echo "用法: bash deploy/deploy.sh <global|china>"
     echo ""
-    echo "  global  - 海外服务器 ($GLOBAL_IP)"
-    echo "  china   - 国内应用层 ($CHINA_IP)"
+    echo "  global  - 海外应用层 ($GLOBAL_APP_IP) + 数据层 ($GLOBAL_DB_IP)"
+    echo "  china   - 国内应用层 ($CHINA_APP_IP) + 数据层 ($CHINA_DB_IP)"
     exit 1
 fi
 
 case "$TARGET" in
-    global) SERVER_IP="$GLOBAL_IP"; UPDATE_SCRIPT="deploy/update-server.sh"; PM2_API="linkchest-api-global" ;;
-    china)  SERVER_IP="$CHINA_IP";  UPDATE_SCRIPT="deploy/update-server-cn.sh"; PM2_API="linkchest-api-china" ;;
+    global) SERVER_IP="$GLOBAL_APP_IP"; UPDATE_SCRIPT="deploy/update-server.sh"; PM2_API="linkchest-api-global" ;;
+    china)  SERVER_IP="$CHINA_APP_IP";  UPDATE_SCRIPT="deploy/update-server-cn.sh"; PM2_API="linkchest-api-china" ;;
     *)
         echo -e "${RED}❌ 未知目标: $TARGET${NC} (可用: global, china)"
         exit 1
@@ -47,7 +49,7 @@ esac
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  LinkChest Git-Only 部署${NC}"
 echo -e "${GREEN}========================================${NC}"
-echo -e "目标: ${YELLOW}${TARGET}${NC}  服务器: ${YELLOW}${SERVER_IP}${NC}"
+echo -e "目标: ${YELLOW}${TARGET}${NC}  应用层: ${YELLOW}${SERVER_IP}${NC}"
 echo -e "更新脚本: ${YELLOW}${UPDATE_SCRIPT}${NC}"
 echo ""
 
@@ -169,18 +171,27 @@ else
     echo -e "  ✗ API 健康检查: ${RED}${API_STATUS}${NC}"
 fi
 
-if [ "$TARGET" = "china" ]; then
-    WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 http://${SERVER_IP}/login 2>/dev/null || echo "000")
-    MANIFEST=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 http://${SERVER_IP}/manifest.json 2>/dev/null || echo "000")
-    if [ "$WEB_STATUS" = "200" ]; then
-        echo -e "  ✓ WEB 页面: ${GREEN}${WEB_STATUS}${NC}"
+WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 http://${SERVER_IP}/login 2>/dev/null || echo "000")
+if [ "$WEB_STATUS" = "200" ]; then
+    echo -e "  ✓ WEB 页面: ${GREEN}${WEB_STATUS}${NC}"
+else
+    echo -e "  ✗ WEB 页面: ${RED}${WEB_STATUS}${NC}"
+fi
+
+MANIFEST=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 http://${SERVER_IP}/manifest.json 2>/dev/null || echo "000")
+if [ "$MANIFEST" = "200" ]; then
+    echo -e "  ✓ 静态资源: ${GREEN}${MANIFEST}${NC}"
+else
+    echo -e "  ✗ 静态资源: ${RED}${MANIFEST}${NC}"
+fi
+
+# 海外版额外检查数据库隧道
+if [ "$TARGET" = "global" ]; then
+    TUNNEL_STATUS=$(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} "nc -zv 127.0.0.1 5433" 2>/dev/null && echo "OK" || echo "FAILED")
+    if [ "$TUNNEL_STATUS" = "OK" ]; then
+        echo -e "  ✓ 数据库隧道: ${GREEN}正常${NC}"
     else
-        echo -e "  ✗ WEB 页面: ${RED}${WEB_STATUS}${NC}"
-    fi
-    if [ "$MANIFEST" = "200" ]; then
-        echo -e "  ✓ 静态资源: ${GREEN}${MANIFEST}${NC}"
-    else
-        echo -e "  ✗ 静态资源: ${RED}${MANIFEST}${NC}"
+        echo -e "  ⚠ 数据库隧道: ${YELLOW}异常${NC} (检查 autossh-tunnel)"
     fi
 fi
 

@@ -1,11 +1,12 @@
 #!/bin/bash
 # ============================================================
-# LinkChest 服务器端一键更新脚本
-# 数据库: PostgreSQL (Docker 容器 linkchest-db)
+# LinkChest 海外服务器端一键更新脚本
+# 架构: 应用层(雅加达) + 数据层(新加坡) 分离架构
+# 数据库: PostgreSQL 16 (新加坡数据层，通过 SSH 隧道 5433 连接)
 # 服务器结构: /opt/linkchest/api 是 git 仓库根目录
 #   API: apps/api/src  (tsx 运行)
 #   Web: apps/web      (next build)
-#   DB:  PostgreSQL 16 (Docker 容器)
+#   DB:  远程 PostgreSQL (通过 autossh 隧道连接)
 # 使用: bash deploy/update-server.sh
 # ============================================================
 
@@ -25,34 +26,43 @@ echo "[1/7] 拉取最新代码..."
 cd "$BASE_DIR"
 git pull
 
-# ===== 2. 启动 PostgreSQL 容器 =====
+# ===== 2. 检查 SSH 隧道和数据层连接 =====
 echo ""
-echo "[2/7] 启动 PostgreSQL 数据库..."
-cd "$BASE_DIR"
-docker compose up -d postgres
-echo "等待 PostgreSQL 就绪..."
-sleep 3
-for i in {1..30}; do
-  if docker exec linkchest-db pg_isready -U linkchest > /dev/null 2>&1; then
-    echo "PostgreSQL 就绪 ✓"
-    break
-  fi
-  if [ $i -eq 30 ]; then
-    echo "❌ PostgreSQL 启动超时"
+echo "[2/7] 检查数据库连接..."
+
+# 检查 SSH 隧道是否运行
+if ! nc -zv 127.0.0.1 5433 -w 3 2>/dev/null; then
+  echo "  ⚠️ SSH 隧道未运行，尝试启动..."
+  sudo systemctl restart autossh-tunnel 2>/dev/null || true
+  sleep 3
+  if ! nc -zv 127.0.0.1 5433 -w 3 2>/dev/null; then
+    echo "  ❌ SSH 隧道启动失败，无法连接数据层"
+    echo "  检查: sudo systemctl status autossh-tunnel"
     exit 1
   fi
-  sleep 1
-done
+fi
+
+# 测试数据库连接
+DB_URL=$(grep '^DATABASE_URL=' "$API_DIR/.env.global" 2>/dev/null | cut -d '=' -f2- | tr -d '"' | tr -d "'")
+if [ -z "$DB_URL" ]; then
+  DB_URL="postgresql://linkchest:linkchest123@127.0.0.1:5433/linkchest?schema=public"
+fi
+
+if ! psql "$DB_URL" -c "SELECT 1" > /dev/null 2>&1; then
+  echo "  ❌ 无法连接数据层 PostgreSQL (通过隧道 5433)"
+  exit 1
+fi
+echo "  数据层连接正常 ✓"
 
 # ===== 3. 配置 API 环境变量 =====
 echo ""
 echo "[3/7] 配置 API 环境变量..."
 cd "$API_DIR"
 if [ ! -f ".env" ] || grep -q "file:" ".env" 2>/dev/null; then
-  cp "$BASE_DIR/deploy/.env.production" "$API_DIR/.env"
-  echo "  .env 已配置为 PostgreSQL"
+  cp "$BASE_DIR/apps/api/.env.global" "$API_DIR/.env"
+  echo "  .env 已配置为 .env.global"
 else
-  echo "  .env 已存在且为 PostgreSQL 配置"
+  echo "  .env 已存在"
 fi
 
 # ===== 4. 数据库迁移 =====
@@ -66,30 +76,6 @@ if ! npx prisma migrate deploy 2>/dev/null; then
   echo "  migrate deploy 失败，使用 db push..."
   npx prisma db push --skip-generate 2>/dev/null || npx prisma db push --accept-data-loss
 fi
-
-# V1.4: Schema 校验 - 检查并修复常见缺失字段
-echo "  检查 Schema 一致性..."
-
-# 检查并自动添加缺失的列（兼容已有数据库）
-check_and_add_column() {
-  local table="$1"
-  local column="$2"
-  local type="$3"
-  local default="$4"
-  
-  if ! docker exec linkchest-db psql -U linkchest -d linkchest -tAc "SELECT column_name FROM information_schema.columns WHERE table_name='$table' AND column_name='$column'" 2>/dev/null | grep -q "$column"; then
-    echo "  添加缺失列: $table.$column ($type)"
-    local sql="ALTER TABLE \"$table\" ADD COLUMN \"$column\" $type"
-    if [ -n "$default" ]; then
-      sql="$sql DEFAULT $default"
-    fi
-    docker exec linkchest-db psql -U linkchest -d linkchest -c "$sql" 2>/dev/null || true
-  fi
-}
-
-# 检查shares表字段
-check_and_add_column "shares" "passwordPlain" "TEXT" "NULL"
-check_and_add_column "shares" "description" "TEXT" "NULL"
 
 # 确保schema与Prisma模型一致
 npx prisma db push --skip-generate 2>/dev/null || true
@@ -312,5 +298,6 @@ echo "  Web:  http://localhost:3003"
 echo "  数据库: PostgreSQL (linkchest-db)"
 echo "  查看服务: pm2 status"
 echo "  查看日志: pm2 logs"
-echo "  备份命令: docker exec linkchest-db pg_dump -U linkchest linkchest > backup.sql"
+echo "  备份命令: pg_dump \"$DB_URL\" > backup.sql"
+echo "  数据库隧道: sudo systemctl status autossh-tunnel"
 echo "=========================================="
