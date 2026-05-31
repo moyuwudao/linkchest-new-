@@ -43,13 +43,20 @@ if ! nc -zv 127.0.0.1 5433 -w 3 2>/dev/null; then
   fi
 fi
 
-# 测试数据库连接
-DB_URL=$(grep '^DATABASE_URL=' "$API_DIR/.env.global" 2>/dev/null | cut -d '=' -f2- | tr -d '"' | tr -d "'")
+# 测试数据库连接（优先使用 .env，回退到 .env.global）
+DB_URL=$(grep '^DATABASE_URL=' "$API_DIR/.env" 2>/dev/null | cut -d '=' -f2- | tr -d '"' | tr -d "'")
 if [ -z "$DB_URL" ]; then
-  DB_URL="postgresql://linkchest:linkchest123@127.0.0.1:5433/linkchest?schema=public"
+  DB_URL=$(grep '^DATABASE_URL=' "$API_DIR/.env.global" 2>/dev/null | cut -d '=' -f2- | tr -d '"' | tr -d "'")
+fi
+if [ -z "$DB_URL" ]; then
+  echo "  ❌ 无法读取 DATABASE_URL"
+  exit 1
 fi
 
-if ! psql "$DB_URL" -c "SELECT 1" > /dev/null 2>&1; then
+# 去掉 schema 查询参数（psql 14 不支持）
+DB_URL_CLEAN=$(echo "$DB_URL" | sed 's/?schema=public//')
+
+if ! psql "$DB_URL_CLEAN" -c "SELECT 1" > /dev/null 2>&1; then
   echo "  ❌ 无法连接数据层 PostgreSQL (通过隧道 5433)"
   exit 1
 fi
