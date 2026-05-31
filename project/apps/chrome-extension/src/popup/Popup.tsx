@@ -11,6 +11,8 @@ import {
   getDefaultListId,
   getDefaultTagIds,
   getDefaultNote,
+  getCurrentServer,
+  type ServerConfig,
   detectSystemLocale,
 } from '../lib/storage';
 import {
@@ -62,6 +64,7 @@ export default function Popup() {
   const [tags, setTags] = useState<TagItem[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [localCoverOrder, setLocalCoverOrder] = useState<CoverStrategy[]>([]);
+  const [currentServer, setCurrentServer] = useState<ServerConfig | null>(null);
 
   const [coverStrategy, setCoverStrategy] = useState<CoverStrategy>('url');
   const [selectedListId, setSelectedListId] = useState('');
@@ -74,9 +77,10 @@ export default function Popup() {
 
   useEffect(() => {
     async function init() {
-      const [li, language] = await Promise.all([isLoggedIn(), getLanguage()]);
+      const [li, language, server] = await Promise.all([isLoggedIn(), getLanguage(), getCurrentServer()]);
       setLang(language);
       setLoggedIn(li);
+      setCurrentServer(server);
       setAuthChecked(true);
 
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -321,6 +325,30 @@ export default function Popup() {
           </svg>
         </button>
       </div>
+
+      {/* 当前服务器提示 */}
+      {currentServer && (
+        <div style={{
+          padding: '6px 12px',
+          background: '#f0f0f0',
+          borderRadius: 4,
+          marginBottom: 8,
+          fontSize: 12,
+          color: '#666',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}>
+          <span style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: currentServer.key === 'global' ? '#4CAF50' : '#FF9800',
+            display: 'inline-block',
+          }} />
+          <span>{t('currentServer', lang)}: {currentServer.key === 'global' ? 'LinkChest' : '链藏'} ({currentServer.url})</span>
+        </div>
+      )}
 
       <div className="form-group">
         <label>{t('pageTitle', lang)}</label>

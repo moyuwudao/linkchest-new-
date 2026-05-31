@@ -400,6 +400,17 @@ S8ztuJFQSydSHbBi0qKRymBnLxQT8rKJ3zpoomDifVhdQp++SC0hMXXz3W6jNjpr
 hQz23pQG
 -----END PRIVATE KEY-----"
 
+# 腾讯云 SES 邮件配置（海外版使用香港地域）
+# ⚠️ 重要：海外版发信地址和模板在香港地域(ap-hongkong)创建，国内版在广州(ap-guangzhou)
+# 发信地址 noreply@linkchest.net 和模板ID 175148 需在腾讯云 SES 香港控制台预先配置并审核通过
+TENCENTCLOUD_SECRET_ID=your-secret-id
+TENCENTCLOUD_SECRET_KEY=your-secret-key
+SES_REGION=ap-hongkong
+SES_FROM_EMAIL_GLOBAL=noreply@linkchest.net
+SES_VERIFY_TEMPLATE_ID_GLOBAL=175148
+SES_FROM_EMAIL=noreply@linkchest.net
+SES_VERIFY_TEMPLATE_ID=175148
+
 # Cloudflare Worker 配置（海外直接访问）
 CLOUDFLARE_WORKER_URL="https://linkchest-metadata.lvmeta.workers.dev"
 ```
@@ -465,9 +476,18 @@ Dv/tD0Tg/k1kbiV3VlS6/6KMpdKxbSfRyrq85YYqzf36MJpO3C3hjmvZ3NZFHZ9v
 KPg8oY6h
 -----END PRIVATE KEY-----"
 
-# 腾讯云配置（内容审核 + 邮件推送）
+# 腾讯云 SES 邮件配置（国内版使用广州地域）
+# ⚠️ 重要：国内版发信地址和模板在广州地域(ap-guangzhou)创建，海外版在香港(ap-hongkong)
+# 发信地址 noreply@linkchest.cn 和模板ID 49526 需在腾讯云 SES 广州控制台预先配置并审核通过
 TENCENTCLOUD_SECRET_ID=your-secret-id
 TENCENTCLOUD_SECRET_KEY=your-secret-key
+SES_REGION=ap-guangzhou
+SES_FROM_EMAIL_CN=noreply@linkchest.cn
+SES_VERIFY_TEMPLATE_ID_CN=49526
+SES_FROM_EMAIL_GLOBAL=noreply@linkchest.net
+SES_VERIFY_TEMPLATE_ID_GLOBAL=175148
+SES_FROM_EMAIL=noreply@linkchest.cn
+SES_VERIFY_TEMPLATE_ID=49526
 
 # Cloudflare Worker 配置（国内专用代理方案）
 CLOUDFLARE_WORKER_URL="http://localhost:3001/api/collections/proxy-metadata"
@@ -489,6 +509,27 @@ NEXT_PUBLIC_MARKET=china
 2. .env 文件
 3. .env.example 默认值（最低优先级）
 ```
+
+### 2.3 腾讯云 SES 邮件配置注意事项
+
+> **关键区别**：国内外使用不同的 SES 地域和发信配置
+
+| 配置项 | 海外版 (global) | 国内版 (china) |
+|--------|----------------|----------------|
+| SES_REGION | `ap-hongkong` | `ap-guangzhou` |
+| 发信地址 | `noreply@linkchest.net` | `noreply@linkchest.cn` |
+| 验证码模板ID | `175148` | `49526` |
+| 控制台位置 | 腾讯云 SES 香港 | 腾讯云 SES 广州 |
+
+**⚠️ 常见错误**：
+- `FailedOperation.NotAuthenticatedSender`：发信地址未在对应地域控制台完成认证
+- `InvalidParameterValue.TemplateNotFound`：模板ID不存在于当前地域
+- 区域不匹配：使用 `ap-guangzhou` 调用香港地域的发信地址会失败
+
+**配置前检查清单**：
+- [ ] 在腾讯云 SES 对应地域控制台创建发信地址并审核通过
+- [ ] 在腾讯云 SES 对应地域控制台创建邮件模板并审核通过
+- [ ] 确认 `SES_REGION` 与控制台地域一致（海外=香港，国内=广州）
 
 ---
 

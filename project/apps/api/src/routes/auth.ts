@@ -19,7 +19,7 @@ import {
 } from '../lib/constants'
 import { AuthErrorCodes, AuthErrorCode, errorResponse } from '../lib/errorCodes'
 import { authenticate, AuthenticatedRequest } from '../middleware/auth'
-import { sendTemplateEmail } from '../services/ses'
+import { sendTemplateEmail, sendVerificationCode } from '../services/ses'
 import { recordUserRegistered } from '../services/prom-metrics'
 import { useReferralCode } from './referrals'
 import logger from '../lib/logger'
@@ -312,20 +312,9 @@ router.post('/send-code', async (req, res) => {
 
     // 发送验证码（仅邮箱）
     try {
-      const templateId = parseInt(process.env.SES_VERIFY_TEMPLATE_ID || '0', 10)
-      if (!templateId) {
-        logger.warn({ reqId }, '[SES] SES_VERIFY_TEMPLATE_ID 未配置，跳过邮件发送')
-      } else {
-        await sendTemplateEmail({
-          to: [email],
-          subject: lang === 'en' ? 'Verification Code' : '验证码',
-          templateId,
-          templateData: { code, expire: '10' },
-          fromAlias: 'LinkChest',
-          triggerType: 1,
-        })
-        logger.info({ reqId, email: maskEmail(email) }, '[SES] 验证码邮件已发送')
-      }
+      // 使用 SES 服务的 sendVerificationCode，自动根据市场选择模板
+      await sendVerificationCode(email, code)
+      logger.info({ reqId, email: maskEmail(email) }, '[SES] 验证码邮件已发送')
     } catch (err: unknown) {
       const sesErr = err as { message?: string; code?: string; requestId?: string }
       logger.error({

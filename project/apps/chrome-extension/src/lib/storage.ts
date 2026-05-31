@@ -2,6 +2,7 @@ const STORAGE_KEYS = {
   TOKEN: 'linkchest_token',
   USER: 'linkchest_user',
   SERVER_URL: 'linkchest_server_url',
+  SERVER_CONFIG: 'linkchest_server_config',
   QUICK_SAVE_MODE: 'linkchest_quick_save_mode',
   COVER_STRATEGY_ORDER: 'linkchest_cover_strategy_order',
   LANGUAGE: 'linkchest_language',
@@ -9,6 +10,50 @@ const STORAGE_KEYS = {
   DEFAULT_TAG_IDS: 'linkchest_default_tag_ids',
   DEFAULT_NOTE: 'linkchest_default_note',
 } as const;
+
+// 预设服务器配置
+export interface ServerConfig {
+  key: string
+  name: string
+  nameEn: string
+  url: string
+  region: string
+}
+
+export const PRESET_SERVERS: ServerConfig[] = [
+  {
+    key: 'global',
+    name: 'LinkChest',
+    nameEn: 'LinkChest',
+    url: 'https://linkchest.net',
+    region: 'global',
+  },
+  {
+    key: 'china',
+    name: '链藏',
+    nameEn: 'LinkChest China',
+    url: 'https://linkchest.cn',
+    region: 'china',
+  },
+]
+
+export async function getServerConfig(): Promise<ServerConfig | null> {
+  const result = await chrome.storage.local.get(STORAGE_KEYS.SERVER_CONFIG)
+  return result[STORAGE_KEYS.SERVER_CONFIG] || null
+}
+
+export async function setServerConfig(config: ServerConfig): Promise<void> {
+  await chrome.storage.local.set({ [STORAGE_KEYS.SERVER_CONFIG]: config })
+  // 同步更新 serverUrl
+  await setServerUrl(config.url)
+}
+
+export async function getCurrentServer(): Promise<ServerConfig> {
+  const config = await getServerConfig()
+  if (config) return config
+  // 默认返回海外版
+  return PRESET_SERVERS[0]
+}
 
 export type QuickSaveMode = 'popup' | 'silent';
 export type CoverStrategy = 'url' | 'brand' | 'ai';

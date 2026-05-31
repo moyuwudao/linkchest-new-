@@ -666,6 +666,21 @@ function LoginForm() {
                 </button>
               </p>
 
+              {/* APK下载入口 */}
+              <div className="flex items-center justify-center gap-2 py-3">
+                <a 
+                  href="/download" 
+                  className="inline-flex items-center gap-1.5 text-sm text-chest-500 dark:text-amber-400 hover:text-chest-600 dark:hover:text-amber-300 font-medium transition-colors"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  {t('login.downloadApk') || '下载安卓客户端'}
+                </a>
+              </div>
+
               {/* 隐私政策和服务条款 - 注册下方，其他登录方式上方 */}
               <div className="flex items-center justify-center gap-4 text-xs text-taupe py-3">
                 <a href="/privacy" className="hover:text-chest-600 dark:hover:text-amber-400 transition-colors">

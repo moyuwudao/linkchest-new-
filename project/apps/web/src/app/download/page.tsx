@@ -5,7 +5,8 @@ import Logo from '@/components/Logo';
 import { useI18n } from '@/lib/i18n';
 import Link from 'next/link';
 import { isLoggedIn } from '@/lib/auth';
-import { Download, Smartphone, Shield, Zap, Globe, ArrowLeft, QrCode, CheckCircle, Info } from 'lucide-react';
+import { getMarketConfig, MarketConfig } from '@/lib/api/market';
+import { Download, Smartphone, Shield, Zap, Globe, ArrowLeft, QrCode, CheckCircle, Info, Star, Users, Lock, Sparkles, Palette, Languages } from 'lucide-react';
 
 const APK_DOWNLOAD_URL = '/LinkChest.apk';
 const MIN_ANDROID_VERSION = 'Android 8.0+';
@@ -20,7 +21,6 @@ interface VersionInfo {
 }
 
 function QRCodeSVG() {
-  // 简单的 QR 码占位，实际项目中可以用 qrcode.react 库
   return (
     <div className="w-32 h-32 bg-white p-2 rounded-lg shadow-card">
       <div className="w-full h-full border-2 border-chest-500 rounded flex items-center justify-center">
@@ -32,9 +32,11 @@ function QRCodeSVG() {
 }
 
 export default function DownloadPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [isMobile, setIsMobile] = useState(false);
   const [isLoggedInState, setIsLoggedInState] = useState(false);
+  const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
+  const [marketLoading, setMarketLoading] = useState(true);
   const [versionInfo, setVersionInfo] = useState<VersionInfo>({
     version: '1.0.0',
     buildDate: '',
@@ -51,6 +53,19 @@ export default function DownloadPage() {
     checkMobile();
     setIsLoggedInState(isLoggedIn());
 
+    // 获取市场配置
+    async function fetchMarketConfig() {
+      try {
+        const config = await getMarketConfig();
+        setMarketConfig(config);
+      } catch {
+        // 忽略错误
+      } finally {
+        setMarketLoading(false);
+      }
+    }
+    fetchMarketConfig();
+
     // 动态获取版本信息
     fetch('/version.json')
       .then(r => r.ok ? r.json() : null)
@@ -60,18 +75,48 @@ export default function DownloadPage() {
       .catch(() => {});
   }, []);
 
-  const features = [
-    { icon: <Zap className="w-5 h-5" />, title: t('download.feature1Title'), desc: t('download.feature1Desc') },
-    { icon: <Globe className="w-5 h-5" />, title: t('download.feature2Title'), desc: t('download.feature2Desc') },
-    { icon: <Shield className="w-5 h-5" />, title: t('download.feature3Title'), desc: t('download.feature3Desc') },
-    { icon: <Smartphone className="w-5 h-5" />, title: t('download.feature4Title'), desc: t('download.feature4Desc') },
+  const isChina = marketConfig?.market === 'china';
+  const appName = isChina ? '链藏' : 'LinkChest';
+  const supportEmail = isChina ? 'support@linkchest.cn' : 'support@linkchest.net';
+  const officialUrl = isChina ? 'https://linkchest.cn' : 'https://linkchest.net';
+
+  // 应用核心功能介绍
+  const coreFeatures = [
+    { 
+      icon: <Zap className="w-6 h-6" />, 
+      title: '一键收藏', 
+      desc: `浏览网页时发现好内容？一键保存到 ${appName}，支持链接、图片、视频等多种格式，让收藏变得简单高效。`
+    },
+    { 
+      icon: <Globe className="w-6 h-6" />, 
+      title: '跨平台同步', 
+      desc: `支持 Web 端、Chrome 插件、Android 和 iOS 客户端多端同步，随时随地访问你的收藏库，数据实时同步不丢失。`
+    },
+    { 
+      icon: <Shield className="w-6 h-6" />, 
+      title: '安全私密', 
+      desc: '采用行业标准的加密技术保护你的数据，支持私有收藏和公开分享两种模式，你的数据由你掌控。'
+    },
+    { 
+      icon: <Smartphone className="w-6 h-6" />, 
+      title: '智能分类', 
+      desc: '自动识别链接内容并智能分类，支持自定义标签和文件夹管理，让海量收藏井井有条。'
+    },
+  ];
+
+  // 应用亮点
+  const highlights = [
+    { icon: <Star className="w-5 h-5" />, title: '智能解析封面', desc: '自动提取网页标题、描述和封面图' },
+    { icon: <Users className="w-5 h-5" />, title: '社交分享', desc: '一键生成分享链接，好友无需注册即可查看' },
+    { icon: <Palette className="w-5 h-5" />, title: '个性化展示', desc: '自定义收藏展示方式，打造专属风格' },
+    { icon: <Languages className="w-5 h-5" />, title: '深色模式&多语言', desc: '适配系统主题，支持6种语言切换' },
   ];
 
   const installSteps = [
-    t('download.step1'),
-    t('download.step2'),
-    t('download.step3'),
-    t('download.step4'),
+    '点击上方"下载 APK"按钮获取安装包',
+    '在文件管理器中找到下载的 APK 文件',
+    '点击安装包，允许"安装未知来源应用"权限',
+    '完成安装后打开应用，登录账号即可使用',
   ];
 
   return (
@@ -82,7 +127,7 @@ export default function DownloadPage() {
           <Link href="/" className="flex items-center gap-2.5 group">
             <Logo size={32} />
             <span className="font-display text-lg font-semibold text-charcoal dark:text-parchment group-hover:text-chest-500 transition-colors">
-              LinkChest
+              {appName}
             </span>
           </Link>
           <Link
@@ -90,7 +135,7 @@ export default function DownloadPage() {
             className="flex items-center gap-1.5 text-sm text-taupe hover:text-chest-500 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            {isLoggedInState ? t('download.backToHome') : t('download.backToLogin')}
+            {isLoggedInState ? '返回首页' : '返回登录'}
           </Link>
         </div>
       </header>
@@ -102,10 +147,13 @@ export default function DownloadPage() {
             <Logo size={56} variant="light" />
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold text-charcoal dark:text-parchment mb-4">
-            {t('download.title')}
+            {appName} {isChina ? '安卓客户端' : 'Android App'}
           </h1>
-          <p className="text-lg text-taupe max-w-lg mx-auto mb-8">
-            {t('download.subtitle')}
+          <p className="text-lg text-taupe max-w-2xl mx-auto mb-8">
+            {isChina 
+              ? `你的个人知识库，随时随地收藏和管理网络内容。支持链接、图片、视频一键保存，多端同步，让有价值的内容不再丢失。`
+              : `Your personal knowledge base. Save and manage web content anytime, anywhere. Support links, images, and videos with one-click save and cross-platform sync.`
+            }
           </p>
 
           {/* Download Button */}
@@ -116,7 +164,7 @@ export default function DownloadPage() {
               className="inline-flex items-center gap-3 px-8 py-4 bg-chest-500 hover:bg-chest-600 text-white rounded-xl font-semibold text-lg shadow-elevated hover:shadow-floating transition-all hover:-translate-y-0.5 active:translate-y-0"
             >
               <Download className="w-6 h-6" />
-              {t('download.downloadApk')}
+              {isChina ? '下载安卓客户端' : 'Download Android App'}
             </a>
 
             <div className="flex items-center gap-4 text-sm text-taupe">
@@ -139,14 +187,42 @@ export default function DownloadPage() {
           </div>
         </div>
 
-        {/* Features Grid */}
+        {/* App Introduction - 应用详细介绍 */}
+        <div className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-card mb-12">
+          <h2 className="font-display text-xl font-bold text-charcoal dark:text-parchment mb-4 flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-chest-500" />
+            {isChina ? `关于 ${appName}` : `About ${appName}`}
+          </h2>
+          <div className="space-y-4 text-sm text-charcoal dark:text-parchment/90 leading-relaxed">
+            <p>
+              {isChina 
+                ? `${appName} 是一款专注于内容收藏与管理的效率工具。无论你是浏览网页、阅读文章还是观看视频，只需一键即可将感兴趣的内容保存到个人收藏库中。我们提供智能分类、标签管理、跨平台同步等功能，帮助你构建属于自己的知识体系。`
+                : `${appName} is a productivity tool focused on content collection and management. Whether you're browsing web pages, reading articles, or watching videos, you can save interesting content to your personal library with one click. We offer smart categorization, tag management, and cross-platform sync to help you build your own knowledge system.`
+              }
+            </p>
+            <p>
+              {isChina 
+                ? `应用支持多种登录方式，包括邮箱注册、微信登录和 Google 账号登录，满足不同用户的使用习惯。所有数据均采用加密传输和存储，确保你的隐私安全。`
+                : `The app supports multiple login methods including email registration, Google Sign-In, and Apple Sign-In to meet different user preferences. All data is encrypted during transmission and storage to ensure your privacy.`
+              }
+            </p>
+            <p>
+              {isChina 
+                ? `目前 ${appName} 提供 Web 网页版、Chrome 浏览器插件、Android 和 iOS 移动应用四种使用方式，数据实时同步，让你在任何设备上都能无缝访问自己的收藏内容。`
+                : `Currently ${appName} offers Web version, Chrome browser extension, Android and iOS mobile apps with real-time data sync, allowing you to seamlessly access your collections on any device.`
+              }
+            </p>
+          </div>
+        </div>
+
+        {/* Core Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
-          {features.map((feature, index) => (
+          {coreFeatures.map((feature, index) => (
             <div
               key={index}
               className="flex items-start gap-4 p-5 rounded-xl bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 shadow-card hover:shadow-card-hover transition-shadow"
             >
-              <div className="shrink-0 w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <div className="shrink-0 w-12 h-12 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
                 {feature.icon}
               </div>
               <div>
@@ -157,11 +233,27 @@ export default function DownloadPage() {
           ))}
         </div>
 
+        {/* Highlights */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+          {highlights.map((item, index) => (
+            <div
+              key={index}
+              className="text-center p-4 rounded-xl bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/5"
+            >
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-chest-500/10 text-chest-500 mb-2">
+                {item.icon}
+              </div>
+              <h4 className="font-medium text-charcoal dark:text-parchment text-sm mb-1">{item.title}</h4>
+              <p className="text-xs text-taupe">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+
         {/* Install Guide */}
         <div className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-card mb-12">
           <h2 className="font-display text-xl font-bold text-charcoal dark:text-parchment mb-6 flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-chest-500" />
-            {t('download.installGuide')}
+            {isChina ? '安装指南' : 'Installation Guide'}
           </h2>
           <div className="space-y-4">
             {installSteps.map((step, index) => (
@@ -179,38 +271,69 @@ export default function DownloadPage() {
         <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-800/30 rounded-xl p-5 mb-12">
           <h3 className="font-semibold text-charcoal dark:text-parchment mb-3 flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-sage" />
-            {t('download.systemRequirements')}
+            {isChina ? '系统要求' : 'System Requirements'}
           </h3>
           <ul className="space-y-2 text-sm text-taupe">
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-sage shrink-0" />
-              {t('download.req1')}
+              {isChina ? 'Android 8.0 或更高版本 / iOS 14.0+' : 'Android 8.0+ / iOS 14.0+'}
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-sage shrink-0" />
-              {t('download.req2')}
+              {isChina ? '至少 50MB 可用存储空间' : 'At least 50MB free storage'}
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-sage shrink-0" />
-              {t('download.req3')}
+              {isChina ? '需要网络连接以同步数据' : 'Internet connection required for sync'}
             </li>
           </ul>
         </div>
 
-        {/* Warning for iOS users */}
-        {isMobile && !/Android/i.test(navigator.userAgent) && (
-          <div className="bg-rust/10 border border-rust/20 rounded-xl p-5 mb-12">
-            <p className="text-sm text-rust leading-relaxed">
-              {t('download.iosWarning')}
-            </p>
+        {/* iOS Notice */}
+        <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/50 dark:border-blue-800/30 rounded-xl p-5 mb-12">
+          <h3 className="font-semibold text-charcoal dark:text-parchment mb-2 flex items-center gap-2">
+            <Smartphone className="w-4 h-4 text-blue-500" />
+            {isChina ? 'iOS 用户说明' : 'For iOS Users'}
+          </h3>
+          <p className="text-sm text-taupe leading-relaxed">
+            {isChina 
+              ? `${appName} 同时提供 iOS 版本，你可以在 App Store 搜索 "${appName}" 下载安装，或使用 Web 网页版收藏内容。`
+              : `${appName} is also available on iOS. You can search for "${appName}" on the App Store or use the Web version to save content.`
+            }
+          </p>
+        </div>
+
+        {/* Contact / Support */}
+        <div className="bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-2xl p-6 md:p-8 shadow-card mb-12">
+          <h2 className="font-display text-xl font-bold text-charcoal dark:text-parchment mb-4">
+            {isChina ? '联系我们' : 'Contact Us'}
+          </h2>
+          <p className="text-sm text-taupe leading-relaxed mb-4">
+            {isChina 
+              ? '如果你在使用过程中遇到任何问题，或有功能建议，欢迎通过以下方式联系我们：'
+              : 'If you encounter any issues or have feature suggestions, please contact us:'
+            }
+          </p>
+          <div className="space-y-2 text-sm text-charcoal dark:text-parchment/90">
+            <p>{isChina ? '邮箱' : 'Email'}：{supportEmail}</p>
+            <p>{isChina ? '官网' : 'Website'}：{officialUrl}</p>
           </div>
-        )}
+        </div>
 
         {/* Footer */}
         <div className="text-center pt-8 border-t border-black/5 dark:border-white/5">
           <p className="text-sm text-taupe">
-            {t('download.copyright')}
+            © 2026 {appName}. All rights reserved.
           </p>
+          <div className="flex items-center justify-center gap-4 mt-2 text-xs text-taupe">
+            <Link href="/privacy" className="hover:text-chest-500 transition-colors">
+              {isChina ? '隐私政策' : 'Privacy Policy'}
+            </Link>
+            <span>|</span>
+            <Link href="/terms" className="hover:text-chest-500 transition-colors">
+              {isChina ? '服务条款' : 'Terms of Service'}
+            </Link>
+          </div>
         </div>
       </main>
     </div>

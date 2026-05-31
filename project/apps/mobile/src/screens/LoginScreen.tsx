@@ -124,7 +124,7 @@ export default function LoginScreen() {
     (Constants.expoConfig?.android?.package || '') === 'cn.linkchest.app';
 
   // 默认市场配置（API 失败时使用）
-  // 注意：Android 国内版不需要 Apple 登录（仅 iOS 需要）
+  // 注意：Android 海外版不需要 Apple 登录（仅 iOS 需要）
   const defaultMarketConfig: MarketConfig = isLocalChina
     ? {
         market: 'china',
@@ -134,8 +134,8 @@ export default function LoginScreen() {
       }
     : {
         market: 'global',
-        authProviders: { google: true, apple: true, wechat: false, alipay_auth: false, facebook: true },
-        paymentProviders: { paypal: true, wechat_pay: false, alipay: false, google_pay: true, apple_iap: true, google_play_billing: true },
+        authProviders: { google: true, apple: false, wechat: false, alipay_auth: false, facebook: false },
+        paymentProviders: { paypal: true, wechat_pay: false, alipay: false, google_pay: true, apple_iap: false, google_play_billing: true },
         features: { contentModeration: false, referralProgram: true },
       };
 

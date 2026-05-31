@@ -18,8 +18,12 @@ import {
   setDefaultTagIds,
   getDefaultNote,
   setDefaultNote,
+  getCurrentServer,
+  setServerConfig,
+  PRESET_SERVERS,
   type QuickSaveMode,
   type CoverStrategy,
+  type ServerConfig,
   detectSystemLocale,
 } from '../lib/storage';
 import { login, getFlatLists, getTags } from '../lib/api';
@@ -89,6 +93,7 @@ export default function Options() {
   const [defaultListId, setDefaultListIdState] = useState<string>('');
   const [defaultTagIds, setDefaultTagIdsState] = useState<string[]>([]);
   const [defaultNote, setDefaultNoteState] = useState('');
+  const [currentServer, setCurrentServer] = useState<ServerConfig>(PRESET_SERVERS[0]);
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'quickSave', label: t('quickSaveMode', lang) },
@@ -98,7 +103,7 @@ export default function Options() {
 
   useEffect(() => {
     async function init() {
-      const [li, mode, order, lng, defListId, defTagIds, defNote] = await Promise.all([
+      const [li, mode, order, lng, defListId, defTagIds, defNote, server] = await Promise.all([
         isLoggedIn(),
         getQuickSaveMode(),
         getCoverStrategyOrder(),
@@ -106,6 +111,7 @@ export default function Options() {
         getDefaultListId(),
         getDefaultTagIds(),
         getDefaultNote(),
+        getCurrentServer(),
       ]);
       setLoggedIn(li);
       if (li) {
@@ -120,6 +126,7 @@ export default function Options() {
       setDefaultListIdState(defListId || '');
       setDefaultTagIdsState(defTagIds || []);
       setDefaultNoteState(defNote || '');
+      setCurrentServer(server);
     }
     init();
   }, []);
@@ -212,6 +219,20 @@ export default function Options() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleServerChange(serverKey: string) {
+    const server = PRESET_SERVERS.find((s) => s.key === serverKey)
+    if (!server) return
+    await setServerConfig(server)
+    setCurrentServer(server)
+    showMessage(t('serverSwitched', lang), 'success')
+    // 切换服务器后需要重新登录
+    await logout()
+    setLoggedIn(false)
+    setUserState(null)
+    setLists([])
+    setTags([])
   }
 
   async function handleLogout() {
@@ -403,6 +424,35 @@ export default function Options() {
         {/* 账户信息 */}
         {activeTab === 'account' && (
           <div className="tab-content">
+            {/* 服务器选择 */}
+            <div className="section-card">
+              <div className="section-title">{t('serverRegion', lang)}</div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <div className="radio-group">
+                  {PRESET_SERVERS.map((server) => (
+                    <label key={server.key} className="radio-label">
+                      <input
+                        type="radio"
+                        name="server"
+                        checked={currentServer.key === server.key}
+                        onChange={() => handleServerChange(server.key)}
+                      />
+                      <span>
+                        {server.key === 'global'
+                          ? t('serverGlobal', lang)
+                          : t('serverChina', lang)}
+                        <span style={{ fontSize: 12, color: '#999', marginLeft: 8 }}>
+                          ({server.url})
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <hr className="divider" />
+
             {loggedIn ? (
               <div>
                 <div className="info-row">
