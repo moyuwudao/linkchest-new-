@@ -31,7 +31,6 @@ function QRCodeImage({ url }: { url: string }) {
         alt="扫码下载" 
         className="w-full h-full"
         onError={(e) => {
-          // 如果 Google API 失败，显示备用二维码
           const target = e.target as HTMLImageElement;
           target.style.display = 'none';
           const parent = target.parentElement;
@@ -45,8 +44,42 @@ function QRCodeImage({ url }: { url: string }) {
   );
 }
 
+// 语言切换按钮组件
+function LanguageSwitcher({ 
+  currentLocale, 
+  onSwitch 
+}: { 
+  currentLocale: string; 
+  onSwitch: (locale: 'zh' | 'en') => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-lg p-1">
+      <button
+        onClick={() => onSwitch('zh')}
+        className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+          currentLocale === 'zh'
+            ? 'bg-chest-500 text-white'
+            : 'text-taupe hover:text-charcoal dark:hover:text-parchment'
+        }`}
+      >
+        中文
+      </button>
+      <button
+        onClick={() => onSwitch('en')}
+        className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+          currentLocale === 'en'
+            ? 'bg-chest-500 text-white'
+            : 'text-taupe hover:text-charcoal dark:hover:text-parchment'
+        }`}
+      >
+        EN
+      </button>
+    </div>
+  );
+}
+
 export default function DownloadPage() {
-  const { t, locale } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const [isMobile, setIsMobile] = useState(false);
   const [isLoggedInState, setIsLoggedInState] = useState(false);
   const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
@@ -67,11 +100,18 @@ export default function DownloadPage() {
     checkMobile();
     setIsLoggedInState(isLoggedIn());
 
-    // 获取市场配置
+    // 获取市场配置并设置默认语言
     async function fetchMarketConfig() {
       try {
         const config = await getMarketConfig();
         setMarketConfig(config);
+        // 根据域名设置默认语言：CN中文，NET英文
+        const isChinaDomain = window.location.hostname.includes('linkchest.cn');
+        if (isChinaDomain && locale !== 'zh') {
+          setLocale('zh');
+        } else if (!isChinaDomain && locale !== 'en') {
+          setLocale('en');
+        }
       } catch {
         // 忽略错误
       } finally {
@@ -90,13 +130,14 @@ export default function DownloadPage() {
   }, []);
 
   const isChina = marketConfig?.market === 'china';
+  const isZh = locale === 'zh';
   const appName = isChina ? '链藏' : 'LinkChest';
   const supportEmail = isChina ? 'support@linkchest.cn' : 'support@linkchest.net';
   const officialUrl = isChina ? 'https://linkchest.cn' : 'https://linkchest.net';
   const currentUrl = typeof window !== 'undefined' ? window.location.href : officialUrl;
 
-  // 根据语言统一显示内容
-  const texts = isChina ? {
+  // 根据当前语言显示内容（优先使用locale，而不是market）
+  const texts = isZh ? {
     title: `${appName} 安卓客户端`,
     subtitle: '你的个人知识库，随时随地收藏和管理网络内容。支持链接、图片、视频一键保存，多端同步，让有价值的内容不再丢失。',
     downloadBtn: '下载安卓客户端',
@@ -106,8 +147,6 @@ export default function DownloadPage() {
     about3: `目前 ${appName} 提供 Web 网页版、Chrome 浏览器插件、Android 和 iOS 移动应用四种使用方式，数据实时同步，让你在任何设备上都能无缝访问自己的收藏内容。`,
     installGuide: '安装指南',
     systemReq: '系统要求',
-    iosNotice: 'iOS 用户说明',
-    iosDesc: `${appName} 同时提供 iOS 版本，你可以在 App Store 搜索 "${appName}" 下载安装，或使用 Web 网页版收藏内容。`,
     contact: '联系我们',
     contactDesc: '如果你在使用过程中遇到任何问题，或有功能建议，欢迎通过以下方式联系我们：',
     email: '邮箱',
@@ -142,8 +181,6 @@ export default function DownloadPage() {
     about3: `Currently ${appName} offers Web version, Chrome browser extension, Android and iOS mobile apps with real-time data sync, allowing you to seamlessly access your collections on any device.`,
     installGuide: 'Installation Guide',
     systemReq: 'System Requirements',
-    iosNotice: 'For iOS Users',
-    iosDesc: `${appName} is also available on iOS. You can search for "${appName}" on the App Store or use the Web version to save content.`,
     contact: 'Contact Us',
     contactDesc: 'If you encounter any issues or have feature suggestions, please contact us:',
     email: 'Email',
@@ -197,13 +234,20 @@ export default function DownloadPage() {
               {appName}
             </span>
           </Link>
-          <Link
-            href={isLoggedInState ? '/' : '/login'}
-            className="flex items-center gap-1.5 text-sm text-taupe hover:text-chest-500 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {isLoggedInState ? texts.backHome : texts.backLogin}
-          </Link>
+          <div className="flex items-center gap-3">
+            {/* 语言切换按钮 */}
+            <LanguageSwitcher 
+              currentLocale={locale} 
+              onSwitch={(newLocale) => setLocale(newLocale)} 
+            />
+            <Link
+              href={isLoggedInState ? '/' : '/login'}
+              className="flex items-center gap-1.5 text-sm text-taupe hover:text-chest-500 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {isLoggedInState ? texts.backHome : texts.backLogin}
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -336,17 +380,6 @@ export default function DownloadPage() {
               {texts.req3}
             </li>
           </ul>
-        </div>
-
-        {/* iOS Notice */}
-        <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/50 dark:border-blue-800/30 rounded-xl p-5 mb-12">
-          <h3 className="font-semibold text-charcoal dark:text-parchment mb-2 flex items-center gap-2">
-            <Smartphone className="w-4 h-4 text-blue-500" />
-            {texts.iosNotice}
-          </h3>
-          <p className="text-sm text-taupe leading-relaxed">
-            {texts.iosDesc}
-          </p>
         </div>
 
         {/* Contact / Support */}
