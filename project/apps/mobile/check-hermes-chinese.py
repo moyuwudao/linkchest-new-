@@ -1,0 +1,10 @@
+data = open('/tmp/test-hermes.hbc', 'rb').read()
+
+print('=== 手动 Hermes 编译结果 ===')
+print('微信登录:', data.count(b'\xe5\xbe\xae\xe4\xbf\xa1\xe7\x99\xbb\xe5\xbd\x95'))
+print('应用宝:', data.count(b'\xe5\xba\x94\xe7\x94\xa8\xe5\xae\x9d'))
+print('专业版:', data.count(b'\xe4\xb8\x93\xe4\xb8\x9a\xe7\x89\x88'))
+print('旗舰版:', data.count(b'\xe6\x97\x97\xe8\x88\xb0\xe7\x89\x88'))
+print('tier.pro:', data.count(b'tier.pro'))
+print('Pro:', data.count(b'Pro'))
+print('Ultimate:', data.count(b'Ultimate'))

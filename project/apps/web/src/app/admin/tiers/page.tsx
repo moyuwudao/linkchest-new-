@@ -9,6 +9,7 @@ import {
 } from '@/lib/adminApi';
 import type { TierConfigInput } from '@/lib/types';
 import { useToast } from '@/components/Toast';
+import { getMarketConfig } from '@/lib/api/market';
 
 interface TierConfig {
   id: string; key: string; nameZh: string; nameEn: string;
@@ -44,7 +45,12 @@ export default function TierManagementPage() {
   const [benefitInput, setBenefitInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [market, setMarket] = useState<'china' | 'global'>('global');
   const { showToast, showAlert } = useToast();
+
+  useEffect(() => {
+    getMarketConfig().then(config => setMarket(config.market));
+  }, []);
 
   useEffect(() => { loadConfigs(); loadStats(); }, []);
 
@@ -258,7 +264,9 @@ export default function TierManagementPage() {
                   <td className="px-4 py-2.5 text-xs text-gray-600 font-medium">月付价格</td>
                   {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
                     <td key={c.id} className="px-4 py-2.5 text-xs text-center text-gray-500">
-                      ${((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100}
+                      {market === 'china'
+                        ? `¥${((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100}`
+                        : `$${((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100}`}
                     </td>
                   ))}
                 </tr>
@@ -266,7 +274,9 @@ export default function TierManagementPage() {
                   <td className="px-4 py-2.5 text-xs text-gray-600 font-medium">季付价格</td>
                   {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
                     <td key={c.id} className="px-4 py-2.5 text-xs text-center text-gray-500">
-                      ${((c.pricingConfig as any)?.quarterly?.usd ?? 0) / 100}
+                      {market === 'china'
+                        ? `¥${((c.pricingConfig as any)?.quarterly?.usd ?? 0) / 100}`
+                        : `$${((c.pricingConfig as any)?.quarterly?.usd ?? 0) / 100}`}
                     </td>
                   ))}
                 </tr>
@@ -274,7 +284,9 @@ export default function TierManagementPage() {
                   <td className="px-4 py-2.5 text-xs text-gray-600 font-medium">年付价格</td>
                   {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
                     <td key={c.id} className="px-4 py-2.5 text-xs text-center text-gray-500">
-                      ${((c.pricingConfig as any)?.yearly?.usd ?? 0) / 100}
+                      {market === 'china'
+                        ? `¥${((c.pricingConfig as any)?.yearly?.usd ?? 0) / 100}`
+                        : `$${((c.pricingConfig as any)?.yearly?.usd ?? 0) / 100}`}
                     </td>
                   ))}
                 </tr>
@@ -451,24 +463,32 @@ export default function TierManagementPage() {
 
               {/* 价格 */}
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">价格配置 ($ / 美分)</label>
+                <label className="block text-xs font-medium text-gray-500 mb-2">
+                  价格配置 ({market === 'china' ? '¥ / 元' : '$ / 美分'})
+                </label>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-0.5">月付 USD</label>
+                    <label className="block text-[10px] text-gray-400 mb-0.5">月付 {market === 'china' ? 'CNY' : 'USD'}</label>
                     <input type="number" value={(form.pricingConfig as any)?.monthly?.usd ?? 0} onChange={e => up('monthly.usd', e.target.value)}
                       className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-amber-400" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-0.5">季付 USD</label>
+                    <label className="block text-[10px] text-gray-400 mb-0.5">季付 {market === 'china' ? 'CNY' : 'USD'}</label>
                     <input type="number" value={(form.pricingConfig as any)?.quarterly?.usd ?? 0} onChange={e => up('quarterly.usd', e.target.value)}
                       className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-amber-400" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-400 mb-0.5">年付 USD</label>
+                    <label className="block text-[10px] text-gray-400 mb-0.5">年付 {market === 'china' ? 'CNY' : 'USD'}</label>
                     <input type="number" value={(form.pricingConfig as any)?.yearly?.usd ?? 0} onChange={e => up('yearly.usd', e.target.value)}
                       className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-amber-400" />
                   </div>
                 </div>
+                {market === 'china' && (
+                  <p className="text-[10px] text-gray-400 mt-1">注：国内版价格单位为「元」，输入 100 表示 100 元</p>
+                )}
+                {market === 'global' && (
+                  <p className="text-[10px] text-gray-400 mt-1">注：海外版价格单位为「美分」，输入 100 表示 $1.00</p>
+                )}
               </div>
 
               {/* 权益 */}

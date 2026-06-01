@@ -69,7 +69,8 @@ export async function deleteFromCos(key: string): Promise<void> {
 }
 
 /**
- * 生成临时签名 URL
+ * 生成 COS 对象访问 URL
+ * 优先使用签名 URL，如果存储桶为 Role 模式（签名失败）则降级为直接 URL
  * @param key COS 对象键
  * @param expires 有效期（秒）
  */
@@ -85,8 +86,29 @@ export async function getSignedUrl(key: string, expires = 3600): Promise<string>
         Sign: true,
       },
       (err, data) => {
-        if (err || !data.Url) reject(new Error(`COS 签名失败: ${err?.message || '未知错误'}`))
-        else resolve(data.Url)
+        if (err) {
+          // Role 模式存储桶不支持签名 URL，降级为直接 URL
+          if (err.message?.includes('check operation auth failed') || err.message?.includes('role mode')) {
+            client.getObjectUrl(
+              {
+                Bucket: COS_CONFIG.bucket,
+                Region: COS_CONFIG.region,
+                Key: key,
+                Sign: false,
+              },
+              (err2, data2) => {
+                if (err2 || !data2.Url) reject(new Error(`COS URL 生成失败: ${err2?.message || '未知错误'}`))
+                else resolve(data2.Url)
+              }
+            )
+          } else {
+            reject(new Error(`COS 签名失败: ${err.message}`))
+          }
+        } else if (!data.Url) {
+          reject(new Error('COS 签名失败: 未知错误'))
+        } else {
+          resolve(data.Url)
+        }
       }
     )
   })

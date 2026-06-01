@@ -68,15 +68,16 @@ export default function TermsScreen() {
   const route = useRoute<any>();
   const [activeTab, setActiveTab] = useState<'terms' | 'privacy'>(route.params?.tab === 'privacy' ? 'privacy' : 'terms');
 
-  const content = activeTab === 'privacy'
-    ? (locale === 'zh' ? privacyContent.zh : privacyContent.en)
-    : (locale === 'zh' ? termsContent.zh : termsContent.en);
-
-  const title = activeTab === 'privacy' ? t('privacy.title') : t('terms.title');
-
   // 获取市场环境
   const baseDomain = getBaseDomain();
   const isChinaMarket = baseDomain === 'linkchest.cn';
+
+  // 国内版显示国内版协议（中文），海外版显示海外版协议（英文）
+  const content = activeTab === 'privacy'
+    ? (isChinaMarket ? privacyContent.zh : privacyContent.en)
+    : (isChinaMarket ? termsContent.zh : termsContent.en);
+
+  const title = activeTab === 'privacy' ? t('privacy.title') : t('terms.title');
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>

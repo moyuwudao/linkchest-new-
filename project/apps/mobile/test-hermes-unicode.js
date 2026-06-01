@@ -1,0 +1,1 @@
+var s = "\u5fae\u4fe1\u767b\u5f55";

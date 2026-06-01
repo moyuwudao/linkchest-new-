@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.linkchest.app-mergeChinaReleaseResources-52:/values-watch-v21/values-watch-v21.xml",
+            "map": [
+                {
+                    "source": "/home/mayn/.gradle/caches/8.8/transforms/a9f8dba275e6c161a11283c0742b16e5/transformed/appcompat-1.6.1/res/values-watch-v21/values-watch-v21.xml",
+                    "from": {
+                        "startLines": "2,6,10",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,271,499",
+                        "endLines": "5,9,13",
+                        "endColumns": "12,12,12",
+                        "endOffsets": "266,494,724"
+                    }
+                }
+            ]
+        }
+    ]
+}

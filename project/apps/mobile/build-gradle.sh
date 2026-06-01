@@ -257,7 +257,8 @@ echo "=== JSON log: $JSON_LOG ==="
 # 手动生成 app.config（确保 MARKET 环境变量被正确传递）
 # ============================================================
 echo "=== 手动生成 app.config ==="
-ASSETS_DIR="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/${BUILD_DIR}/intermediates/assets/chinaRelease"
+export NODE_ENV=production
+ASSETS_DIR="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/${BUILD_DIR}/intermediates/assets/${TARGET_FLAVOR}Release"
 mkdir -p "$ASSETS_DIR"
 node "/mnt/d/trae_projects/linkchest/project/node_modules/expo-constants/scripts/getAppConfig.js" "/mnt/d/trae_projects/linkchest/project/apps/mobile" "$ASSETS_DIR"
 if [ -f "$ASSETS_DIR/app.config" ]; then
@@ -429,6 +430,23 @@ if [ "$TARGET_FLAVOR" = "global" ]; then
 
     if [ ! -f "app/google-services.json" ]; then
         log_json "WARN" "verify" "global-google-services" "google-services.json not found"
+    fi
+fi
+
+# 通用 bundle 验证：i18n 翻译内容是否内联
+if [ -f "$BUNDLE_FILE" ]; then
+    log_json "INFO" "verify" "i18n-bundle-check" "Checking i18n translation content in bundle"
+    # 检查关键翻译键是否存在于 bundle 中（验证 JSON 是否被 Metro 内联）
+    if ! strings "$BUNDLE_FILE" | grep -q '"pro":"Pro"'; then
+        log_json "ERROR" "verify" "i18n-bundle-check" "i18n translations not inlined in bundle" \
+            "{\"case\":\"CASE-021\",\"suggestion\":\"Check metro.config.js sourceExts and assetExts for json\"}"
+        echo "❌ 错误: bundle 中未检测到 i18n 翻译内容"
+        echo "📋 原因: Metro 未将 JSON 文件内联到 bundle（metro.config.js 配置问题）"
+        echo "🔧 建议: 检查 metro.config.js 的 sourceExts 是否包含 'json'，assetExts 是否排除 'json'"
+        exit 1
+    else
+        log_json "INFO" "verify" "i18n-bundle-check" "i18n translations correctly inlined"
+        echo "✅ i18n 翻译内容已正确内联到 bundle"
     fi
 fi
 

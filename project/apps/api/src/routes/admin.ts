@@ -13,7 +13,8 @@ import { getMetadataStats } from '../services/metadata'
 import { queryLogs, getLogFileList } from '../services/logReader'
 import { getAllTierConfigs, createTierConfig, updateTierConfig, deleteTierConfig, clearTierConfigCache, syncTierConfigs, getQuotaConfig } from '../services/tierConfig'
 import { getMetricsText } from '../services/prom-metrics'
-import { getAllServerMetrics, syncAllRemoteMetrics, fetchRemotePm2Status, REMOTE_SERVERS } from '../services/remoteMetrics'
+import { getAllServerMetrics, syncAllRemoteMetrics, fetchRemotePm2Status, getRemoteServers, getLocalServer } from '../services/remoteMetrics'
+import { isChinaMarket, isGlobalMarket } from '../lib/market'
 import { TierErrorCodes, errorResponse, CommonErrorCodes, AuthErrorCodes } from '../lib/errorCodes'
 
 const router = Router()
@@ -168,6 +169,135 @@ router.get('/logs/files', async (req, res) => {
     res.json({ files })
   } catch (e) {
     logger.error({ err: (e as Error).message }, 'admin log files failed')
+    return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
+  }
+})
+
+// 获取服务状态（PM2 进程 + 系统服务）
+router.get('/logs/services', async (_req, res) => {
+  try {
+    const { execSync } = await import('child_process')
+    const services: Array<{
+      name: string
+      status: 'running' | 'stopped' | 'error'
+      uptime?: string
+      memory?: string
+      cpu?: string
+      restarts?: number
+      pid?: number
+    }> = []
+
+    // 1. 查询 PM2 进程状态
+    try {
+      const pm2Output = execSync('pm2 jlist', { encoding: 'utf8', timeout: 5000 })
+      const pm2Processes = JSON.parse(pm2Output) as Array<{
+        name: string
+        pid: number
+        pm2_env: { status: string; pm_uptime: number; restart_time: number }
+        monit: { memory: number; cpu: number }
+      }>
+
+      for (const proc of pm2Processes) {
+        const uptimeMs = Date.now() - (proc.pm2_env?.pm_uptime || 0)
+        const uptimeDays = Math.floor(uptimeMs / 86400000)
+        const uptimeHours = Math.floor((uptimeMs % 86400000) / 3600000)
+        const uptimeMins = Math.floor((uptimeMs % 3600000) / 60000)
+        const uptimeStr = uptimeDays > 0
+          ? `${uptimeDays}天${uptimeHours}小时`
+          : uptimeHours > 0
+            ? `${uptimeHours}小时${uptimeMins}分钟`
+            : `${uptimeMins}分钟`
+
+        services.push({
+          name: proc.name,
+          status: proc.pm2_env?.status === 'online' ? 'running' : 'stopped',
+          pid: proc.pid,
+          uptime: uptimeStr,
+          memory: proc.monit?.memory ? `${Math.round(proc.monit.memory / 1024 / 1024)}MB` : undefined,
+          cpu: proc.monit?.cpu !== undefined ? `${proc.monit.cpu}%` : undefined,
+          restarts: proc.pm2_env?.restart_time || 0,
+        })
+      }
+    } catch (e) {
+      logger.warn({ err: (e as Error).message }, 'pm2 status query failed')
+    }
+
+    // 2. 查询 Nginx 状态
+    try {
+      const nginxPid = execSync('pgrep -c nginx 2>/dev/null || echo 0', {
+        encoding: 'utf8', timeout: 3000,
+      }).trim()
+      services.push({
+        name: 'nginx',
+        status: parseInt(nginxPid) > 0 ? 'running' : 'stopped',
+      })
+    } catch {
+      services.push({ name: 'nginx', status: 'error' })
+    }
+
+    // 3. 查询 Redis 状态
+    try {
+      const redisPid = execSync('pgrep -c redis-server 2>/dev/null || echo 0', {
+        encoding: 'utf8', timeout: 3000,
+      }).trim()
+      services.push({
+        name: 'redis',
+        status: parseInt(redisPid) > 0 ? 'running' : 'stopped',
+      })
+    } catch {
+      services.push({ name: 'redis', status: 'error' })
+    }
+
+    // 4. 查询 PostgreSQL 状态（本地或远程）
+    try {
+      const isLocalDb = !process.env.DATABASE_URL?.includes('114.132.81.246') && !process.env.DATABASE_URL?.includes('43.133.44.232')
+      if (isLocalDb) {
+        const pgStatus = execSync('systemctl is-active postgresql 2>/dev/null || echo inactive', {
+          encoding: 'utf8', timeout: 3000,
+        }).trim()
+        services.push({
+          name: 'postgresql',
+          status: pgStatus === 'active' ? 'running' : 'stopped',
+        })
+      } else {
+        // 远程数据库，通过连接测试
+        const { PrismaClient } = await import('@prisma/client')
+        const prisma = new PrismaClient()
+        try {
+          await prisma.$queryRaw`SELECT 1`
+          services.push({ name: 'postgresql', status: 'running' })
+        } catch {
+          services.push({ name: 'postgresql', status: 'stopped' })
+        } finally {
+          await prisma.$disconnect()
+        }
+      }
+    } catch {
+      services.push({ name: 'postgresql', status: 'error' })
+    }
+
+    // 5. 查询 SSH 隧道状态（海外应用层特有）
+    if (isGlobalMarket()) {
+      try {
+        const tunnelStatus = execSync('systemctl is-active autossh-tunnel 2>/dev/null || echo inactive', {
+          encoding: 'utf8', timeout: 3000,
+        }).trim()
+        services.push({
+          name: 'ssh-tunnel',
+          status: tunnelStatus === 'active' ? 'running' : 'stopped',
+        })
+      } catch {
+        services.push({ name: 'ssh-tunnel', status: 'error' })
+      }
+    }
+
+    res.json({
+      services,
+      timestamp: Date.now(),
+      server: isChinaMarket() ? 'china' : 'global',
+    })
+  } catch (e) {
+    logger.error({ err: (e as Error).message }, 'admin services status failed')
     return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
   }
 })
@@ -831,9 +961,12 @@ router.get('/server-monitor/pm2-global', async (_req, res) => {
 
 // 获取远程服务器配置列表
 router.get('/server-monitor/servers', (_req, res) => {
+  const servers = getRemoteServers()
+  const local = getLocalServer()
+
   res.json({
-    local: { id: 'china', name: '国内应用层', region: '深圳', url: 'http://localhost:3001' },
-    remote: REMOTE_SERVERS,
+    local: { id: local.id, name: local.name, region: local.region, url: 'http://localhost:3001' },
+    remote: servers,
   })
 })
 

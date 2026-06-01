@@ -771,7 +771,9 @@
     "perYear": "/yr",
     "tierManagement": "Plan Management",
     "perQuarter": "/quarter",
-    "notSubscribed": "Not Subscribed"
+    "notSubscribed": "Not Subscribed",
+    "pro": "Pro",
+    "super": "Ultimate"
   },
   "error": {
     "unknown": "An unknown error occurred",

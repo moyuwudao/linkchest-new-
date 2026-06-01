@@ -83,12 +83,27 @@ npm run start
 
 ### 3.2 环境变量
 
-| 变量 | 说明 | 示例 |
-|------|------|------|
-| `DATABASE_URL` | PostgreSQL 连接地址 | `postgresql://user:pass@localhost:5432/linkchest` |
-| `JWT_SECRET` | JWT 密钥 | `your-secret-key` |
-| `REDIS_URL` | Redis 连接地址 | `redis://localhost:6379` |
-| `PORT` | 服务端口 | `3000` |
+| 变量 | 说明 | 示例 | 必填 |
+|------|------|------|------|
+| `DATABASE_URL` | PostgreSQL 连接地址 | `postgresql://user:pass@localhost:5432/linkchest` | ✅ |
+| `JWT_SECRET` | JWT 密钥 | `your-secret-key` | ✅ |
+| `REDIS_URL` | Redis 连接地址 | `redis://localhost:6379` | ✅ |
+| `PORT` | 服务端口 | `3000` | ✅ |
+| `COS_SECRET_ID` | 腾讯云 COS SecretId | `AKIDxxxxxxxxxxxxxxxx` | ✅ |
+| `COS_SECRET_KEY` | 腾讯云 COS SecretKey | `xxxxxxxxxxxxxxxxxxxx` | ✅ |
+| `COS_BUCKET` | 存储桶名称 | `linkchest-global-12345` | ✅ |
+| `COS_REGION` | 存储桶地域 | `ap-singapore` / `ap-nanjing` | ✅ |
+
+> **⚠️ 重要**：`COS_SECRET_ID` / `COS_SECRET_KEY` / `COS_BUCKET` / `COS_REGION` 是封面/头像上传的必需配置。缺失会导致上传接口返回 503 `UPLOAD_COS_NOT_CONFIGURED` 错误。
+>
+> **⚠️ 关键**：`start-api.sh` 启动脚本只加载 `.env` 文件。如果环境变量写在 `.env.global` 或 `.env.china` 中，必须同步到 `.env`：
+> ```bash
+> # 海外
+cat .env.global >> .env
+> # 国内
+cat .env.china >> .env
+> ```
+> 否则 API 进程读不到 COS 配置，上传会提示"配置未完成"。
 
 ### 3.3 构建产物
 
@@ -291,7 +306,38 @@ cat project/apps/mobile/android/gradle/wrapper/gradle-wrapper.properties | grep 
 **长期解决方案：**
 修改 `apps/mobile/assets/icon.png` 和 `apps/mobile/assets/adaptive-icon.png` 为正确版本，这样 prebuild 自动生成的图标就是正确的，无需手动修复。
 
-#### 5.1.7 执行构建
+#### 5.1.7 Metro 配置（🔴 关键）
+
+> **🔴 强制要求：metro.config.js 必须正确配置 JSON 文件处理，否则 i18n 翻译内容不会进入 bundle！**
+
+**必须配置项：**
+
+```js
+// apps/mobile/metro.config.js
+const { getDefaultConfig } = require('expo/metro-config');
+const config = getDefaultConfig(__dirname);
+
+// ... 其他配置 ...
+
+// 确保 .json 文件被 Metro 当作源代码内联到 bundle 中
+// 默认 Expo 配置将 json 放在 assetExts 中，require() 返回资源 URI
+// 必须把它移到 sourceExts，让 require() 返回解析后的 JS 对象
+config.resolver.sourceExts = [...new Set([...config.resolver.sourceExts, 'cjs', 'json'])];
+config.resolver.assetExts = config.resolver.assetExts.filter((ext) => ext !== 'json');
+
+module.exports = config;
+```
+
+**验证方式：**
+```bash
+# 构建后检查 bundle 中是否包含翻译内容
+strings android/app/build/generated/assets/createBundle*ReleaseJsAndAssets/index.android.bundle | grep -c '"pro":"Pro"'
+# 输出应 > 0，否则说明 JSON 未内联
+```
+
+**问题案例：** [CASE-021](cases/apk-build-errors.md#case-021-metro-未内联-json-翻译文件导致-i18n-显示键名)
+
+#### 5.1.8 执行构建
 
 **唯一允许的构建方式：**
 
@@ -324,7 +370,7 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 - ❌ 任何在 Windows PowerShell/CMD 中执行的构建命令
 - ❌ 使用 `clean` 或 `--clean` 参数
 
-#### 5.1.8 国内外分版本构建（🔴 重要）
+#### 5.1.9 国内外分版本构建（🔴 重要）
 
 > **本文档定义 LinkChest 移动端国内外分版本 APK 构建的完整流程。**
 > 
@@ -511,13 +557,13 @@ aapt dump badging linkchest-global-release.apk | grep application-label
 aapt dump badging linkchest-china-release.apk | grep application-label
 ```
 
-#### 5.1.9 项目特定配置
+#### 5.1.10 项目特定配置
 
 > **详细规范请参考 `BUILD_RED_LINES.md`（构建时自动加载）。**
 >
 > 包含 WSL 实例配置（`linkchest-global` / `linkchest-cn`）、环境变量持久化设置（`.bashrc`）、增量构建命令、注意事项和故障排除。
 
-#### 5.1.10 MARKET 环境变量验证
+#### 5.1.11 MARKET 环境变量验证
 
 构建完成后，验证 `.env.market` 文件内容是否正确：
 
@@ -528,7 +574,7 @@ cat project/apps/mobile/.env.market
 
 如果 `.env.market` 不存在或内容错误，APK 将使用默认配置（global），导致国内市场 APK 显示海外市场内容。
 
-#### 5.1.11 APK 输出位置
+#### 5.1.12 APK 输出位置
 
 构建成功后，APK 位于：
 
@@ -536,7 +582,7 @@ cat project/apps/mobile/.env.market
 apps/mobile/android/app/build/outputs/apk/release/
 ```
 
-#### 5.1.11 APK 命名规范（时间戳）
+#### 5.1.13 APK 命名规范（时间戳）
 
 > **🔴 强制要求：所有交付的 APK 必须包含时间戳。**
 
@@ -710,6 +756,7 @@ jobs:
 | 国内版显示 Google/Apple 登录（应为微信） | `Constants.expoConfig` 未就绪导致市场判断错误 | [CASE-018](cases/apk-build-errors.md#case-018-constantsexpoconfig-未就绪导致市场判断错误) |
 | 国内版 API 请求返回 403 | API URL 使用 IP 地址而非域名 | [CASE-019](cases/apk-build-errors.md#case-019-国内版-api-url-使用-ip-地址导致-nginx-403) |
 | Gradle 无法删除 build 目录 | Windows 文件锁定，修改构建目录或关闭占用进程 | [CASE-020](cases/apk-build-errors.md#case-020-windows-文件锁定导致-gradle-构建目录删除失败) |
+| i18n 翻译显示为键名（如 `tier.pro`） | Metro 未内联 JSON，检查 metro.config.js 的 sourceExts | [CASE-021](cases/apk-build-errors.md#case-021-metro-未内联-json-翻译文件导致-i18n-显示键名) |
 
 ### 10.2 iOS 构建问题
 
@@ -760,5 +807,5 @@ jobs:
 
 ---
 
-*最后更新：2026-05-31*
-*版本：v1.3 — 修正国内版 API URL 为域名，添加 CASE-017~CASE-020 常见问题引用*
+*最后更新：2026-06-01*
+*版本：v1.4 — 新增 Metro JSON 内联配置要求（5.1.7），添加 CASE-021 常见问题引用*

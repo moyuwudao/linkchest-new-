@@ -1,12 +1,13 @@
 /**
  * 远程服务器指标采集服务
- * 通过 HTTP 接口从海外服务器拉取指标数据
- * 国内服务器作为统一监控中心，聚合所有服务器数据
+ * 根据市场配置监控对应的服务器集群
+ * 国内监控国内两台服务器，海外监控海外两台服务器
  */
 import { getRedisClient, isRedisAvailable } from '../lib/redis'
 import logger from '../lib/logger'
+import { isChinaMarket, isGlobalMarket } from '../lib/market'
 
-// ===== 海外服务器配置 =====
+// ===== 服务器配置（根据市场动态选择）=====
 interface RemoteServerConfig {
   id: string
   name: string
@@ -16,16 +17,58 @@ interface RemoteServerConfig {
   enabled: boolean
 }
 
-export const REMOTE_SERVERS: RemoteServerConfig[] = [
+// 国内服务器集群
+const CHINA_SERVERS: RemoteServerConfig[] = [
   {
-    id: 'global',
-    name: '海外服务器',
-    region: '新加坡',
-    apiUrl: process.env.GLOBAL_SERVER_METRICS_URL || 'http://43.133.44.232:3001/api/admin/metrics',
-    token: process.env.GLOBAL_SERVER_API_TOKEN,
-    enabled: process.env.REMOTE_METRICS_ENABLED !== 'false',
+    id: 'china-db',
+    name: '国内数据层',
+    region: '广州',
+    apiUrl: process.env.CHINA_DB_METRICS_URL || 'http://114.132.81.246:3001/api/admin/metrics',
+    token: process.env.CHINA_SERVER_API_TOKEN,
+    enabled: true,
   },
 ]
+
+// 海外服务器集群
+const GLOBAL_SERVERS: RemoteServerConfig[] = [
+  {
+    id: 'global-db',
+    name: '海外数据层',
+    region: '新加坡',
+    apiUrl: process.env.GLOBAL_DB_METRICS_URL || 'http://43.133.44.232:3001/api/admin/metrics',
+    token: process.env.GLOBAL_SERVER_API_TOKEN,
+    enabled: true,
+  },
+]
+
+export function getRemoteServers(): RemoteServerConfig[] {
+  if (isChinaMarket()) {
+    return CHINA_SERVERS
+  }
+  return GLOBAL_SERVERS
+}
+
+export function getLocalServer(): RemoteServerConfig {
+  if (isChinaMarket()) {
+    return {
+      id: 'china-app',
+      name: '国内应用层',
+      region: '深圳',
+      apiUrl: 'http://localhost:3001/api/admin/metrics',
+      enabled: true,
+    }
+  }
+  return {
+    id: 'global-app',
+    name: '海外应用层',
+    region: '雅加达',
+    apiUrl: 'http://localhost:3001/api/admin/metrics',
+    enabled: true,
+  }
+}
+
+// 兼容旧代码
+export const REMOTE_SERVERS: RemoteServerConfig[] = getRemoteServers()
 
 export interface ServerMetrics {
   server: string
@@ -110,8 +153,9 @@ export async function fetchRemoteMetrics(server: RemoteServerConfig): Promise<Se
  */
 export async function syncAllRemoteMetrics(): Promise<Map<string, ServerMetrics | null>> {
   const results = new Map<string, ServerMetrics | null>()
+  const servers = getRemoteServers()
 
-  for (const server of REMOTE_SERVERS) {
+  for (const server of servers) {
     if (!server.enabled) {
       results.set(server.id, null)
       continue
@@ -199,7 +243,8 @@ export async function getAllServerMetrics(): Promise<{
 
   // 2. 获取远程指标（优先从缓存读取）
   const remote = new Map<string, ServerMetrics | null>()
-  for (const server of REMOTE_SERVERS) {
+  const servers = getRemoteServers()
+  for (const server of servers) {
     const cached = await getCachedRemoteMetrics(server.id)
     remote.set(server.id, cached)
   }
@@ -208,36 +253,47 @@ export async function getAllServerMetrics(): Promise<{
 }
 
 /**
- * 获取海外服务器的 PM2 状态（通过 API 查询海外服务器 PM2 信息）
+ * 获取远程服务器的 PM2 状态（通过 API 查询对应市场服务器 PM2 信息）
  */
 export async function fetchRemotePm2Status(): Promise<Record<string, unknown>[]> {
-  const server = REMOTE_SERVERS[0]
-  if (!server?.enabled) return []
+  const servers = getRemoteServers()
+  const allProcesses: Record<string, unknown>[] = []
 
-  try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000)
+  for (const server of servers) {
+    if (!server?.enabled) continue
 
-    const headers: Record<string, string> = {
-      'Accept': 'application/json',
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+      }
+      if (server.token) {
+        headers['Authorization'] = `Bearer ${server.token}`
+      }
+
+      const res = await fetch(`${server.apiUrl.replace('/metrics', '')}/pm2-status`, {
+        method: 'GET',
+        headers,
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!res.ok) continue
+      const data = await res.json() as Record<string, unknown>
+      const processes = ((data as any).processes || []) as Array<Record<string, unknown>>
+      // 添加服务器标识
+      for (const proc of processes) {
+        proc._serverId = server.id
+        proc._serverName = server.name
+      }
+      allProcesses.push(...processes)
+    } catch (e) {
+      logger.warn({ serverId: server.id, err: (e as Error).message }, 'fetchRemotePm2Status failed')
     }
-    if (server.token) {
-      headers['Authorization'] = `Bearer ${server.token}`
-    }
-
-    const res = await fetch(`${server.apiUrl.replace('/metrics', '')}/pm2-status`, {
-      method: 'GET',
-      headers,
-      signal: controller.signal,
-    })
-
-    clearTimeout(timeoutId)
-
-    if (!res.ok) return []
-    const data = await res.json() as Record<string, unknown>
-    return (data as any).processes || []
-  } catch (e) {
-    logger.warn({ err: (e as Error).message }, 'fetchRemotePm2Status failed')
-    return []
   }
+
+  return allProcesses
 }

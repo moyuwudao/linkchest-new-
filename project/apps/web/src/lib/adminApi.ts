@@ -27,6 +27,10 @@ export function getLogFiles() {
   return api.get('/admin/logs/files');
 }
 
+export function getServiceStatus() {
+  return api.get('/admin/logs/services');
+}
+
 // ===== Errors =====
 
 export function getErrors(params?: ErrorQueryParams) {

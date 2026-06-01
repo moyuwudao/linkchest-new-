@@ -10,8 +10,11 @@ config.resolver.nodeModulesPaths = [
   path.resolve(__dirname, '../../node_modules'),
 ];
 
-// Ensure .cjs files are treated as source code for Metro bundling
-config.resolver.sourceExts = [...config.resolver.sourceExts, 'cjs'];
+// Ensure .cjs and .json files are treated as source code for Metro bundling
+// Default Expo config puts json in assetExts, which makes require() return an asset URI
+// instead of the parsed JSON object. We move json to sourceExts to inline it into the bundle.
+config.resolver.sourceExts = [...new Set([...config.resolver.sourceExts, 'cjs', 'json'])];
+config.resolver.assetExts = config.resolver.assetExts.filter((ext) => ext !== 'json');
 
 // Fix: Force ALL @tanstack/react-query and @tanstack/query-core imports
 // (both top-level and sub-module) to resolve to their CJS (.cjs) versions.

@@ -169,6 +169,8 @@ ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update
 | **在 PM2 中设置 `NEXT_PUBLIC_*`** | 必须在构建时注入 | 环境变量不生效 |
 | **未开放安全组端口** | 需显式配置 | 服务无法访问 |
 | **使用 `Partitioned` Cookie** | HTTP 环境下不兼容 | 登录循环 |
+| **.env.china 中缺少 COS 配置** | 封面/头像上传依赖 COS | 上传 503 错误 |
+| **.env 文件未同步 `.env.china` 配置** | `start-api.sh` 只加载 `.env` | 上传提示"配置未完成" |
 
 ### 2.3 海外专属禁止行为
 
@@ -178,6 +180,8 @@ ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update
 | **在应用层本地运行 PostgreSQL** | 数据库应在数据层 | 资源竞争、数据不一致 |
 | **使用 `.env.china` 部署海外** | 海外需要 `.env.global` | Provider 配置错误 |
 | **SSH 隧道未运行即部署** | 应用层无法连接数据层 | 数据库连接失败 |
+| **.env.global 中缺少 COS 配置** | 封面/头像上传依赖 COS | 上传 503 错误 |
+| **.env 文件未同步 `.env.global` / `.env.china` 配置** | `start-api.sh` 只加载 `.env` | 上传提示"配置未完成" |
 
 ---
 
@@ -202,6 +206,8 @@ ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update
 - [ ] **SSH 隧道已运行**：`systemctl status autossh-tunnel`
 - [ ] **部署脚本**：`bash deploy/deploy.sh global` 或 `bash update-server.sh`
 - [ ] **数据库在数据层（新加坡）**
+- [ ] **COS 对象存储已配置**：`.env.global` 中包含 `COS_SECRET_ID`、`COS_SECRET_KEY`、`COS_BUCKET`、`COS_REGION`
+- [ ] **COS 连通性已验证**：部署后测试封面上传/头像上传功能正常
 
 ### 3.3 国内检查清单
 
@@ -212,11 +218,65 @@ ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update
 - [ ] **数据库在服务器B**
 - [ ] **安全组端口已开放** — 80, 3001, 5432
 - [ ] **WEB 部署文件清单**：`.next/`, `public/`, `package.json`, `next.config.js`, `.env.production`
+- [ ] **COS 对象存储已配置**：`.env.china` 中包含 `COS_SECRET_ID`、`COS_SECRET_KEY`、`COS_BUCKET`、`COS_REGION`
+- [ ] **COS 连通性已验证**：部署后测试封面上传/头像上传功能正常
 
 ### 3.4 数据库迁移确认
 
 - [ ] **迁移方式已明确**：`prisma db push`（开发）或 `prisma migrate deploy`（生产）
 - [ ] **已创建数据库备份**
+
+### 3.5 环境变量完整性检查（🔴 新增）
+
+> **部署前必须确认 `.env` 文件中包含以下核心配置，缺一不可。**
+
+**API 层必填项：**
+
+```bash
+# 核心服务
+DATABASE_URL="postgresql://..."
+JWT_SECRET="..."
+REDIS_URL="redis://..."
+
+# 对象存储 COS（封面/头像上传必需）
+COS_SECRET_ID="..."
+COS_SECRET_KEY="..."
+COS_BUCKET="..."
+COS_REGION="ap-singapore"  # 海外 | ap-nanjing / ap-guangzhou 国内
+
+# 邮件推送 SES（验证码/通知必需）
+TENCENTCLOUD_SECRET_ID="..."
+TENCENTCLOUD_SECRET_KEY="..."
+SES_FROM_EMAIL="noreply@linkchest.net"
+```
+
+**`.env` 文件同步要求（🔴 关键）：**
+
+`start-api.sh` 启动脚本只加载 `.env` 文件，不加载 `.env.global` 或 `.env.china`。因此：
+
+```bash
+# 海外：确保 .env 包含 .env.global 的所有配置
+ssh ubuntu@43.157.240.68 "cat /opt/linkchest/api/project/apps/api/.env.global >> /opt/linkchest/api/project/apps/api/.env"
+
+# 国内：确保 .env 包含 .env.china 的所有配置
+ssh ubuntu@43.136.82.88 "cat /opt/linkchest/api/project/apps/api/.env.china >> /opt/linkchest/api/project/apps/api/.env"
+```
+
+> ⚠️ **注意**：追加前检查 `.env` 是否已有相同配置，避免重复。
+
+**快速验证命令：**
+
+```bash
+# 验证 .env.global / .env.china 中有配置
+ssh ubuntu@43.157.240.68 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_REGION|TENCENTCLOUD_SECRET_ID' /opt/linkchest/api/project/apps/api/.env.global"
+ssh ubuntu@43.136.82.88 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_REGION|TENCENTCLOUD_SECRET_ID' /opt/linkchest/api/project/apps/api/.env.china"
+
+# 验证 .env 中有配置（启动脚本实际加载的文件）
+ssh ubuntu@43.157.240.68 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_REGION' /opt/linkchest/api/project/apps/api/.env"
+ssh ubuntu@43.136.82.88 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_REGION' /opt/linkchest/api/project/apps/api/.env"
+```
+
+**如果以上任何一项返回空，说明环境变量缺失，部署后对应功能将不可用。**
 
 ---
 
@@ -265,6 +325,9 @@ curl -s -o /dev/null -w "%{http_code}" http://43.157.240.68:3003
 # 数据层验证
 ssh ubuntu@43.133.44.232 "docker ps | grep postgres"
 ssh ubuntu@43.157.240.68 "nc -zv 127.0.0.1 5433"
+
+# COS 对象存储验证
+ssh ubuntu@43.157.240.68 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_REGION' /opt/linkchest/api/project/apps/api/.env.global"
 ```
 
 ### 5.2 国内验证
@@ -275,9 +338,13 @@ curl -s http://43.136.82.88/api/health
 curl -s -o /dev/null -w "%{http_code}" http://43.136.82.88/login
 curl -s -o /dev/null -w "%{http_code}" http://43.136.82.88/manifest.json
 ssh ubuntu@43.136.82.88 "nc -zv 114.132.81.246 5432"
+
+# COS 对象存储验证
+ssh ubuntu@43.136.82.88 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_REGION' /opt/linkchest/api/project/apps/api/.env.china"
 ```
 
 **必须确认**：所有服务 `online`，API `200`，WEB `200`，静态资源 `200`，无 `Error`、`500`。
+**必须确认**：COS 环境变量 4 项齐全（SECRET_ID、SECRET_KEY、BUCKET、REGION），上传功能正常。
 
 ---
 
@@ -355,5 +422,5 @@ wsl -d linkchest -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mob
 
 ---
 
-*最后更新：2026-05-26*  
-*版本：v1.1 — 修正WSL实例名称，增加market-config.json校验*
+*最后更新：2026-06-01*  
+*版本：v1.2 — 新增环境变量完整性检查（§3.5）、COS配置验证、部署后COS检查命令*

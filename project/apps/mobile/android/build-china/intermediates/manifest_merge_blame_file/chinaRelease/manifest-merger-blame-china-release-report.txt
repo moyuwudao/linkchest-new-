@@ -1,0 +1,1287 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="cn.linkchest.app"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="23"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:2:3-64
+11-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:2:20-62
+12    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+12-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:3:3-77
+12-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:3:20-75
+13    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+13-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:4:3-68
+13-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:4:20-66
+14    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+14-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:5:3-75
+14-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:5:20-73
+15    <uses-permission android:name="android.permission.VIBRATE" />
+15-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:6:3-63
+15-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:6:20-61
+16    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- 极光推送权限 -->
+16-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:7:3-78
+16-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:7:20-76
+17    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+17-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:9:3-78
+17-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:9:20-76
+18    <uses-permission android:name="android.permission.WAKE_LOCK" />
+18-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:10:3-65
+18-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:10:20-63
+19    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- 华为推送权限 -->
+19-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:11:3-76
+19-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:11:20-74
+20    <uses-permission android:name="com.huawei.android.launcher.permission.CHANGE_BADGE" /> <!-- 小米推送权限 -->
+20-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:13:3-88
+20-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:13:20-86
+21    <uses-permission android:name="android.permission.GET_TASKS" />
+21-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:15:3-65
+21-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:15:20-63
+22
+23    <queries>
+23-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:16:3-22:13
+24        <intent>
+24-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:17:5-21:14
+25            <action android:name="android.intent.action.VIEW" />
+25-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:18:7-58
+25-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:18:15-56
+26
+27            <category android:name="android.intent.category.BROWSABLE" />
+27-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:19:7-67
+27-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:19:17-65
+28
+29            <data android:scheme="https" />
+29-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:20:7-37
+29-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:20:13-35
+30        </intent>
+31        <!-- Query open documents -->
+32        <intent>
+32-->[:expo-document-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-document-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:10:9-17:18
+33            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+33-->[:expo-document-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-document-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-74
+33-->[:expo-document-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-document-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:21-71
+34
+35            <category android:name="android.intent.category.DEFAULT" />
+35-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:9-67
+35-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:19-65
+36            <category android:name="android.intent.category.OPENABLE" />
+36-->[:expo-document-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-document-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-73
+36-->[:expo-document-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-document-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:23-70
+37
+38            <data android:mimeType="*/*" />
+38-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:20:7-37
+39        </intent> <!-- Query open documents -->
+40        <intent>
+40-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:9-17:18
+41            <action android:name="android.intent.action.OPEN_DOCUMENT_TREE" />
+41-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:13-79
+41-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:21-76
+42        </intent>
+43        <intent>
+43-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:17:9-21:18
+44
+45            <!-- Required for picking images from the camera roll if targeting API 30 -->
+46            <action android:name="android.media.action.IMAGE_CAPTURE" />
+46-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:13-73
+46-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:21-70
+47        </intent>
+48        <intent>
+48-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:22:9-26:18
+49
+50            <!-- Required for picking images from the camera if targeting API 30 -->
+51            <action android:name="android.media.action.ACTION_VIDEO_CAPTURE" />
+51-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:13-80
+51-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:21-77
+52        </intent>
+53        <intent>
+53-->[:expo-web-browser] /mnt/d/trae_projects/linkchest/project/node_modules/expo-web-browser/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:8:9-12:18
+54
+55            <!-- Required for opening tabs if targeting API 30 -->
+56            <action android:name="android.support.customtabs.action.CustomTabsService" />
+56-->[:expo-web-browser] /mnt/d/trae_projects/linkchest/project/node_modules/expo-web-browser/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-90
+56-->[:expo-web-browser] /mnt/d/trae_projects/linkchest/project/node_modules/expo-web-browser/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:21-87
+57        </intent>
+58        <intent>
+58-->[com.github.CanHub:Android-Image-Cropper:4.3.1] /home/mayn/.gradle/caches/8.8/transforms/89dea785e0d622b2d48dead31452bc2c/transformed/jetified-Android-Image-Cropper-4.3.1/AndroidManifest.xml:10:9-16:18
+59            <action android:name="android.intent.action.GET_CONTENT" />
+59-->[com.github.CanHub:Android-Image-Cropper:4.3.1] /home/mayn/.gradle/caches/8.8/transforms/89dea785e0d622b2d48dead31452bc2c/transformed/jetified-Android-Image-Cropper-4.3.1/AndroidManifest.xml:11:13-72
+59-->[com.github.CanHub:Android-Image-Cropper:4.3.1] /home/mayn/.gradle/caches/8.8/transforms/89dea785e0d622b2d48dead31452bc2c/transformed/jetified-Android-Image-Cropper-4.3.1/AndroidManifest.xml:11:21-69
+60
+61            <category android:name="android.intent.category.OPENABLE" />
+61-->[:expo-document-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-document-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-73
+61-->[:expo-document-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-document-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:23-70
+62
+63            <data android:mimeType="*/*" />
+63-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:20:7-37
+64        </intent>
+65    </queries>
+66
+67    <permission
+67-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:7:5-9:47
+68        android:name="cn.linkchest.app.permission.JPUSH_MESSAGE"
+68-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:8:9-65
+69        android:protectionLevel="signature" /> <!-- Required -->
+69-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:9:9-44
+70    <uses-permission android:name="cn.linkchest.app.permission.JPUSH_MESSAGE" />
+70-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:5-81
+70-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:22-78
+71    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- vivo 角标 -->
+71-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:5-77
+71-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:22-74
+72    <uses-permission android:name="com.vivo.notification.permission.BADGE_ICON" /> <!-- honor 角标 -->
+72-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:5-83
+72-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:22-80
+73    <uses-permission android:name="com.hihonor.android.launcher.permission.CHANGE_BADGE" /> <!-- Optional. Required for location feature -->
+73-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:5-92
+73-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:22-89
+74    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+74-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:5-81
+74-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:22-78
+75    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+75-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:5-79
+75-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:22-76
+76    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+76-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:5-85
+76-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:22-82
+77    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+77-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:5-75
+77-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:22-72
+78    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- Required for picking images from camera directly -->
+78-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:5-76
+78-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:22-73
+79    <uses-permission android:name="android.permission.CAMERA" />
+79-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:8:5-65
+79-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:8:22-62
+80    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+80-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:5-76
+80-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:22-73
+81    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+81-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:5-75
+81-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:22-72
+82    <uses-permission android:name="android.permission.USE_BIOMETRIC" /> <!-- suppress DeprecatedClassUsageInspection -->
+82-->[androidx.biometric:biometric:1.1.0] /home/mayn/.gradle/caches/8.8/transforms/8a63b3f01b7c63ddbc4d99fcf9b9791f/transformed/biometric-1.1.0/AndroidManifest.xml:24:5-72
+82-->[androidx.biometric:biometric:1.1.0] /home/mayn/.gradle/caches/8.8/transforms/8a63b3f01b7c63ddbc4d99fcf9b9791f/transformed/biometric-1.1.0/AndroidManifest.xml:24:22-69
+83    <uses-permission android:name="android.permission.USE_FINGERPRINT" /> <!-- Required by older versions of Google Play services to create IID tokens -->
+83-->[androidx.biometric:biometric:1.1.0] /home/mayn/.gradle/caches/8.8/transforms/8a63b3f01b7c63ddbc4d99fcf9b9791f/transformed/biometric-1.1.0/AndroidManifest.xml:27:5-74
+83-->[androidx.biometric:biometric:1.1.0] /home/mayn/.gradle/caches/8.8/transforms/8a63b3f01b7c63ddbc4d99fcf9b9791f/transformed/biometric-1.1.0/AndroidManifest.xml:27:22-71
+84    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+84-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:26:5-82
+84-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:26:22-79
+85    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+85-->[com.google.android.gms:play-services-measurement-api:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/3d2e3c69eaef5c1f432585340d947b9e/transformed/jetified-play-services-measurement-api-22.4.0/AndroidManifest.xml:25:5-79
+85-->[com.google.android.gms:play-services-measurement-api:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/3d2e3c69eaef5c1f432585340d947b9e/transformed/jetified-play-services-measurement-api-22.4.0/AndroidManifest.xml:25:22-76
+86    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" />
+86-->[com.google.android.gms:play-services-measurement-api:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/3d2e3c69eaef5c1f432585340d947b9e/transformed/jetified-play-services-measurement-api-22.4.0/AndroidManifest.xml:26:5-88
+86-->[com.google.android.gms:play-services-measurement-api:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/3d2e3c69eaef5c1f432585340d947b9e/transformed/jetified-play-services-measurement-api-22.4.0/AndroidManifest.xml:26:22-85
+87    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" />
+87-->[com.google.android.gms:play-services-measurement-api:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/3d2e3c69eaef5c1f432585340d947b9e/transformed/jetified-play-services-measurement-api-22.4.0/AndroidManifest.xml:27:5-82
+87-->[com.google.android.gms:play-services-measurement-api:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/3d2e3c69eaef5c1f432585340d947b9e/transformed/jetified-play-services-measurement-api-22.4.0/AndroidManifest.xml:27:22-79
+88    <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE" />
+88-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:26:5-110
+88-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:26:22-107
+89
+90    <permission
+90-->[androidx.core:core:1.12.0] /home/mayn/.gradle/caches/8.8/transforms/a700872fc4a266a413e3c80a42eb48f8/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
+91        android:name="cn.linkchest.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+91-->[androidx.core:core:1.12.0] /home/mayn/.gradle/caches/8.8/transforms/a700872fc4a266a413e3c80a42eb48f8/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
+92        android:protectionLevel="signature" />
+92-->[androidx.core:core:1.12.0] /home/mayn/.gradle/caches/8.8/transforms/a700872fc4a266a413e3c80a42eb48f8/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
+93
+94    <uses-permission android:name="cn.linkchest.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+94-->[androidx.core:core:1.12.0] /home/mayn/.gradle/caches/8.8/transforms/a700872fc4a266a413e3c80a42eb48f8/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
+94-->[androidx.core:core:1.12.0] /home/mayn/.gradle/caches/8.8/transforms/a700872fc4a266a413e3c80a42eb48f8/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+95    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" /> <!-- for android -->
+95-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:24:5-77
+95-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:24:22-74
+96    <!-- <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS"/> -->
+97    <!-- <uses-permission android:name="com.android.launcher.permission.WRITE_SETTINGS"/> -->
+98    <!-- <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" /> -->
+99    <!-- <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" /> -->
+100    <!-- for Samsung -->
+101    <uses-permission android:name="com.sec.android.provider.badge.permission.READ" />
+101-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:19:5-86
+101-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:19:22-83
+102    <uses-permission android:name="com.sec.android.provider.badge.permission.WRITE" /> <!-- for htc -->
+102-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:20:5-87
+102-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:20:22-84
+103    <uses-permission android:name="com.htc.launcher.permission.READ_SETTINGS" />
+103-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:23:5-81
+103-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:23:22-78
+104    <uses-permission android:name="com.htc.launcher.permission.UPDATE_SHORTCUT" /> <!-- for sony -->
+104-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:24:5-83
+104-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:24:22-80
+105    <uses-permission android:name="com.sonyericsson.home.permission.BROADCAST_BADGE" />
+105-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:27:5-88
+105-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:27:22-85
+106    <uses-permission android:name="com.sonymobile.home.permission.PROVIDER_INSERT_BADGE" /> <!-- for apex -->
+106-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:28:5-92
+106-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:28:22-89
+107    <uses-permission android:name="com.anddoes.launcher.permission.UPDATE_COUNT" /> <!-- for solid -->
+107-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:31:5-84
+107-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:31:22-81
+108    <uses-permission android:name="com.majeur.launcher.permission.UPDATE_BADGE" />
+108-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:34:5-83
+108-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:34:22-80
+109    <uses-permission android:name="com.huawei.android.launcher.permission.READ_SETTINGS" />
+109-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:38:5-92
+109-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:38:22-89
+110    <uses-permission android:name="com.huawei.android.launcher.permission.WRITE_SETTINGS" /> <!-- for ZUK -->
+110-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:39:5-93
+110-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:39:22-90
+111    <uses-permission android:name="android.permission.READ_APP_BADGE" /> <!-- for OPPO -->
+111-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:42:5-73
+111-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:42:22-70
+112    <uses-permission android:name="com.oppo.launcher.permission.READ_SETTINGS" />
+112-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:45:5-82
+112-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:45:22-79
+113    <uses-permission android:name="com.oppo.launcher.permission.WRITE_SETTINGS" /> <!-- for EvMe -->
+113-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:46:5-83
+113-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:46:22-80
+114    <uses-permission android:name="me.everything.badger.permission.BADGE_COUNT_READ" />
+114-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:49:5-88
+114-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:49:22-85
+115    <uses-permission android:name="me.everything.badger.permission.BADGE_COUNT_WRITE" /> <!-- 国内版允许 HTTP 明文流量（国内服务器暂无 HTTPS） -->
+115-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:50:5-89
+115-->[me.leolin:ShortcutBadger:1.1.22] /home/mayn/.gradle/caches/8.8/transforms/2cfbcbd082b96508218108b6d82967a4/transformed/jetified-ShortcutBadger-1.1.22/AndroidManifest.xml:50:22-86
+116    <!-- 国内推送厂商通道 meta-data -->
+117    <application
+117-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:23:3-48:17
+118        android:name="com.linkchest.app.MainApplication"
+118-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:23:16-47
+119        android:allowBackup="true"
+119-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:23:162-188
+120        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+120-->[androidx.core:core:1.12.0] /home/mayn/.gradle/caches/8.8/transforms/a700872fc4a266a413e3c80a42eb48f8/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+121        android:extractNativeLibs="false"
+122        android:icon="@mipmap/ic_launcher"
+122-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:23:81-115
+123        android:label="@string/app_name"
+123-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:23:48-80
+124        android:roundIcon="@mipmap/ic_launcher_round"
+124-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:23:116-161
+125        android:theme="@style/AppTheme"
+125-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:23:189-220
+126        android:usesCleartextTraffic="true" >
+126-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:23:221-257
+127
+128        <!-- 极光推送 AppKey -->
+129        <meta-data
+129-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:9:5-77
+130            android:name="JPUSH_APPKEY"
+130-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:9:16-43
+131            android:value="7ec1455ab464634fb1f48c1f" />
+131-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:9:44-75
+132        <meta-data
+132-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:10:5-79
+133            android:name="JPUSH_CHANNEL"
+133-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:10:16-44
+134            android:value="" />
+134-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:10:45-77
+135        <!-- 华为推送 AppID -->
+136        <meta-data
+136-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:12:5-98
+137            android:name="com.huawei.hms.client.appid"
+137-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:12:16-58
+138            android:value="appid=your_huawei_appid" />
+138-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:12:59-96
+139        <!-- 小米推送 AppID -->
+140        <meta-data
+140-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:14:5-77
+141            android:name="XIAOMI_APPID"
+141-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:14:16-43
+142            android:value="your_xiaomi_appid" />
+142-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:14:44-75
+143        <meta-data
+143-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:15:5-79
+144            android:name="XIAOMI_APPKEY"
+144-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:15:16-44
+145            android:value="your_xiaomi_appkey" />
+145-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:15:45-77
+146        <!-- OPPO推送 AppKey -->
+147        <meta-data
+147-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:17:5-75
+148            android:name="OPPO_APPKEY"
+148-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:17:16-42
+149            android:value="your_oppo_appkey" />
+149-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:17:43-73
+150        <meta-data
+150-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:18:5-81
+151            android:name="OPPO_APPSECRET"
+151-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:18:16-45
+152            android:value="your_oppo_appsecret" />
+152-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:18:46-79
+153        <!-- vivo推送 AppID -->
+154        <meta-data
+154-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:20:5-73
+155            android:name="VIVO_APPID"
+155-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:20:16-41
+156            android:value="your_vivo_appid" />
+156-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:20:42-71
+157        <meta-data
+157-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:21:5-75
+158            android:name="VIVO_APPKEY"
+158-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:21:16-42
+159            android:value="your_vivo_appkey" />
+159-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:21:43-73
+160        <!-- 荣耀推送 AppID -->
+161        <meta-data
+161-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:23:5-75
+162            android:name="HONOR_APPID"
+162-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:23:16-42
+163            android:value="your_honor_appid" />
+163-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/china/AndroidManifest.xml:23:43-73
+164        <!-- 推送相关 meta-data 已移至 src/china/AndroidManifest.xml -->
+165        <!-- 国内版需通过 tools:replace 覆盖以下值 -->
+166        <meta-data
+166-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:27:5-83
+167            android:name="expo.modules.updates.ENABLED"
+167-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:27:16-59
+168            android:value="false" />
+168-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:27:60-81
+169        <meta-data
+169-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:28:5-105
+170            android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH"
+170-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:28:16-80
+171            android:value="ALWAYS" />
+171-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:28:81-103
+172        <meta-data
+172-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:29:5-99
+173            android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS"
+173-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:29:16-79
+174            android:value="0" />
+174-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:29:80-97
+175
+176        <activity
+176-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:30:5-46:16
+177            android:name="com.linkchest.app.MainActivity"
+177-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:30:15-43
+178            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode"
+178-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:30:44-134
+179            android:exported="true"
+179-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:30:256-279
+180            android:launchMode="singleTask"
+180-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:30:135-166
+181            android:screenOrientation="portrait"
+181-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:30:280-316
+182            android:theme="@style/Theme.App.SplashScreen"
+182-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:30:210-255
+183            android:windowSoftInputMode="adjustResize" >
+183-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:30:167-209
+184            <intent-filter>
+184-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:31:7-34:23
+185                <action android:name="android.intent.action.MAIN" />
+185-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:32:9-60
+185-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:32:17-58
+186
+187                <category android:name="android.intent.category.LAUNCHER" />
+187-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:33:9-68
+187-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:33:19-66
+188            </intent-filter>
+189            <intent-filter>
+189-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:35:7-41:23
+190                <action android:name="android.intent.action.VIEW" />
+190-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:18:7-58
+190-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:18:15-56
+191
+192                <category android:name="android.intent.category.DEFAULT" />
+192-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:9-67
+192-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:19-65
+193                <category android:name="android.intent.category.BROWSABLE" />
+193-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:19:7-67
+193-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:19:17-65
+194
+195                <data android:scheme="com.linkchest.app" />
+195-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:20:7-37
+195-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:20:13-35
+196                <data android:scheme="cn.linkchest.app" />
+196-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:20:7-37
+196-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:20:13-35
+197            </intent-filter>
+198            <intent-filter data-generated="true" >
+198-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:42:7-45:23
+198-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:42:22-43
+199                <action android:name="android.intent.action.SEND" />
+199-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:43:9-60
+199-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:43:17-58
+200
+201                <category android:name="android.intent.category.DEFAULT" />
+201-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:9-67
+201-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:19-65
+202            </intent-filter>
+203        </activity>
+204        <activity
+204-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:47:5-106
+205            android:name="com.facebook.react.devsupport.DevSettingsActivity"
+205-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:47:15-79
+206            android:exported="false" />
+206-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:47:80-104
+207
+208        <meta-data
+208-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:9-14:36
+209            android:name="firebase_analytics_collection_enabled"
+209-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:13-65
+210            android:value="true" />
+210-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-33
+211        <meta-data
+211-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:9-17:37
+212            android:name="firebase_analytics_collection_deactivated"
+212-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:13-69
+213            android:value="false" />
+213-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:17:13-34
+214        <meta-data
+214-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:9-20:36
+215            android:name="google_analytics_adid_collection_enabled"
+215-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:13-68
+216            android:value="true" />
+216-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:13-33
+217        <meta-data
+217-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:21:9-23:36
+218            android:name="google_analytics_ssaid_collection_enabled"
+218-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:22:13-69
+219            android:value="true" />
+219-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:23:13-33
+220        <meta-data
+220-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:9-26:36
+221            android:name="google_analytics_automatic_screen_reporting_enabled"
+221-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:13-79
+222            android:value="true" />
+222-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:13-33
+223        <meta-data
+223-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:9-29:36
+224            android:name="google_analytics_default_allow_analytics_storage"
+224-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:13-76
+225            android:value="true" />
+225-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:13-33
+226        <meta-data
+226-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:30:9-32:36
+227            android:name="google_analytics_default_allow_ad_storage"
+227-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:31:13-69
+228            android:value="true" />
+228-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:32:13-33
+229        <meta-data
+229-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:33:9-35:36
+230            android:name="google_analytics_default_allow_ad_user_data"
+230-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:34:13-71
+231            android:value="true" />
+231-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:35:13-33
+232        <meta-data
+232-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:9-38:36
+233            android:name="google_analytics_default_allow_ad_personalization_signals"
+233-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:37:13-85
+234            android:value="true" />
+234-->[:react-native-firebase_analytics] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/analytics/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:38:13-33
+235
+236        <service
+236-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:9-14:40
+237            android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingHeadlessService"
+237-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:13-103
+238            android:exported="false" />
+238-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-37
+239        <service
+239-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:9-21:19
+240            android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"
+240-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:13-95
+241            android:exported="false" >
+241-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:17:13-37
+242            <intent-filter>
+242-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:13-20:29
+243                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+243-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:17-78
+243-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:25-75
+244            </intent-filter>
+245        </service>
+246
+247        <receiver
+247-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:23:9-30:20
+248            android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingReceiver"
+248-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:13-96
+249            android:exported="true"
+249-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:13-36
+250            android:permission="com.google.android.c2dm.permission.SEND" >
+250-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:13-73
+251            <intent-filter>
+251-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:13-29:29
+252                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+252-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:17-81
+252-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:25-78
+253            </intent-filter>
+254        </receiver>
+255
+256        <meta-data
+256-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:32:9-34:37
+257            android:name="delivery_metrics_exported_to_big_query_enabled"
+257-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:33:13-74
+258            android:value="false" />
+258-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:34:13-34
+259        <meta-data
+259-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:35:9-37:36
+260            android:name="firebase_messaging_auto_init_enabled"
+260-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:13-64
+261            android:value="true" />
+261-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:37:13-33
+262        <meta-data
+262-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:38:9-40:37
+263            android:name="firebase_messaging_notification_delegation_enabled"
+263-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:39:13-78
+264            android:value="false" />
+264-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:40:13-34
+265        <meta-data
+265-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:41:9-43:32
+266            android:name="com.google.firebase.messaging.default_notification_channel_id"
+266-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:42:13-89
+267            android:value="" />
+267-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:43:13-29
+268        <meta-data
+268-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:44:9-46:47
+269            android:name="com.google.firebase.messaging.default_notification_color"
+269-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:45:13-84
+270            android:resource="@color/white" />
+270-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:46:13-44
+271        <meta-data
+271-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:9:9-11:36
+272            android:name="app_data_collection_default_enabled"
+272-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:10:13-63
+273            android:value="true" />
+273-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-33
+274
+275        <service
+275-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:9-21:19
+276            android:name="com.google.firebase.components.ComponentDiscoveryService"
+276-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-84
+277            android:directBootAware="true"
+277-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:13-43
+278            android:exported="false" >
+278-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:13-37
+279            <meta-data
+279-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:13-20:85
+280                android:name="com.google.firebase.components:io.invertase.firebase.app.ReactNativeFirebaseAppRegistrar"
+280-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:17-120
+281                android:value="com.google.firebase.components.ComponentRegistrar" />
+281-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:17-82
+282            <meta-data
+282-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:57:13-59:85
+283                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingKtxRegistrar"
+283-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:58:17-122
+284                android:value="com.google.firebase.components.ComponentRegistrar" />
+284-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:59:17-82
+285            <meta-data
+285-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:60:13-62:85
+286                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar"
+286-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:61:17-119
+287                android:value="com.google.firebase.components.ComponentRegistrar" />
+287-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:62:17-82
+288            <meta-data
+288-->[com.google.android.gms:play-services-measurement-api:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/3d2e3c69eaef5c1f432585340d947b9e/transformed/jetified-play-services-measurement-api-22.4.0/AndroidManifest.xml:33:13-35:85
+289                android:name="com.google.firebase.components:com.google.firebase.analytics.connector.internal.AnalyticsConnectorRegistrar"
+289-->[com.google.android.gms:play-services-measurement-api:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/3d2e3c69eaef5c1f432585340d947b9e/transformed/jetified-play-services-measurement-api-22.4.0/AndroidManifest.xml:34:17-139
+290                android:value="com.google.firebase.components.ComponentRegistrar" />
+290-->[com.google.android.gms:play-services-measurement-api:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/3d2e3c69eaef5c1f432585340d947b9e/transformed/jetified-play-services-measurement-api-22.4.0/AndroidManifest.xml:35:17-82
+291            <meta-data
+291-->[com.google.firebase:firebase-installations:18.0.0] /home/mayn/.gradle/caches/8.8/transforms/238e39182625dc4b9dc20a8be16a896b/transformed/jetified-firebase-installations-18.0.0/AndroidManifest.xml:15:13-17:85
+292                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsKtxRegistrar"
+292-->[com.google.firebase:firebase-installations:18.0.0] /home/mayn/.gradle/caches/8.8/transforms/238e39182625dc4b9dc20a8be16a896b/transformed/jetified-firebase-installations-18.0.0/AndroidManifest.xml:16:17-130
+293                android:value="com.google.firebase.components.ComponentRegistrar" />
+293-->[com.google.firebase:firebase-installations:18.0.0] /home/mayn/.gradle/caches/8.8/transforms/238e39182625dc4b9dc20a8be16a896b/transformed/jetified-firebase-installations-18.0.0/AndroidManifest.xml:17:17-82
+294            <meta-data
+294-->[com.google.firebase:firebase-installations:18.0.0] /home/mayn/.gradle/caches/8.8/transforms/238e39182625dc4b9dc20a8be16a896b/transformed/jetified-firebase-installations-18.0.0/AndroidManifest.xml:18:13-20:85
+295                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar"
+295-->[com.google.firebase:firebase-installations:18.0.0] /home/mayn/.gradle/caches/8.8/transforms/238e39182625dc4b9dc20a8be16a896b/transformed/jetified-firebase-installations-18.0.0/AndroidManifest.xml:19:17-127
+296                android:value="com.google.firebase.components.ComponentRegistrar" />
+296-->[com.google.firebase:firebase-installations:18.0.0] /home/mayn/.gradle/caches/8.8/transforms/238e39182625dc4b9dc20a8be16a896b/transformed/jetified-firebase-installations-18.0.0/AndroidManifest.xml:20:17-82
+297            <meta-data
+297-->[com.google.firebase:firebase-common-ktx:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/806ba71fdb1e3ccca08eceece8d36ee4/transformed/jetified-firebase-common-ktx-21.0.0/AndroidManifest.xml:12:13-14:85
+298                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+298-->[com.google.firebase:firebase-common-ktx:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/806ba71fdb1e3ccca08eceece8d36ee4/transformed/jetified-firebase-common-ktx-21.0.0/AndroidManifest.xml:13:17-116
+299                android:value="com.google.firebase.components.ComponentRegistrar" />
+299-->[com.google.firebase:firebase-common-ktx:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/806ba71fdb1e3ccca08eceece8d36ee4/transformed/jetified-firebase-common-ktx-21.0.0/AndroidManifest.xml:14:17-82
+300            <meta-data
+300-->[com.google.firebase:firebase-common:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/27626acf112628465e14fddbfafdedfa/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:35:13-37:85
+301                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+301-->[com.google.firebase:firebase-common:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/27626acf112628465e14fddbfafdedfa/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:36:17-109
+302                android:value="com.google.firebase.components.ComponentRegistrar" />
+302-->[com.google.firebase:firebase-common:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/27626acf112628465e14fddbfafdedfa/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:37:17-82
+303            <meta-data
+303-->[com.google.firebase:firebase-datatransport:18.2.0] /home/mayn/.gradle/caches/8.8/transforms/2a5187ddd7c0fe6f4af54cebf805f437/transformed/jetified-firebase-datatransport-18.2.0/AndroidManifest.xml:25:13-27:85
+304                android:name="com.google.firebase.components:com.google.firebase.datatransport.TransportRegistrar"
+304-->[com.google.firebase:firebase-datatransport:18.2.0] /home/mayn/.gradle/caches/8.8/transforms/2a5187ddd7c0fe6f4af54cebf805f437/transformed/jetified-firebase-datatransport-18.2.0/AndroidManifest.xml:26:17-115
+305                android:value="com.google.firebase.components.ComponentRegistrar" />
+305-->[com.google.firebase:firebase-datatransport:18.2.0] /home/mayn/.gradle/caches/8.8/transforms/2a5187ddd7c0fe6f4af54cebf805f437/transformed/jetified-firebase-datatransport-18.2.0/AndroidManifest.xml:27:17-82
+306        </service>
+307
+308        <provider
+308-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:23:9-27:38
+309            android:name="io.invertase.firebase.app.ReactNativeFirebaseAppInitProvider"
+309-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:13-88
+310            android:authorities="cn.linkchest.app.reactnativefirebaseappinitprovider"
+310-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:13-86
+311            android:exported="false"
+311-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:13-37
+312            android:initOrder="99" />
+312-->[:react-native-firebase_app] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/app/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:13-35
+313
+314        <receiver
+314-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:8:9-10:40
+315            android:name="cn.jpush.android.service.AlarmReceiver"
+315-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:9:13-66
+316            android:exported="false" />
+316-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:10:13-37
+317        <receiver
+317-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:9-20:20
+318            android:name="cn.jpush.android.service.PushReceiver"
+318-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:13-65
+319            android:enabled="true"
+319-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:13-35
+320            android:exported="false" >
+320-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-37
+321            <intent-filter android:priority="1000" >
+321-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:13-19:29
+321-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:15:28-51
+322                <action android:name="cn.jpush.android.intent.NOTIFICATION_RECEIVED_PROXY" />
+322-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:17-94
+322-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:16:25-91
+323
+324                <category android:name="cn.linkchest.app" />
+324-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:17-61
+324-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:27-58
+325            </intent-filter>
+326        </receiver>
+327
+328        <service
+328-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:22:9-31:19
+329            android:name="cn.jpush.android.service.PushService"
+329-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:23:13-64
+330            android:enabled="true"
+330-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:62:13-35
+331            android:exported="false"
+331-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:13-37
+332            android:process=":pushcore" >
+332-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:64:13-40
+333            <intent-filter>
+333-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:13-30:29
+334                <action android:name="cn.jpush.android.intent.REGISTER" />
+334-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:17-75
+334-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:25-72
+335                <action android:name="cn.jpush.android.intent.REPORT" />
+335-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:17-73
+335-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:25-70
+336                <action android:name="cn.jpush.android.intent.PushService" />
+336-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:17-78
+336-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:25-75
+337                <action android:name="cn.jpush.android.intent.PUSH_TIME" />
+337-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:17-76
+337-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:25-73
+338            </intent-filter>
+339        </service>
+340        <service
+340-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:32:9-38:19
+341            android:name="cn.jiguang.plugins.service.JCoreModuleService"
+341-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:33:13-73
+342            android:exported="true" >
+342-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:34:13-36
+343            <intent-filter>
+343-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:35:13-37:29
+344                <action android:name="cn.jiguang.user.service.action" />
+344-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:17-73
+344-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:25-70
+345            </intent-filter>
+346        </service>
+347
+348        <receiver
+348-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:34:9-43:20
+349            android:name="cn.jiguang.plugins.push.receiver.JPushModuleReceiver"
+349-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:35:13-80
+350            android:enabled="true"
+350-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:13-35
+351            android:exported="false" >
+351-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:37:13-37
+352            <intent-filter>
+352-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:38:13-42:29
+353                <action android:name="cn.jpush.android.intent.RECEIVER_MESSAGE" />
+353-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:39:17-83
+353-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:39:25-80
+354
+355                <category android:name="cn.linkchest.app" />
+355-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:17-61
+355-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:27-58
+356            </intent-filter>
+357        </receiver>
+358        <receiver
+358-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:44:9-53:20
+359            android:name="cn.jiguang.plugins.push.receiver.JPushBroadcastReceiver"
+359-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:45:13-83
+360            android:enabled="true"
+360-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:46:13-35
+361            android:exported="false" >
+361-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:47:13-37
+362            <intent-filter>
+362-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:48:13-52:29
+363                <action android:name="cn.jpush.android.intent.NOTIFICATION_OPENED" />
+363-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:49:17-86
+363-->[:jpush-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jpush-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:49:25-83
+364
+365                <category android:name="cn.linkchest.app" />
+365-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:17-61
+365-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:27-58
+366            </intent-filter>
+367        </receiver>
+368
+369        <provider
+369-->[:expo-clipboard] /mnt/d/trae_projects/linkchest/project/node_modules/expo-clipboard/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:8:9-15:20
+370            android:name="expo.modules.clipboard.ClipboardFileProvider"
+370-->[:expo-clipboard] /mnt/d/trae_projects/linkchest/project/node_modules/expo-clipboard/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:9:13-72
+371            android:authorities="cn.linkchest.app.ClipboardFileProvider"
+371-->[:expo-clipboard] /mnt/d/trae_projects/linkchest/project/node_modules/expo-clipboard/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:10:13-73
+372            android:exported="true" >
+372-->[:expo-clipboard] /mnt/d/trae_projects/linkchest/project/node_modules/expo-clipboard/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-36
+373            <meta-data
+373-->[:expo-clipboard] /mnt/d/trae_projects/linkchest/project/node_modules/expo-clipboard/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:13-14:68
+374                android:name="expo.modules.clipboard.CLIPBOARD_FILE_PROVIDER_PATHS"
+374-->[:expo-clipboard] /mnt/d/trae_projects/linkchest/project/node_modules/expo-clipboard/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:17-84
+375                android:resource="@xml/clipboard_provider_paths" />
+375-->[:expo-clipboard] /mnt/d/trae_projects/linkchest/project/node_modules/expo-clipboard/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:17-65
+376        </provider>
+377        <provider
+377-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:21:9-30:20
+378            android:name="expo.modules.filesystem.FileSystemFileProvider"
+378-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:22:13-74
+379            android:authorities="cn.linkchest.app.FileSystemFileProvider"
+379-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:23:13-74
+380            android:exported="false"
+380-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:13-37
+381            android:grantUriPermissions="true" >
+381-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:13-47
+382            <meta-data
+382-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:13-29:70
+383                android:name="android.support.FILE_PROVIDER_PATHS"
+383-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:17-67
+384                android:resource="@xml/file_system_provider_paths" />
+384-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:17-67
+385        </provider>
+386
+387        <service
+387-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:30:9-42:19
+388            android:name="com.google.android.gms.metadata.ModuleDependencies"
+388-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:31:13-78
+389            android:enabled="false"
+389-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:32:13-36
+390            android:exported="false" >
+390-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:33:13-37
+391            <intent-filter>
+391-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:35:13-37:29
+392                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+392-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:17-94
+392-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:25-91
+393            </intent-filter>
+394
+395            <meta-data
+395-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:39:13-41:36
+396                android:name="photopicker_activity:0:required"
+396-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:40:17-63
+397                android:value="" />
+397-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:41:17-33
+398        </service>
+399
+400        <activity
+400-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:44:9-46:59
+401            android:name="com.canhub.cropper.CropImageActivity"
+401-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:45:13-64
+402            android:exported="true"
+402-->[com.github.CanHub:Android-Image-Cropper:4.3.1] /home/mayn/.gradle/caches/8.8/transforms/89dea785e0d622b2d48dead31452bc2c/transformed/jetified-Android-Image-Cropper-4.3.1/AndroidManifest.xml:35:13-36
+403            android:theme="@style/Base.Theme.AppCompat" /> <!-- https://developer.android.com/guide/topics/manifest/provider-element.html -->
+403-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:46:13-56
+404        <provider
+404-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:48:9-56:20
+405            android:name="expo.modules.imagepicker.fileprovider.ImagePickerFileProvider"
+405-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:49:13-89
+406            android:authorities="cn.linkchest.app.ImagePickerFileProvider"
+406-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:50:13-75
+407            android:exported="false"
+407-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:51:13-37
+408            android:grantUriPermissions="true" >
+408-->[:expo-image-picker] /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:52:13-47
+409            <meta-data
+409-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:13-29:70
+410                android:name="android.support.FILE_PROVIDER_PATHS"
+410-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:17-67
+411                android:resource="@xml/image_picker_provider_paths" />
+411-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:17-67
+412        </provider>
+413
+414        <service
+414-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:9-17:19
+415            android:name="expo.modules.notifications.service.ExpoFirebaseMessagingService"
+415-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:13-91
+416            android:exported="false" >
+416-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:13-37
+417            <intent-filter android:priority="-1" >
+417-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:13-20:29
+418                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+418-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:17-78
+418-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:25-75
+419            </intent-filter>
+420        </service>
+421
+422        <receiver
+422-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:9-31:20
+423            android:name="expo.modules.notifications.service.NotificationsService"
+423-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:20:13-83
+424            android:enabled="true"
+424-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:21:13-35
+425            android:exported="false" >
+425-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:22:13-37
+426            <intent-filter android:priority="-1" >
+426-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:23:13-30:29
+426-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:23:28-49
+427                <action android:name="expo.modules.notifications.NOTIFICATION_EVENT" />
+427-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:17-88
+427-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:24:25-85
+428                <action android:name="android.intent.action.BOOT_COMPLETED" />
+428-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:17-79
+428-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:25:25-76
+429                <action android:name="android.intent.action.REBOOT" />
+429-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:17-71
+429-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:26:25-68
+430                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+430-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:17-82
+430-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:25-79
+431                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+431-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:17-82
+431-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:25-79
+432                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+432-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:17-84
+432-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:25-81
+433            </intent-filter>
+434        </receiver>
+435
+436        <activity
+436-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:33:9-40:75
+437            android:name="expo.modules.notifications.service.NotificationForwarderActivity"
+437-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:34:13-92
+438            android:excludeFromRecents="true"
+438-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:35:13-46
+439            android:exported="false"
+439-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:36:13-37
+440            android:launchMode="standard"
+440-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:37:13-42
+441            android:noHistory="true"
+441-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:38:13-37
+442            android:taskAffinity=""
+442-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:39:13-36
+443            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+443-->[:expo-notifications] /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:40:13-72
+444
+445        <meta-data
+445-->[:expo-modules-core] /mnt/d/trae_projects/linkchest/project/node_modules/expo-modules-core/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:9:9-11:89
+446            android:name="org.unimodules.core.AppLoader#react-native-headless"
+446-->[:expo-modules-core] /mnt/d/trae_projects/linkchest/project/node_modules/expo-modules-core/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:10:13-79
+447            android:value="expo.modules.adapters.react.apploader.RNHeadlessAppLoader" />
+447-->[:expo-modules-core] /mnt/d/trae_projects/linkchest/project/node_modules/expo-modules-core/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:11:13-86
+448        <meta-data
+448-->[:expo-modules-core] /mnt/d/trae_projects/linkchest/project/node_modules/expo-modules-core/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:12:9-15:45
+449            android:name="com.facebook.soloader.enabled"
+449-->[:expo-modules-core] /mnt/d/trae_projects/linkchest/project/node_modules/expo-modules-core/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:13:13-57
+450            android:value="true" />
+450-->[:expo-modules-core] /mnt/d/trae_projects/linkchest/project/node_modules/expo-modules-core/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:14:13-33
+451
+452        <provider
+452-->[com.github.CanHub:Android-Image-Cropper:4.3.1] /home/mayn/.gradle/caches/8.8/transforms/89dea785e0d622b2d48dead31452bc2c/transformed/jetified-Android-Image-Cropper-4.3.1/AndroidManifest.xml:23:9-31:20
+453            android:name="com.canhub.cropper.CropFileProvider"
+453-->[com.github.CanHub:Android-Image-Cropper:4.3.1] /home/mayn/.gradle/caches/8.8/transforms/89dea785e0d622b2d48dead31452bc2c/transformed/jetified-Android-Image-Cropper-4.3.1/AndroidManifest.xml:24:13-63
+454            android:authorities="cn.linkchest.app.cropper.fileprovider"
+454-->[com.github.CanHub:Android-Image-Cropper:4.3.1] /home/mayn/.gradle/caches/8.8/transforms/89dea785e0d622b2d48dead31452bc2c/transformed/jetified-Android-Image-Cropper-4.3.1/AndroidManifest.xml:25:13-72
+455            android:exported="false"
+455-->[com.github.CanHub:Android-Image-Cropper:4.3.1] /home/mayn/.gradle/caches/8.8/transforms/89dea785e0d622b2d48dead31452bc2c/transformed/jetified-Android-Image-Cropper-4.3.1/AndroidManifest.xml:26:13-37
+456            android:grantUriPermissions="true" >
+456-->[com.github.CanHub:Android-Image-Cropper:4.3.1] /home/mayn/.gradle/caches/8.8/transforms/89dea785e0d622b2d48dead31452bc2c/transformed/jetified-Android-Image-Cropper-4.3.1/AndroidManifest.xml:27:13-47
+457            <meta-data
+457-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:13-29:70
+458                android:name="android.support.FILE_PROVIDER_PATHS"
+458-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:17-67
+459                android:resource="@xml/library_file_paths" />
+459-->[:expo-file-system] /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:29:17-67
+460        </provider>
+461
+462        <receiver
+462-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:29:9-40:20
+463            android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
+463-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:30:13-78
+464            android:exported="true"
+464-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:31:13-36
+465            android:permission="com.google.android.c2dm.permission.SEND" >
+465-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:32:13-73
+466            <intent-filter>
+466-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:27:13-29:29
+467                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+467-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:17-81
+467-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:28:25-78
+468            </intent-filter>
+469
+470            <meta-data
+470-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:37:13-39:40
+471                android:name="com.google.android.gms.cloudmessaging.FINISHED_AFTER_HANDLED"
+471-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:38:17-92
+472                android:value="true" />
+472-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:39:17-37
+473        </receiver>
+474        <!--
+475             FirebaseMessagingService performs security checks at runtime,
+476             but set to not exported to explicitly avoid allowing another app to call it.
+477        -->
+478        <service
+478-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:46:9-53:19
+479            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+479-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:47:13-82
+480            android:directBootAware="true"
+480-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:48:13-43
+481            android:exported="false" >
+481-->[com.google.firebase:firebase-messaging:24.1.1] /home/mayn/.gradle/caches/8.8/transforms/53f038df7e3043564091235c9b242d2a/transformed/jetified-firebase-messaging-24.1.1/AndroidManifest.xml:49:13-37
+482            <intent-filter android:priority="-500" >
+482-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:13-20:29
+483                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+483-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:17-78
+483-->[:react-native-firebase_messaging] /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-firebase/messaging/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:19:25-75
+484            </intent-filter>
+485        </service>
+486
+487        <provider
+487-->[com.google.firebase:firebase-common:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/27626acf112628465e14fddbfafdedfa/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:23:9-28:39
+488            android:name="com.google.firebase.provider.FirebaseInitProvider"
+488-->[com.google.firebase:firebase-common:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/27626acf112628465e14fddbfafdedfa/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:24:13-77
+489            android:authorities="cn.linkchest.app.firebaseinitprovider"
+489-->[com.google.firebase:firebase-common:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/27626acf112628465e14fddbfafdedfa/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:25:13-72
+490            android:directBootAware="true"
+490-->[com.google.firebase:firebase-common:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/27626acf112628465e14fddbfafdedfa/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:26:13-43
+491            android:exported="false"
+491-->[com.google.firebase:firebase-common:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/27626acf112628465e14fddbfafdedfa/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:27:13-37
+492            android:initOrder="100" />
+492-->[com.google.firebase:firebase-common:21.0.0] /home/mayn/.gradle/caches/8.8/transforms/27626acf112628465e14fddbfafdedfa/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:28:13-36
+493
+494        <activity
+494-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:23:9-27:75
+495            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+495-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:24:13-93
+496            android:excludeFromRecents="true"
+496-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:25:13-46
+497            android:exported="false"
+497-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:26:13-37
+498            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+498-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:27:13-72
+499        <!--
+500            Service handling Google Sign-In user revocation. For apps that do not integrate with
+501            Google Sign-In, this service will never be started.
+502        -->
+503        <service
+503-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:33:9-37:51
+504            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+504-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:34:13-89
+505            android:exported="true"
+505-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:35:13-36
+506            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+506-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:36:13-107
+507            android:visibleToInstantApps="true" />
+507-->[com.google.android.gms:play-services-auth:21.3.0] /home/mayn/.gradle/caches/8.8/transforms/ac6da8b7abd1a492aa7f81bff4013387/transformed/jetified-play-services-auth-21.3.0/AndroidManifest.xml:37:13-48
+508
+509        <receiver
+509-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:29:9-33:20
+510            android:name="com.google.android.gms.measurement.AppMeasurementReceiver"
+510-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:30:13-85
+511            android:enabled="true"
+511-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:31:13-35
+512            android:exported="false" >
+512-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:32:13-37
+513        </receiver>
+514
+515        <service
+515-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:35:9-38:40
+516            android:name="com.google.android.gms.measurement.AppMeasurementService"
+516-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:36:13-84
+517            android:enabled="true"
+517-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:37:13-35
+518            android:exported="false" />
+518-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:38:13-37
+519        <service
+519-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:39:9-43:72
+520            android:name="com.google.android.gms.measurement.AppMeasurementJobService"
+520-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:40:13-87
+521            android:enabled="true"
+521-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:41:13-35
+522            android:exported="false"
+522-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:42:13-37
+523            android:permission="android.permission.BIND_JOB_SERVICE" />
+523-->[com.google.android.gms:play-services-measurement:22.4.0] /home/mayn/.gradle/caches/8.8/transforms/c0cb45c8f6003503b383c5259107fd6d/transformed/jetified-play-services-measurement-22.4.0/AndroidManifest.xml:43:13-69
+524
+525        <activity
+525-->[com.google.android.gms:play-services-base:18.5.0] /home/mayn/.gradle/caches/8.8/transforms/426476381bf7523797fe06332f33e445/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:9-173
+526            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+526-->[com.google.android.gms:play-services-base:18.5.0] /home/mayn/.gradle/caches/8.8/transforms/426476381bf7523797fe06332f33e445/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:19-85
+527            android:exported="false"
+527-->[com.google.android.gms:play-services-base:18.5.0] /home/mayn/.gradle/caches/8.8/transforms/426476381bf7523797fe06332f33e445/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:146-170
+528            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+528-->[com.google.android.gms:play-services-base:18.5.0] /home/mayn/.gradle/caches/8.8/transforms/426476381bf7523797fe06332f33e445/transformed/jetified-play-services-base-18.5.0/AndroidManifest.xml:5:86-145
+529
+530        <provider
+530-->[androidx.emoji2:emoji2:1.2.0] /home/mayn/.gradle/caches/8.8/transforms/8dc638049b46ee4256f0e6ba185a0f7c/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+531            android:name="androidx.startup.InitializationProvider"
+531-->[androidx.emoji2:emoji2:1.2.0] /home/mayn/.gradle/caches/8.8/transforms/8dc638049b46ee4256f0e6ba185a0f7c/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
+532            android:authorities="cn.linkchest.app.androidx-startup"
+532-->[androidx.emoji2:emoji2:1.2.0] /home/mayn/.gradle/caches/8.8/transforms/8dc638049b46ee4256f0e6ba185a0f7c/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
+533            android:exported="false" >
+533-->[androidx.emoji2:emoji2:1.2.0] /home/mayn/.gradle/caches/8.8/transforms/8dc638049b46ee4256f0e6ba185a0f7c/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37
+534            <meta-data
+534-->[androidx.emoji2:emoji2:1.2.0] /home/mayn/.gradle/caches/8.8/transforms/8dc638049b46ee4256f0e6ba185a0f7c/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+535                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+535-->[androidx.emoji2:emoji2:1.2.0] /home/mayn/.gradle/caches/8.8/transforms/8dc638049b46ee4256f0e6ba185a0f7c/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:30:17-75
+536                android:value="androidx.startup" />
+536-->[androidx.emoji2:emoji2:1.2.0] /home/mayn/.gradle/caches/8.8/transforms/8dc638049b46ee4256f0e6ba185a0f7c/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:31:17-49
+537            <meta-data
+537-->[androidx.lifecycle:lifecycle-process:2.6.1] /home/mayn/.gradle/caches/8.8/transforms/e1261c6a368736430f794f933e196373/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:29:13-31:52
+538                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+538-->[androidx.lifecycle:lifecycle-process:2.6.1] /home/mayn/.gradle/caches/8.8/transforms/e1261c6a368736430f794f933e196373/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:30:17-78
+539                android:value="androidx.startup" />
+539-->[androidx.lifecycle:lifecycle-process:2.6.1] /home/mayn/.gradle/caches/8.8/transforms/e1261c6a368736430f794f933e196373/transformed/jetified-lifecycle-process-2.6.1/AndroidManifest.xml:31:17-49
+540            <meta-data
+540-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+541                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+541-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+542                android:value="androidx.startup" />
+542-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+543        </provider>
+544
+545        <uses-library
+545-->[androidx.privacysandbox.ads:ads-adservices:1.1.0-beta11] /home/mayn/.gradle/caches/8.8/transforms/e8b9dce2196f33173428bf2e400c58ad/transformed/jetified-ads-adservices-1.1.0-beta11/AndroidManifest.xml:23:9-25:40
+546            android:name="android.ext.adservices"
+546-->[androidx.privacysandbox.ads:ads-adservices:1.1.0-beta11] /home/mayn/.gradle/caches/8.8/transforms/e8b9dce2196f33173428bf2e400c58ad/transformed/jetified-ads-adservices-1.1.0-beta11/AndroidManifest.xml:24:13-50
+547            android:required="false" />
+547-->[androidx.privacysandbox.ads:ads-adservices:1.1.0-beta11] /home/mayn/.gradle/caches/8.8/transforms/e8b9dce2196f33173428bf2e400c58ad/transformed/jetified-ads-adservices-1.1.0-beta11/AndroidManifest.xml:25:13-37
+548
+549        <meta-data
+549-->[com.google.android.gms:play-services-basement:18.5.0] /home/mayn/.gradle/caches/8.8/transforms/94b22c88f5210ecb89a001a34d6b8343/transformed/jetified-play-services-basement-18.5.0/AndroidManifest.xml:21:9-23:69
+550            android:name="com.google.android.gms.version"
+550-->[com.google.android.gms:play-services-basement:18.5.0] /home/mayn/.gradle/caches/8.8/transforms/94b22c88f5210ecb89a001a34d6b8343/transformed/jetified-play-services-basement-18.5.0/AndroidManifest.xml:22:13-58
+551            android:value="@integer/google_play_services_version" />
+551-->[com.google.android.gms:play-services-basement:18.5.0] /home/mayn/.gradle/caches/8.8/transforms/94b22c88f5210ecb89a001a34d6b8343/transformed/jetified-play-services-basement-18.5.0/AndroidManifest.xml:23:13-66
+552
+553        <receiver
+553-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+554            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+554-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+555            android:directBootAware="false"
+555-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+556            android:enabled="true"
+556-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+557            android:exported="true"
+557-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+558            android:permission="android.permission.DUMP" >
+558-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+559            <intent-filter>
+559-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+560                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+560-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+560-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+561            </intent-filter>
+562            <intent-filter>
+562-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+563                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+563-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+563-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+564            </intent-filter>
+565            <intent-filter>
+565-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+566                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+566-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+566-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+567            </intent-filter>
+568            <intent-filter>
+568-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+569                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+569-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+569-->[androidx.profileinstaller:profileinstaller:1.3.0] /home/mayn/.gradle/caches/8.8/transforms/b64338ea7697ba5b4a9a64628a560a89/transformed/jetified-profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+570            </intent-filter>
+571        </receiver>
+572
+573        <service
+573-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/70cabdd3767d7a966a10c316f86c5ed4/transformed/jetified-transport-backend-cct-3.1.9/AndroidManifest.xml:28:9-34:19
+574            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+574-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/70cabdd3767d7a966a10c316f86c5ed4/transformed/jetified-transport-backend-cct-3.1.9/AndroidManifest.xml:29:13-103
+575            android:exported="false" >
+575-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/70cabdd3767d7a966a10c316f86c5ed4/transformed/jetified-transport-backend-cct-3.1.9/AndroidManifest.xml:30:13-37
+576            <meta-data
+576-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/70cabdd3767d7a966a10c316f86c5ed4/transformed/jetified-transport-backend-cct-3.1.9/AndroidManifest.xml:31:13-33:39
+577                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+577-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/70cabdd3767d7a966a10c316f86c5ed4/transformed/jetified-transport-backend-cct-3.1.9/AndroidManifest.xml:32:17-94
+578                android:value="cct" />
+578-->[com.google.android.datatransport:transport-backend-cct:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/70cabdd3767d7a966a10c316f86c5ed4/transformed/jetified-transport-backend-cct-3.1.9/AndroidManifest.xml:33:17-36
+579        </service>
+580        <service
+580-->[com.google.android.datatransport:transport-runtime:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/24039a6871687c369a21d6a3c4de52c1/transformed/jetified-transport-runtime-3.1.9/AndroidManifest.xml:26:9-30:19
+581            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+581-->[com.google.android.datatransport:transport-runtime:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/24039a6871687c369a21d6a3c4de52c1/transformed/jetified-transport-runtime-3.1.9/AndroidManifest.xml:27:13-117
+582            android:exported="false"
+582-->[com.google.android.datatransport:transport-runtime:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/24039a6871687c369a21d6a3c4de52c1/transformed/jetified-transport-runtime-3.1.9/AndroidManifest.xml:28:13-37
+583            android:permission="android.permission.BIND_JOB_SERVICE" >
+583-->[com.google.android.datatransport:transport-runtime:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/24039a6871687c369a21d6a3c4de52c1/transformed/jetified-transport-runtime-3.1.9/AndroidManifest.xml:29:13-69
+584        </service>
+585
+586        <receiver
+586-->[com.google.android.datatransport:transport-runtime:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/24039a6871687c369a21d6a3c4de52c1/transformed/jetified-transport-runtime-3.1.9/AndroidManifest.xml:32:9-34:40
+587            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+587-->[com.google.android.datatransport:transport-runtime:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/24039a6871687c369a21d6a3c4de52c1/transformed/jetified-transport-runtime-3.1.9/AndroidManifest.xml:33:13-132
+588            android:exported="false" /> <!-- Rich push 核心功能 since 2.0.6 -->
+588-->[com.google.android.datatransport:transport-runtime:3.1.9] /home/mayn/.gradle/caches/8.8/transforms/24039a6871687c369a21d6a3c4de52c1/transformed/jetified-transport-runtime-3.1.9/AndroidManifest.xml:34:13-37
+589        <activity
+589-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:32:9-43:20
+590            android:name="cn.jpush.android.ui.PopWinActivity"
+590-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:33:13-62
+591            android:exported="false"
+591-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:34:13-37
+592            android:theme="@style/JPushDialogStyle" >
+592-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:35:13-52
+593            <intent-filter>
+593-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:36:13-42:29
+594                <category android:name="android.intent.category.DEFAULT" />
+594-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:9-67
+594-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:19-65
+595
+596                <action android:name="cn.jpush.android.ui.PopWinActivity" />
+596-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:39:17-77
+596-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:39:25-74
+597
+598                <category android:name="cn.linkchest.app" />
+598-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:17-61
+598-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:27-58
+599            </intent-filter>
+600        </activity> <!-- Required SDK核心功能 -->
+601        <activity
+601-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:46:9-57:20
+602            android:name="cn.jpush.android.ui.PushActivity"
+602-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:47:13-60
+603            android:configChanges="orientation|keyboardHidden"
+603-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:48:13-63
+604            android:exported="false"
+604-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:49:13-37
+605            android:theme="@android:style/Theme.NoTitleBar" >
+605-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:50:13-60
+606            <intent-filter>
+606-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:51:13-56:29
+607                <action android:name="cn.jpush.android.ui.PushActivity" />
+607-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:52:17-75
+607-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:52:25-72
+608
+609                <category android:name="android.intent.category.DEFAULT" />
+609-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:9-67
+609-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:19-65
+610                <category android:name="cn.linkchest.app" />
+610-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:17-61
+610-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:27-58
+611            </intent-filter>
+612        </activity> <!-- since 3.5.0 Required SDK 核心功能 -->
+613        <!-- 3.5.0新增，用于定时展示功能 -->
+614        <receiver
+614-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:91:9-93:40
+615            android:name="cn.jpush.android.service.SchedulerReceiver"
+615-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:92:13-70
+616            android:exported="false" /> <!-- since 3.0.9 Required SDK 核心功能 -->
+616-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:93:13-37
+617        <provider
+617-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:96:9-100:43
+618            android:name="cn.jpush.android.service.DataProvider"
+618-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:97:13-65
+619            android:authorities="cn.linkchest.app.DataProvider"
+619-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:98:13-64
+620            android:exported="false"
+620-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:99:13-37
+621            android:process=":pushcore" /> <!-- since 3.3.0 Required SDK核心功能 -->
+621-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:100:13-40
+622        <activity
+622-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:103:9-114:20
+623            android:name="cn.jpush.android.service.JNotifyActivity"
+623-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:104:13-68
+624            android:exported="true"
+624-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:105:13-36
+625            android:taskAffinity=""
+625-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:106:13-36
+626            android:theme="@style/JPushTheme" >
+626-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:107:13-46
+627            <intent-filter>
+627-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:108:13-113:29
+628                <action android:name="cn.jpush.android.intent.JNotifyActivity" />
+628-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:109:17-82
+628-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:109:25-79
+629
+630                <category android:name="android.intent.category.DEFAULT" />
+630-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:9-67
+630-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:19-65
+631                <category android:name="cn.linkchest.app" />
+631-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:17-61
+631-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:27-58
+632            </intent-filter>
+633        </activity> <!-- since 4.6.0 Required SDK核心功能 -->
+634        <activity
+634-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:116:9-127:20
+635            android:name="cn.android.service.JTransitActivity"
+635-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:117:13-63
+636            android:exported="true"
+636-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:118:13-36
+637            android:taskAffinity=""
+637-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:119:13-36
+638            android:theme="@style/JPushTheme" >
+638-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:120:13-46
+639            <intent-filter>
+639-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:121:13-126:29
+640                <action android:name="cn.android.service.JTransitActivity" />
+640-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:122:17-78
+640-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:122:25-75
+641
+642                <category android:name="android.intent.category.DEFAULT" />
+642-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:9-67
+642-->/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/src/main/AndroidManifest.xml:37:19-65
+643                <category android:name="cn.linkchest.app" />
+643-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:17-61
+643-->[:jcore-react-native] /mnt/d/trae_projects/linkchest/project/node_modules/jcore-react-native/android/build/intermediates/merged_manifest/release/AndroidManifest.xml:18:27-58
+644            </intent-filter>
+645        </activity> <!-- since 3.5.6 新增华硕通道 -->
+646        <receiver
+646-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:129:9-131:40
+647            android:name="cn.jpush.android.asus.AsusPushMessageReceiver"
+647-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:130:13-73
+648            android:exported="false" /> <!-- </>值来自开发者平台取得的AppKey -->
+648-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:131:13-37
+649        <!-- since 5.0.0 -->
+650        <provider
+650-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:140:9-145:83
+651            android:name="cn.jpush.android.service.InitProvider"
+651-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:141:13-65
+652            android:authorities="cn.linkchest.app.jiguang.InitProvider"
+652-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:142:13-72
+653            android:exported="false"
+653-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:143:13-37
+654            android:readPermission="cn.linkchest.app.permission.JPUSH_MESSAGE"
+654-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:144:13-79
+655            android:writePermission="cn.linkchest.app.permission.JPUSH_MESSAGE" />
+655-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:145:13-80
+656
+657        <meta-data
+657-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:147:9-149:52
+658            android:name="JPUSH_MD5"
+658-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:148:13-37
+659            android:value="1:610:af5282e7:455:r" />
+659-->[cn.jiguang.sdk:jpush:6.1.0] /home/mayn/.gradle/caches/8.8/transforms/c1f64f66bd7d92310ba5c9a12431005d/transformed/jetified-jpush-6.1.0/AndroidManifest.xml:149:13-49
+660        <meta-data
+660-->[cn.jiguang.sdk:jcore:5.4.0] /home/mayn/.gradle/caches/8.8/transforms/93172ad13d9cf8f195789cccb2934969/transformed/jetified-jcore-5.4.0/AndroidManifest.xml:12:9-14:37
+661            android:name="JCORE_VT"
+661-->[cn.jiguang.sdk:jcore:5.4.0] /home/mayn/.gradle/caches/8.8/transforms/93172ad13d9cf8f195789cccb2934969/transformed/jetified-jcore-5.4.0/AndroidManifest.xml:13:13-36
+662            android:value="r5400" />
+662-->[cn.jiguang.sdk:jcore:5.4.0] /home/mayn/.gradle/caches/8.8/transforms/93172ad13d9cf8f195789cccb2934969/transformed/jetified-jcore-5.4.0/AndroidManifest.xml:14:13-34
+663        <meta-data
+663-->[cn.jiguang.sdk:jcore:5.4.0] /home/mayn/.gradle/caches/8.8/transforms/93172ad13d9cf8f195789cccb2934969/transformed/jetified-jcore-5.4.0/AndroidManifest.xml:15:9-17:53
+664            android:name="JCORE_MD5"
+664-->[cn.jiguang.sdk:jcore:5.4.0] /home/mayn/.gradle/caches/8.8/transforms/93172ad13d9cf8f195789cccb2934969/transformed/jetified-jcore-5.4.0/AndroidManifest.xml:16:13-37
+665            android:value="1:540:557d6216:261:r:" />
+665-->[cn.jiguang.sdk:jcore:5.4.0] /home/mayn/.gradle/caches/8.8/transforms/93172ad13d9cf8f195789cccb2934969/transformed/jetified-jcore-5.4.0/AndroidManifest.xml:17:13-50
+666    </application>
+667
+668</manifest>

@@ -1,0 +1,8 @@
+f = open('/tmp/full-bundle.js').read()
+print('tier.pro:', f.count('tier.pro'))
+print('"Pro":', f.count('"Pro"'))
+print('"Ultimate":', f.count('"Ultimate"'))
+print('Plan Management:', f.count('Plan Management'))
+print('/mo:', f.count('/mo'))
+print('locales:', f.count('locales'))
+print('en.json:', f.count('en.json'))

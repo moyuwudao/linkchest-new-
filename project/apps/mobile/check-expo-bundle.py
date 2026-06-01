@@ -1,0 +1,13 @@
+f = open('/tmp/expo-bundle.js').read()
+
+print('=== Expo CLI Bundle 验证 ===')
+print('微信登录:', f.count('\\u5fae\\u4fe1\\u767b\\u5f55'))
+print('应用宝:', f.count('\\u5e94\\u7528\\u5b9d'))
+print('专业版:', f.count('\\u4e13\\u4e1a\\u7248'))
+print('旗舰版:', f.count('\\u65d7\\u8230\\u7248'))
+print('tier.pro:', f.count('tier.pro'))
+print('"Pro":', f.count('"Pro"'))
+print('"Ultimate":', f.count('"Ultimate"'))
+print('linkchest.cn:', f.count('linkchest.cn'))
+print('linkchest.net:', f.count('linkchest.net'))
+print('Google Sign-In:', f.count('Google Sign-In'))

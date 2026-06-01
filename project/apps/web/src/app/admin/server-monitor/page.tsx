@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { RefreshCw, Server, ArrowRight, ExternalLink } from 'lucide-react';
 import { api } from '@/lib/api';
+import { getMarketConfig } from '@/lib/api/market';
 
 interface SystemInfo {
   cpuCores: number;
@@ -38,6 +39,8 @@ interface Pm2Process {
   uptime: number;
   restarts: number;
   pid: number;
+  _serverId?: string;
+  _serverName?: string;
 }
 
 interface ServerConfig {
@@ -53,6 +56,8 @@ export default function ServerMonitorPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [remoteServers, setRemoteServers] = useState<ServerConfig[]>([]);
+  const [market, setMarket] = useState<'china' | 'global'>('global');
+  const [localServer, setLocalServer] = useState<ServerConfig>({ id: 'local', name: '本地服务器', region: '', url: '' });
 
   const [localMetrics, setLocalMetrics] = useState<ServerMetrics | null>(null);
   const [remoteMetricsMap, setRemoteMetricsMap] = useState<Map<string, ServerMetrics | null>>(new Map());
@@ -61,19 +66,28 @@ export default function ServerMonitorPage() {
   const fetchServerData = useCallback(async () => {
     try {
       setError(null);
-      const [metricsRes, serversRes, pm2Res] = await Promise.all([
-        api.get('/admin/server-monitor'),
+      // 先获取市场配置（本地缓存，很快）
+      const marketRes = await getMarketConfig();
+      setMarket(marketRes.market);
+
+      // 并行获取服务器列表和本地指标（核心数据）
+      const [serversRes, metricsRes] = await Promise.all([
         api.get('/admin/server-monitor/servers'),
-        api.get('/admin/server-monitor/pm2-global').catch(() => ({ data: { processes: [] } })),
+        api.get('/admin/server-monitor'),
       ]);
 
       const data = metricsRes.data;
       setLocalMetrics(data.local);
       setRemoteMetricsMap(new Map(Object.entries(data.remote || {})));
       setRemoteServers(serversRes.data.remote || []);
-      setGlobalPm2(pm2Res.data.processes || []);
+      setLocalServer(serversRes.data.local || { id: 'local', name: '本地服务器', region: '', url: '' });
       setLastSync(new Date());
       setLoading(false);
+
+      // PM2 数据非关键，单独获取，失败不影响主页面
+      api.get('/admin/server-monitor/pm2-global')
+        .then(pm2Res => setGlobalPm2(pm2Res.data.processes || []))
+        .catch(() => setGlobalPm2([]));
     } catch (err: unknown) {
       const msg = (err as Error).message || '加载服务器数据失败';
       setError(msg);
@@ -128,16 +142,16 @@ export default function ServerMonitorPage() {
 
       {/* 服务器状态卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* 国内服务器 */}
+        {/* 本地服务器 */}
         {localMetrics && (
           <ServerCard
-            server={{ id: 'china', name: '国内应用层', region: '深圳' }}
+            server={localServer}
             metrics={localMetrics}
             isLocal
           />
         )}
 
-        {/* 海外服务器 */}
+        {/* 远程服务器 */}
         {remoteServers.map((srv) => {
           const metrics = remoteMetricsMap.get(srv.id) || null;
           return (
@@ -151,17 +165,20 @@ export default function ServerMonitorPage() {
         })}
       </div>
 
-      {/* 海外服务器 PM2 状态 */}
+      {/* 远程服务器 PM2 状态 */}
       {globalPm2.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">海外服务器 PM2 进程状态</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {market === 'china' ? '国内' : '海外'}服务器 PM2 进程状态
+            </h2>
             <span className="text-xs text-gray-400">{globalPm2.length} 个进程</span>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left text-gray-500">
+                  <th className="pb-3 px-4 font-medium">服务器</th>
                   <th className="pb-3 px-4 font-medium">进程名</th>
                   <th className="pb-3 px-4 font-medium">状态</th>
                   <th className="pb-3 px-4 font-medium">CPU</th>
@@ -173,7 +190,8 @@ export default function ServerMonitorPage() {
               </thead>
               <tbody>
                 {globalPm2.map((proc) => (
-                  <tr key={proc.pid} className="border-b border-gray-50 hover:bg-gray-50">
+                  <tr key={`${proc._serverId || 'local'}-${proc.pid}`} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-xs text-gray-500">{proc._serverName || '本地'}</td>
                     <td className="py-3 px-4 font-medium text-gray-900">{proc.name}</td>
                     <td className="py-3 px-4">
                       <span
@@ -206,15 +224,16 @@ export default function ServerMonitorPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">服务器负载对比</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <LoadDetail metrics={localMetrics} serverName="国内应用层" />
+            <LoadDetail metrics={localMetrics} serverName={localServer.name} />
             {(() => {
-              const globalMetrics = remoteMetricsMap.get('global');
-              return globalMetrics ? (
-                <LoadDetail metrics={globalMetrics} serverName="海外服务器" />
+              const firstRemote = remoteServers[0];
+              const remoteMetrics = firstRemote ? remoteMetricsMap.get(firstRemote.id) : null;
+              return remoteMetrics ? (
+                <LoadDetail metrics={remoteMetrics} serverName={firstRemote.name} />
               ) : (
                 <div className="p-4 bg-gray-50 rounded-lg text-gray-400 text-sm flex items-center justify-center">
                   <ArrowRight className="w-4 h-4 mr-2" />
-                  海外数据暂未同步，请点击「同步远程数据」
+                  远程数据暂未同步，请点击「同步远程数据」
                 </div>
               );
             })()}
