@@ -166,6 +166,7 @@
     "shareTitle": "Export LinkChest Data",
     "hintTitle": "Export Info",
     "hintDesc": "Export includes all non-deleted collections. Pro users and above include cover image links.",
+    "importHint": "Import is not supported on mobile. Please use the web app to import data.",
     "successMsg": "Export successful! File saved to cache directory.",
     "filePath": "File path: "
   },
@@ -421,7 +422,6 @@
     "light": "Light",
     "other": "Other",
     "feedback": "Feedback",
-    "feedbackDev": "If email client fails to open, please send feedback to support@linkchest.net manually",
     "logout": "Log Out",
     "logoutConfirm": "Are you sure you want to log out?",
     "logoutBtn": "Log Out",
@@ -437,8 +437,9 @@
     "checkUpdate": "Check for Update",
     "updateDesc": "Please choose an update method",
     "downloadApk": "Download Update",
-    "openStoreFailed": "Cannot open the store. Please manually search for LinkChest on Google Play.",
-    "openDownloadFailed": "Cannot open the download page. Please visit https://linkchest.net/download?lang=en"
+    "yingyongbao": "YingYongBao",
+    "openStoreFailed": "Cannot open the store. Please manually search for LinkChest on the app store.",
+    "openDownloadFailed": "Cannot open the download page. Please visit {url}"
   },
   "account": {
     "username": "Username",
@@ -667,7 +668,27 @@
     "backupManualExport": "Manual Export",
     "backupManualExportDesc": "Export all collections as JSON file now",
     "backupExportNow": "Export Now",
-    "backupExportSuccess": "Export successful"
+    "backupExportSuccess": "Export successful",
+    "collectionViewTitle": "Collection View Settings",
+    "selectViewMode": "Select View Mode",
+    "gridView": "Grid View",
+    "listView": "List View",
+    "displayFieldsHint": "Display Fields (tap arrows to reorder)",
+    "resetDefault": "Reset Default",
+    "resetDefaultTitle": "Reset Default",
+    "resetDefaultDesc": "Reset current view to default settings?",
+    "saved": "Settings saved",
+    "fields": {
+      "cover": "Cover",
+      "title": "Title",
+      "platform": "Platform",
+      "rating": "Rating",
+      "pageType": "Page Type",
+      "tags": "Tags",
+      "lists": "Groups",
+      "note": "Note",
+      "createdAt": "Created At"
+    }
   },
   "quickAdd": {
     "title": "Quick Add",
@@ -749,7 +770,8 @@
     "perMonth": "/mo",
     "perYear": "/yr",
     "tierManagement": "Plan Management",
-    "perQuarter": "/quarter"
+    "perQuarter": "/quarter",
+    "notSubscribed": "Not Subscribed"
   },
   "error": {
     "unknown": "An unknown error occurred",

@@ -39,7 +39,8 @@ description: 高风险操作规则 - 部署与构建安全（橙色区域）
 
 | 服务器 | host | username | port |
 |--------|------|----------|------|
-| 海外 | `43.133.44.232` | `ubuntu` | 22 |
+| 海外应用层（雅加达） | `43.157.240.68` | `ubuntu` | 22 |
+| 海外数据层（新加坡） | `43.133.44.232` | `ubuntu` | 22 |
 | 国内应用层 | `43.136.82.88` | `ubuntu` | 22 |
 | 国内数据层 | `114.132.81.246` | `ubuntu` | 22 |
 
@@ -61,24 +62,34 @@ mcp_aliyun-servers_ssh_disconnect(connectionId="xxx")
 
 当 MCP 不可用时，使用标准 SSH 命令：
 ```bash
-ssh ubuntu@43.133.44.232 "cd /opt/linkchest/api && pm2 list"
+# 海外应用层
+ssh ubuntu@43.157.240.68 "cd /opt/linkchest/api && pm2 list"
+
+# 海外数据层
+ssh ubuntu@43.133.44.232 "docker ps"
 ```
 
 ---
 
-### 1.1 海外服务器（单体架构）
+### 1.1 海外服务器（应用层 + 数据层分离）
 
-| 配置项 | 值 |
-|--------|-----|
-| IP | `43.133.44.232` |
-| 正式域名 | `https://linkchest.net` |
-| 临时测试地址 | `http://43.133.44.232:3003` |
-| 区域 | 新加坡 (`ap-singapore`) |
-| 用户 | `ubuntu` |
-| 架构 | 单体（API + WEB + DB + Redis 同一台） |
-| 项目目录 | `/opt/linkchest/api` |
-| PM2 进程名 | `linkchest-api-global` |
-| 环境变量文件 | `.env.global` |
+| 服务器 | IP | 配置 | 用途 |
+|--------|-----|------|------|
+| 雅加达（应用层） | `43.157.240.68` | 2核4G30M | API + WEB + Redis + Nginx |
+| 新加坡（数据层） | `43.133.44.232` | 2核2G | PostgreSQL 16 |
+
+| 配置项 | 雅加达（应用层） | 新加坡（数据层） |
+|--------|------------------|------------------|
+| 正式域名 | `https://linkchest.net` | - |
+| 临时测试地址 | `http://43.157.240.68:3003` | - |
+| 区域 | 雅加达 (`ap-jakarta`) | 新加坡 (`ap-singapore`) |
+| 用户 | `ubuntu` | `ubuntu` |
+| 项目目录 | `/opt/linkchest/api` | `/opt/linkchest/api` |
+| PM2 进程名 | `linkchest-api-global` | - |
+| 环境变量文件 | `.env.global` | `.env.global` |
+| PostgreSQL | - | `5432`（通过 SSH 隧道 5433 连接） |
+| Redis | `6379` | - |
+| 数据库隧道 | autossh → 新加坡 5432 | - |
 
 ### 1.2 国内服务器（应用层 + 数据层分离）
 
@@ -116,10 +127,10 @@ ssh ubuntu@43.133.44.232 "cd /opt/linkchest/api && pm2 list"
 **唯一允许的部署命令：**
 
 ```bash
-# 海外服务器
-ssh ubuntu@43.133.44.232 "cd /opt/linkchest/api && git pull && bash deploy/update-server.sh"
+# 海外应用层（雅加达）
+ssh ubuntu@43.157.240.68 "cd /opt/linkchest/api && git pull && bash deploy/update-server.sh"
 
-# 国内服务器
+# 国内应用层
 ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update-server-cn.sh"
 ```
 
@@ -163,8 +174,10 @@ ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update
 
 | 禁止行为 | 原因 | 违规后果 |
 |----------|------|----------|
-| **使用两服务器架构部署海外** | 海外是单体架构 | 过度复杂化 |
+| **只部署应用层而忽略数据层** | 数据库在新加坡数据层 | 数据库未更新 |
+| **在应用层本地运行 PostgreSQL** | 数据库应在数据层 | 资源竞争、数据不一致 |
 | **使用 `.env.china` 部署海外** | 海外需要 `.env.global` | Provider 配置错误 |
+| **SSH 隧道未运行即部署** | 应用层无法连接数据层 | 数据库连接失败 |
 
 ---
 
@@ -174,17 +187,21 @@ ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update
 
 - [ ] **目标市场已确认** — `global` 或 `china`
 - [ ] **目标服务器 IP 已确认**：
-  - 海外：`43.133.44.232`
+  - 海外应用层（雅加达）：`43.157.240.68`
+  - 海外数据层（新加坡）：`43.133.44.232`
   - 国内应用层：`43.136.82.88`
   - 国内数据层：`114.132.81.246`
 
 ### 3.2 海外检查清单
 
-- [ ] **服务器 IP**：`43.133.44.232`
+- [ ] **应用层 IP**：`43.157.240.68`
+- [ ] **数据层 IP**：`43.133.44.232`
 - [ ] **SSH 用户**：`ubuntu`
 - [ ] **环境变量文件**：`.env.global`
 - [ ] **PM2 进程名**：`linkchest-api-global`
-- [ ] **部署脚本**：`bash deploy-api.sh` 或 `bash update-server.sh`
+- [ ] **SSH 隧道已运行**：`systemctl status autossh-tunnel`
+- [ ] **部署脚本**：`bash deploy/deploy.sh global` 或 `bash update-server.sh`
+- [ ] **数据库在数据层（新加坡）**
 
 ### 3.3 国内检查清单
 
@@ -208,18 +225,18 @@ ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update
 ### 4.1 海外部署
 
 ```bash
-# 正确：代码拷贝部署
-bash deploy-api.sh
+# 正确：统一入口脚本（推荐）
+bash deploy/deploy.sh global
 
-# 正确：服务器构建部署
-bash update-server.sh
+# 正确：服务器构建部署（在应用层执行）
+ssh ubuntu@43.157.240.68 "cd /opt/linkchest/api && bash deploy/update-server.sh"
 ```
 
 ### 4.2 国内部署
 
 ```bash
-# 正确：使用国内部署脚本
-bash deploy/deploy.sh 43.136.82.88 china
+# 正确：统一入口脚本（推荐）
+bash deploy/deploy.sh china
 
 # 正确：数据库操作在数据层执行
 ssh ubuntu@114.132.81.246 "cd /opt/linkchest/api/apps/api && npx prisma migrate deploy"
@@ -240,9 +257,14 @@ ssh ubuntu@114.132.81.246 "cd /opt/linkchest/api/apps/api && npx prisma migrate 
 ### 5.1 海外验证
 
 ```bash
-ssh ubuntu@43.133.44.232 "pm2 list"
-curl -s http://43.133.44.232:3001/api/health
-curl -s -o /dev/null -w "%{http_code}" http://43.133.44.232:3003
+# 应用层验证
+ssh ubuntu@43.157.240.68 "pm2 list"
+curl -s http://43.157.240.68:3001/api/health
+curl -s -o /dev/null -w "%{http_code}" http://43.157.240.68:3003
+
+# 数据层验证
+ssh ubuntu@43.133.44.232 "docker ps | grep postgres"
+ssh ubuntu@43.157.240.68 "nc -zv 127.0.0.1 5433"
 ```
 
 ### 5.2 国内验证
@@ -299,7 +321,7 @@ wsl -d linkchest -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mob
 
 ### 7.1 部署阻断关键词
 
-- `ssh ubuntu@43.133.44.232`、`ssh ubuntu@43.136.82.88`、`ssh ubuntu@114.132.81.246`
+- `ssh ubuntu@43.157.240.68`、`ssh ubuntu@43.133.44.232`、`ssh ubuntu@43.136.82.88`、`ssh ubuntu@114.132.81.246`
 - `scp`、`rsync`
 - `pm2 restart`、`pm2 start`、`pm2 delete`
 - `prisma db push`、`prisma migrate deploy`
@@ -319,7 +341,8 @@ wsl -d linkchest -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mob
 │ 检测到 [部署/构建] 操作                           │
 │                                                   │
 │ 【确认目标】                                        │
-│   ⬜ 海外 (43.133.44.232) / 国内 (43.136.82.88)   │
+│   ⬜ 海外应用层 (43.157.240.68) / 国内 (43.136.82.88) │
+│   ⬜ 海外数据层 (43.133.44.232) / 国内 (114.132.81.246) │
 │   ⬜ 已选择正确环境变量文件                         │
 │   ⬜ 已明确数据库迁移方式                           │
 │   ⬜ 已查阅案例集锦                                │

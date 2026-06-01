@@ -47,6 +47,9 @@ description: "构建红线规则 - APK构建时绝对禁止的行为，构建操
 - [ ] **运营配置校验** — 确认 `market-config.json` 存在且与构建目标一致
 - [ ] **统一入口确认** — 确认使用 `build-apk.ps1` 执行构建，而非直接调用 WSL
 - [ ] **构建后验证** — 国内版构建完成后验证 bundle 不包含 `linkchest.net`
+- [ ] **新依赖检查** — 如果引入了新的第三方组件（如 SVG 图标），确认已安装对应依赖
+- [ ] **Constants 安全** — 确认依赖 `Constants.expoConfig` 的值在运行时计算，不在模块加载时缓存
+- [ ] **API URL 验证** — 确认国内版使用域名 `linkchest.cn`，海外版使用 `linkchest.net`
 
 ### 1.3 唯一允许的构建方式
 
@@ -246,6 +249,10 @@ description: "构建红线规则 - APK构建时绝对禁止的行为，构建操
 | `heap out of memory` | CASE-S007 | 增加 Node.js 内存限制 | ❌ 自动 |
 | `port` + `already in use` | CASE-S008 | 更换端口或关闭占用进程 | ❌ 自动 |
 | `.env.market` 缺失 / MARKET 错误 | CASE-016 | 检查并创建 .env.market 文件 | ❌ 自动 |
+| `react-native-svg` + `Unable to resolve module` | CASE-017 | 安装 `react-native-svg` 依赖 | ❌ 自动 |
+| `Constants.expoConfig` + 市场判断错误 | CASE-018 | 修改 `_detectMarket()` 不缓存未就绪状态 | ❌ 自动 |
+| `403` + `nginx` + IP 地址 | CASE-019 | 修改 API URL 使用域名而非 IP | ❌ 自动 |
+| `EBUSY` + `build` 目录删除失败 | CASE-020 | 修改 Gradle 构建目录或关闭占用进程 | ✅ 需确认 |
 
 ### 4.3 自动修复执行标准
 
@@ -298,6 +305,6 @@ fi
 
 ---
 
-*最后更新：2026-05-27*
-*版本：v3.2 — 强制统一入口（build-apk.ps1），禁止直接 WSL 调用*
+*最后更新：2026-05-31*
+*版本：v3.3 — 新增 CASE-017~CASE-020 关键词匹配，增加依赖检查、Constants安全、API URL验证检查项*
 *优先级：任务触发 - 构建操作时自动加载*

@@ -19,7 +19,7 @@ Please read this Policy carefully before using LinkChest services. By using Link
 ### 1.1 Information You Provide
 
 - **Account Information**: When you register for a LinkChest account, we collect your **email address** and **password** (stored in encrypted form). You may also choose to set a nickname, username, and avatar.
-- **Third-Party Login Information**: When you use **Google Sign-In**, we collect your Google account **email address**, **name**, and **profile picture** to create or link your LinkChest account. We do not access your Google account password.
+- **Third-Party Login Information**: When you use **Google Sign-In or Apple Sign-In**, we collect your Google or Apple account **email address**, **name**, and **profile picture** to create or link your LinkChest account. We do not access your Google or Apple account password.
 - **Collection Content**: URL links, titles, descriptions, cover images, tags, groups, and other user content you add or save through LinkChest.
 - **Feedback Information**: Problem descriptions, contact information, and other details you submit to us through the "Help & Feedback" feature.
 

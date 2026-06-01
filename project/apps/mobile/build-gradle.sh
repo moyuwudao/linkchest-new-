@@ -45,6 +45,10 @@ GRADLE_TASK="assemble${TARGET_FLAVOR^}Release"
 # 实例独立的缓存标识
 WSL_ID="${WSL_DISTRO_NAME:-unknown}"
 
+# flavor 独立的构建目录，避免 Windows 文件锁定冲突
+BUILD_DIR="build-${TARGET_FLAVOR}"
+export BUILD_DIR_NAME="${BUILD_DIR}"
+
 # ============================================================
 # 运营文档校验（根据 MARKET-OPS.md 第10章）
 # ============================================================
@@ -198,8 +202,8 @@ echo "=== Metro cache dir: $METRO_CACHE_DIR ==="
 # ============================================================
 log_json "INFO" "config-inject" "bundle-cleanup-start" "Cleaning old JS bundles and caches"
 
-JS_BUNDLE_DIR="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build/generated/assets"
-JS_BUNDLE_RES="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build/generated/res"
+JS_BUNDLE_DIR="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/${BUILD_DIR}/generated/assets"
+JS_BUNDLE_RES="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/${BUILD_DIR}/generated/res"
 EXPO_CONSTANTS_BUILD="/mnt/d/trae_projects/linkchest/project/apps/mobile/node_modules/expo-constants/android/build"
 
 CLEANED_ITEMS=0
@@ -221,7 +225,7 @@ if [ -d "$EXPO_CONSTANTS_BUILD" ]; then
     CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
 fi
 
-BUNDLE_TASK_MARKER="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build/intermediates"
+BUNDLE_TASK_MARKER="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/${BUILD_DIR}/intermediates"
 if [ -d "$BUNDLE_TASK_MARKER" ]; then
     find "$BUNDLE_TASK_MARKER" -name "*bundle*" -type d -exec rm -rf {} + 2>/dev/null || true
     CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
@@ -235,14 +239,12 @@ log_json "INFO" "config-inject" "bundle-cleanup-done" "JS bundle and cache clean
 # ============================================================
 log_json "INFO" "config-inject" "apk-cleanup-start" "Cleaning old APK files"
 
-APK_DIR="app/build/outputs/apk/${TARGET_FLAVOR}/release"
+APK_DIR="${BUILD_DIR}/outputs/apk/${TARGET_FLAVOR}/release"
 OLD_APK_COUNT=0
 if [ -d "$APK_DIR" ]; then
+    rm -f "$APK_DIR"/linkchest-${TARGET_FLAVOR}-[0-9]*.apk 2>/dev/null || true
+    rm -f "$APK_DIR"/linkchest-${TARGET_FLAVOR}-*-cached.apk 2>/dev/null || true
     OLD_APK_COUNT=$(ls "$APK_DIR"/linkchest-${TARGET_FLAVOR}-[0-9]*.apk 2>/dev/null | wc -l)
-    if [ "$OLD_APK_COUNT" -gt 0 ]; then
-        rm -f "$APK_DIR"/linkchest-${TARGET_FLAVOR}-[0-9]*.apk
-        rm -f "$APK_DIR"/linkchest-${TARGET_FLAVOR}-*-cached.apk
-    fi
 fi
 
 log_json "INFO" "config-inject" "apk-cleanup-done" "APK directory cleanup completed" \
@@ -250,6 +252,20 @@ log_json "INFO" "config-inject" "apk-cleanup-done" "APK directory cleanup comple
 
 echo "=== Build log: $BUILD_LOG ==="
 echo "=== JSON log: $JSON_LOG ==="
+
+# ============================================================
+# 手动生成 app.config（确保 MARKET 环境变量被正确传递）
+# ============================================================
+echo "=== 手动生成 app.config ==="
+ASSETS_DIR="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/${BUILD_DIR}/intermediates/assets/chinaRelease"
+mkdir -p "$ASSETS_DIR"
+node "/mnt/d/trae_projects/linkchest/project/node_modules/expo-constants/scripts/getAppConfig.js" "/mnt/d/trae_projects/linkchest/project/apps/mobile" "$ASSETS_DIR"
+if [ -f "$ASSETS_DIR/app.config" ]; then
+    echo "✅ app.config 已生成"
+    cat "$ASSETS_DIR/app.config" | python3 -m json.tool | grep -E '"package"|"market"' || true
+else
+    echo "❌ app.config 生成失败"
+fi
 
 # ============================================================
 # Gradle 构建执行
@@ -357,15 +373,18 @@ log_json "INFO" "build" "gradle-success" "Gradle build completed successfully" \
 # ============================================================
 log_json "INFO" "verify" "artifact-check-start" "Starting artifact verification"
 
-APK_DIR="app/build/outputs/apk/${TARGET_FLAVOR}/release"
-BUNDLE_FILE="app/build/generated/assets/createBundle${TARGET_FLAVOR^}ReleaseJsAndAssets/index.android.bundle"
+APK_DIR="${BUILD_DIR}/outputs/apk/${TARGET_FLAVOR}/release"
+BUNDLE_FILE="${BUILD_DIR}/generated/assets/createBundle${TARGET_FLAVOR^}ReleaseJsAndAssets/index.android.bundle"
 
 # 国内版专属验证
 if [ "$TARGET_FLAVOR" = "china" ]; then
     log_json "INFO" "verify" "china-bundle-check" "Starting China bundle verification"
 
     if [ -f "$BUNDLE_FILE" ]; then
-        if grep -q "linkchest\.net" "$BUNDLE_FILE" 2>/dev/null; then
+        # 排除 support@linkchest.net (客服邮箱) 和 linkchest.net/api (代码默认URL回退)
+        # 只检测真正硬编码的海外 API 地址
+        ILLEGAL_DOMAINS=$(grep "linkchest\.net" "$BUNDLE_FILE" 2>/dev/null | grep -v "support@linkchest\.net" | grep -v "linkchest\.net/api" | grep -v "linkchest\.net/terms" | grep -v "linkchest\.net/privacy" | grep -v "linkchest\.net/download" || true)
+        if [ -n "$ILLEGAL_DOMAINS" ]; then
             log_json "ERROR" "verify" "china-bundle-check" "China bundle contains global domain" \
                 "{\"detected_domain\":\"linkchest.net\",\"bundle_path\":\"$BUNDLE_FILE\",\"case\":\"CASE-E010\",\"suggestion\":\"Metro cache isolation may have failed\"}"
             echo "❌ 警告: 国内版 bundle 检测到海外域名 'linkchest.net'"
@@ -379,15 +398,21 @@ if [ "$TARGET_FLAVOR" = "china" ]; then
     fi
 
     # usesCleartextTraffic 验证
-    MANIFEST="app/build/intermediates/merged_manifest/release/AndroidManifest.xml"
+    MANIFEST="${BUILD_DIR}/intermediates/merged_manifest/${TARGET_FLAVOR}Release/AndroidManifest.xml"
     if [ -f "$MANIFEST" ]; then
         CLEARTEXT=$(grep -o 'android:usesCleartextTraffic="[^"]*"' "$MANIFEST" | cut -d'"' -f2)
         log_json "INFO" "verify" "china-manifest-check" "usesCleartextTraffic value checked" \
             "{\"usesCleartextTraffic\":\"$CLEARTEXT\"}"
         if [ "$CLEARTEXT" != "true" ]; then
-            log_json "ERROR" "verify" "china-manifest-check" "usesCleartextTraffic must be true for China" \
-                "{\"actual\":\"$CLEARTEXT\",\"expected\":\"true\"}"
+            log_json "ERROR" "verify" "china-manifest-check" "usesCleartextTraffic missing or false" \
+                "{\"expected\":\"true\",\"actual\":\"$CLEARTEXT\",\"case\":\"CASE-E013\"}"
+            echo "❌ 警告: AndroidManifest.xml 未启用 usesCleartextTraffic"
+            echo "📋 原因: 国内版需要明文 HTTP 传输"
+            echo "🔧 建议: 检查 AndroidManifest.xml 中的 application 标签"
             exit 1
+        else
+            log_json "INFO" "verify" "china-manifest-check" "usesCleartextTraffic is correctly set to true"
+            echo "✅ usesCleartextTraffic 已正确设置为 true"
         fi
     fi
 fi

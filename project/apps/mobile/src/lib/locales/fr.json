@@ -418,7 +418,6 @@
     "light": "Clair",
     "other": "Autre",
     "feedback": "Retour d'information",
-    "feedbackDev": "Ou envoyez à support@linkchest.net",
     "logout": "Déconnexion",
     "logoutConfirm": "Se déconnecter ?",
     "logoutBtn": "Déconnexion",
@@ -435,7 +434,7 @@
     "updateDesc": "Choisissez comment mettre à jour",
     "downloadApk": "Télécharger l'APK",
     "openStoreFailed": "Impossible d'ouvrir le store. Cherchez « LinkChest » sur Google Play.",
-    "openDownloadFailed": "Ouvrir https://linkchest.net/download?lang=zh"
+    "openDownloadFailed": "Ouvrir {url}"
   },
   "account": {
     "username": "Nom d'utilisateur",

@@ -81,30 +81,34 @@ const I18nContext = createContext<I18nContextType>({
   t: (key) => key,
 });
 
-// 同步检测系统语言作为初始值，避免首次渲染显示 KEY
-const initialLocale = detectSystemLocale();
+import { isChinaMarket } from './market';
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
-  const [currentMap, setCurrentMap] = useState<TranslationMap>(() => loadTranslationSync(initialLocale));
+  const [locale, setLocaleState] = useState<SupportedLocale>(() => {
+    // 运行时计算初始语言：国内版强制中文，海外版跟随系统
+    return isChinaMarket() ? 'zh' : detectSystemLocale();
+  });
+  const [currentMap, setCurrentMap] = useState<TranslationMap>(() =>
+    loadTranslationSync(isChinaMarket() ? 'zh' : detectSystemLocale())
+  );
 
   useEffect(() => {
     AsyncStorage.getItem('linkchest-locale').then((saved) => {
-      let target: SupportedLocale = detectSystemLocale();
-      if (saved && isValidLocale(saved)) {
-        target = saved;
+      // 只有用户手动设置过语言，才覆盖默认语言
+      if (saved && isValidLocale(saved) && saved !== locale) {
+        setLocaleState(saved);
+        setCurrentMap(loadTranslationSync(saved));
       }
-      if (target !== locale) {
-        setLocaleState(target);
-        setCurrentMap(loadTranslationSync(target));
-      }
+      // 如果没有保存的语言设置，保持组件初始化时计算的值（国内版=中文）
     });
   }, []);
 
   const setLocale = useCallback((newLocale: SupportedLocale) => {
-    setLocaleState(newLocale);
-    setCurrentMap(loadTranslationSync(newLocale));
-    AsyncStorage.setItem('linkchest-locale', newLocale);
+    if (isValidLocale(newLocale)) {
+      setLocaleState(newLocale);
+      setCurrentMap(loadTranslationSync(newLocale));
+      AsyncStorage.setItem('linkchest-locale', newLocale).catch(() => {});
+    }
   }, []);
 
   const t = useCallback((key: string, params?: Record<string, string | number>): string => {

@@ -2,31 +2,27 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import Constants from 'expo-constants';
 import { getErrorMessage, type SupportedLocale, isValidLocale } from '@linkchest/i18n';
 import { getCachedTranslation } from './i18n';
+import { isChinaMarket } from './market';
 
-// 市场判断逻辑（多重回退）：
-// 1. 优先使用 extra.market（构建时注入）
-// 2. 回退到 android.package（包名）判断
-// 3. 最终回退到 'global'
-const extraMarket = Constants.expoConfig?.extra?.market;
-const androidPackage = Constants.expoConfig?.android?.package || '';
-const isChinaMarket = extraMarket === 'china' || androidPackage === 'cn.linkchest.app';
-
-const DEFAULT_API_URL = isChinaMarket
-  ? 'https://43.136.82.88/api'
-  : 'https://linkchest.net/api';
 const API_URL_STORAGE_KEY = 'linkchest_api_url';
+
+/** 获取默认 API URL（运行时计算，避免模块加载时 Constants 未就绪） */
+export function getDefaultApiUrl(): string {
+  return isChinaMarket()
+    ? 'https://linkchest.cn/api'
+    : 'https://linkchest.net/api';
+}
 
 // 根据市场返回对应的基础域名
 export function getBaseDomain(): string {
-  return isChinaMarket ? 'linkchest.cn' : 'linkchest.net';
+  return isChinaMarket() ? 'linkchest.cn' : 'linkchest.net';
 }
 
 // 根据市场返回对应的客服邮箱
 export function getSupportEmail(): string {
-  return isChinaMarket ? 'support@linkchest.cn' : 'support@linkchest.net';
+  return isChinaMarket() ? 'support@linkchest.cn' : 'support@linkchest.net';
 }
 
 // 根据市场返回对应的下载页面
@@ -34,10 +30,10 @@ export function getDownloadUrl(locale: string): string {
   return `https://${getBaseDomain()}/download?lang=${locale}`;
 }
 
-let currentBaseUrl = DEFAULT_API_URL;
+let currentBaseUrl = getDefaultApiUrl();
 
 export const api = axios.create({
-  baseURL: DEFAULT_API_URL,
+  baseURL: getDefaultApiUrl(),
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
@@ -49,11 +45,30 @@ export async function initApiUrl() {
   try {
     const savedUrl = await SecureStore.getItemAsync(API_URL_STORAGE_KEY);
     if (savedUrl) {
-      currentBaseUrl = savedUrl;
-      api.defaults.baseURL = savedUrl;
+      // 验证保存的 URL 是否与当前市场匹配（防止海外/国内切换后残留旧配置）
+      const isSavedChina = savedUrl.includes('linkchest.cn');
+      const isSavedGlobal = savedUrl.includes('linkchest.net');
+      if ((isChinaMarket() && isSavedChina) || (!isChinaMarket() && isSavedGlobal)) {
+        currentBaseUrl = savedUrl;
+        api.defaults.baseURL = savedUrl;
+      } else {
+        // URL 与市场不匹配，清除旧配置并使用运行时计算的默认值
+        await SecureStore.deleteItemAsync(API_URL_STORAGE_KEY);
+        const defaultUrl = getDefaultApiUrl();
+        currentBaseUrl = defaultUrl;
+        api.defaults.baseURL = defaultUrl;
+      }
+    } else {
+      // 没有保存的 URL，使用运行时计算的默认值（避免模块加载时 Constants 未就绪导致错误）
+      const defaultUrl = getDefaultApiUrl();
+      currentBaseUrl = defaultUrl;
+      api.defaults.baseURL = defaultUrl;
     }
   } catch {
-    // 读取失败使用默认值
+    // 读取失败使用运行时计算的默认值
+    const defaultUrl = getDefaultApiUrl();
+    currentBaseUrl = defaultUrl;
+    api.defaults.baseURL = defaultUrl;
   }
 }
 
@@ -69,17 +84,27 @@ export async function setApiUrl(url: string) {
 export async function getApiUrl(): Promise<string> {
   try {
     const savedUrl = await SecureStore.getItemAsync(API_URL_STORAGE_KEY);
-    return savedUrl || DEFAULT_API_URL;
+    if (savedUrl) {
+      const isSavedChina = savedUrl.includes('linkchest.cn');
+      const isSavedGlobal = savedUrl.includes('linkchest.net');
+      if ((isChinaMarket() && isSavedChina) || (!isChinaMarket() && isSavedGlobal)) {
+        return savedUrl;
+      }
+      // URL 与市场不匹配，清除旧配置
+      await SecureStore.deleteItemAsync(API_URL_STORAGE_KEY);
+    }
+    return getDefaultApiUrl();
   } catch {
-    return DEFAULT_API_URL;
+    return getDefaultApiUrl();
   }
 }
 
 // 重置为默认 API URL
 export async function resetApiUrl() {
-  currentBaseUrl = DEFAULT_API_URL;
-  api.defaults.baseURL = DEFAULT_API_URL;
   await SecureStore.deleteItemAsync(API_URL_STORAGE_KEY);
+  const defaultUrl = getDefaultApiUrl();
+  currentBaseUrl = defaultUrl;
+  api.defaults.baseURL = defaultUrl;
 }
 
 // 获取公开路由的基础URL（不含 /api 前缀）

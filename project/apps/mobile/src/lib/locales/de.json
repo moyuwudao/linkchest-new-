@@ -418,7 +418,6 @@
     "light": "Hell",
     "other": "Andere",
     "feedback": "Feedback",
-    "feedbackDev": "Oder senden an support@linkchest.net",
     "logout": "Abmelden",
     "logoutConfirm": "Abmelden?",
     "logoutBtn": "Abmelden",
@@ -435,7 +434,7 @@
     "updateDesc": "Update-Methode wählen",
     "downloadApk": "APK herunterladen",
     "openStoreFailed": "Store nicht öffnen. Bitte „LinkChest\" in Google Play suchen.",
-    "openDownloadFailed": "Öffnen Sie https://linkchest.net/download?lang=zh"
+    "openDownloadFailed": "Öffnen Sie {url}"
   },
   "account": {
     "username": "Benutzername",

@@ -18,6 +18,7 @@ import { useAuthStore } from '../store/auth';
 import { useThemeStore } from '../store/theme';
 import { api, getSupportEmail, getDownloadUrl } from '../lib/api';
 import { useI18n } from '../lib/i18n';
+import { isChinaMarket } from '../lib/market';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -110,7 +111,7 @@ export default function ProfileScreen() {
     },
     {
       icon: 'grid-outline',
-      title: '收藏展示设置',
+      title: t('settings.collectionViewTitle'),
       onPress: () => navigation.navigate('CollectionViewConfig' as any),
     },
     {
@@ -142,12 +143,17 @@ export default function ProfileScreen() {
       icon: 'refresh-outline',
       title: t('profile.checkUpdate'),
       onPress: () => {
-        Alert.alert(
-          t('profile.checkUpdate'),
-          t('profile.updateDesc'),
-          [
-            { text: t('common.cancel'), style: 'cancel' },
-            {
+        const storeButton = isChinaMarket()
+          ? {
+              text: t('profile.yingyongbao'),
+              onPress: () => {
+                const yingyongbaoUrl = 'https://android.myapp.com/myapp/detail.htm?apkName=cn.linkchest.app';
+                Linking.openURL(yingyongbaoUrl).catch(() =>
+                  Alert.alert(t('common.hint'), t('profile.openStoreFailed'))
+                );
+              },
+            }
+          : {
               text: 'Google Play',
               onPress: () => {
                 const playUrl = 'https://play.google.com/store/apps/details?id=com.linkchest.app';
@@ -155,13 +161,19 @@ export default function ProfileScreen() {
                   Alert.alert(t('common.hint'), t('profile.openStoreFailed'))
                 );
               },
-            },
+            };
+        Alert.alert(
+          t('profile.checkUpdate'),
+          t('profile.updateDesc'),
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            storeButton,
             {
               text: t('profile.downloadApk'),
               onPress: () => {
                 const apkUrl = getDownloadUrl(locale);
                 Linking.openURL(apkUrl).catch(() =>
-                  Alert.alert(t('common.hint'), t('profile.openDownloadFailed'))
+                  Alert.alert(t('common.hint'), t('profile.openDownloadFailed').replace('{url}', apkUrl))
                 );
               },
             },

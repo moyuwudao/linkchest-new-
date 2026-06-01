@@ -143,6 +143,7 @@ export default function ExportScreen() {
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 13, color: colors.text, fontWeight: '500' }}>{t('export.hintTitle')}</Text>
             <Text style={{ fontSize: 12, color: colors.textTertiary, marginTop: 4 }}>{t('export.hintDesc')}</Text>
+            <Text style={{ fontSize: 12, color: colors.warning, marginTop: 8 }}>{t('export.importHint')}</Text>
           </View>
         </View>
       </View>

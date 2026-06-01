@@ -418,7 +418,6 @@
     "light": "ライト",
     "other": "その他",
     "feedback": "フィードバック",
-    "feedbackDev": "メールクライアントを開けない場合は、support@linkchest.netまでフィードバックを送信してください",
     "logout": "ログアウト",
     "logoutConfirm": "ログアウトしますか？",
     "logoutBtn": "ログアウト",
@@ -435,7 +434,7 @@
     "updateDesc": "アップデート方式を選択してください",
     "downloadApk": "APKをダウンロード",
     "openStoreFailed": "アプリストアを開けません。Google Playで「LinkChest」を検索してください",
-    "openDownloadFailed": "ダウンロードページを開けません。https://linkchest.net/download?lang=zh にアクセスしてください"
+    "openDownloadFailed": "ダウンロードページを開けません。{url} にアクセスしてください"
   },
   "account": {
     "username": "ユーザー名",

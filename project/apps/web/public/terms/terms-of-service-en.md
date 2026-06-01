@@ -84,7 +84,7 @@ For material changes to the Service, we will endeavor to provide advance notice 
 You must register an account before using LinkChest. Registration options include:
 
 - **Email**: Provide a valid email address and set a password.
-- **Google Sign-In**: You may sign in using your Google account. When you sign in via Google, we will collect your Google account email, name, and profile picture to create or link your LinkChest account.
+- **Google Sign-In or Apple Sign-In**: You may sign in using your Google account or Apple account. When you sign in via Google or Apple, we will collect your account email, name, and profile picture to create or link your LinkChest account.
 
 You represent and warrant that all registration information you provide is true, complete, and accurate, and that you will promptly update it if it changes. You understand that any loss or consequence arising from false information or failure to keep your information current shall be your sole responsibility.
 

@@ -88,3 +88,9 @@ apps/web/.build-logs/
 apps/mobile/android/.gradle/
 apps/mobile/android/app/build/
 apps/mobile/android/build/
+apps/mobile/android/app/build-fresh/
+apps/mobile/android/app/build-global/
+apps/mobile/android/build-fresh/
+apps/mobile/android/build-global/
+apps/mobile/clean-cache.sh
+apps/mobile/finish-build.sh

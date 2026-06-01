@@ -22,16 +22,9 @@ import { useI18n, type SupportedLocale } from '../lib/i18n';
 import { ErrorCodeToI18nKey, AuthErrorCodes } from '../lib/errorCodes';
 import { Ionicons } from '@expo/vector-icons';
 import { usePressableScale } from '../lib/animations';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import Constants from 'expo-constants';
-
-WebBrowser.maybeCompleteAuthSession();
-
-// 本地市场判断（与 api.ts 保持一致）
-const extraMarket = Constants.expoConfig?.extra?.market;
-const androidPackage = Constants.expoConfig?.android?.package || '';
-const isChinaMarket = extraMarket === 'china' || androidPackage === 'cn.linkchest.app';
+import { isChinaMarket } from '../lib/market';
+import GoogleLoginSection from './GoogleLoginSection';
+import WeChatIcon from '../components/WeChatIcon';
 
 type AccountType = 'email';
 
@@ -106,26 +99,15 @@ export default function LoginScreen() {
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
 
-  // Google 首次登录设置密码弹窗
-  const [showSetPassword, setShowSetPassword] = useState(false);
-  const [setPwd, setSetPwd] = useState('');
-  const [setPwdConfirm, setSetPwdConfirm] = useState('');
-  const [setPwdLoading, setSetPwdLoading] = useState(false);
-
   // 市场配置
   const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
   const [marketLoading, setMarketLoading] = useState(true);
 
   const { setToken, setUser } = useAuthStore();
 
-  // 本地市场判断（API 不可用时的回退）
-  const localMarket = Constants.expoConfig?.extra?.market as string || 'global';
-  const isLocalChina = localMarket === 'china' ||
-    (Constants.expoConfig?.android?.package || '') === 'cn.linkchest.app';
-
   // 默认市场配置（API 失败时使用）
   // 注意：Android 海外版不需要 Apple 登录（仅 iOS 需要）
-  const defaultMarketConfig: MarketConfig = isLocalChina
+  const defaultMarketConfig: MarketConfig = isChinaMarket()
     ? {
         market: 'china',
         authProviders: { google: false, apple: false, wechat: true, alipay_auth: false, facebook: false },
@@ -155,51 +137,6 @@ export default function LoginScreen() {
     }
     fetchMarketConfig();
   }, []);
-
-  // Google OAuth 登录
-  const googleClientId = Constants.expoConfig?.extra?.googleClientId as string | undefined;
-  const googleClientIdAndroid = Constants.expoConfig?.extra?.googleClientIdAndroid as string | undefined;
-  const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
-    expoClientId: googleClientId,
-    iosClientId: googleClientId,
-    androidClientId: googleClientIdAndroid || googleClientId,
-    webClientId: googleClientId,
-    scopes: ['openid', 'profile', 'email'],
-  });
-
-  useEffect(() => {
-    if (googleResponse?.type === 'success') {
-      const { id_token } = googleResponse.params;
-      if (id_token) {
-        handleGoogleLogin(id_token);
-      }
-    } else if (googleResponse?.type === 'error') {
-      Alert.alert(t('common.error'), t('login.googleLoginFailed'));
-    }
-  }, [googleResponse]);
-
-  const handleGoogleLogin = async (credential: string) => {
-    try {
-      setLoading(true);
-      const response = await api.post('/auth/google', { credential, lang });
-      const { token, user } = response.data;
-      await setToken(token);
-      setUser(user);
-      if (!user.hasPassword) {
-        setSetPwd('');
-        setSetPwdConfirm('');
-        setShowSetPassword(true);
-      } else {
-        // Google 登录成功且已有密码，直接导航到主页
-        navigation.replace('Main' as never);
-      }
-    } catch (error: any) {
-      const errorCode = error.response?.data?.error || AuthErrorCodes.SERVER_ERROR;
-      Alert.alert(t('common.error'), getErrorMessage(errorCode, t));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // 倒计时定时器引用，用于组件卸载时清理
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -365,43 +302,6 @@ export default function LoginScreen() {
     }
   };
 
-  // Google 首次登录设置密码
-  const handleSetPassword = async () => {
-    if (!setPwd || !setPwdConfirm) {
-      Alert.alert(t('common.hint'), t('login.fillAllFields'));
-      return;
-    }
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(setPwd)) {
-      Alert.alert(t('common.hint'), t('error.invalidPasswordFormat'));
-      return;
-    }
-    if (setPwd !== setPwdConfirm) {
-      Alert.alert(t('common.hint'), t('error.passwordMismatch'));
-      return;
-    }
-    try {
-      setSetPwdLoading(true);
-      await api.post('/auth/set-password', { password: setPwd });
-      // 刷新用户数据，更新 hasPassword 状态
-      try {
-        const res = await api.get('/auth/me');
-        const userData = res.data.data || res.data;
-        setUser(userData);
-      } catch { /* ignore */ }
-      Alert.alert(t('common.success'), t('account.passwordSetSuccess'));
-      setShowSetPassword(false);
-      setSetPwd('');
-      setSetPwdConfirm('');
-      // 密码设置完成后导航到主页
-      navigation.replace('Main' as never);
-    } catch (error: any) {
-      const errorCode = error.response?.data?.error || AuthErrorCodes.SERVER_ERROR;
-      Alert.alert(t('common.error'), getErrorMessage(errorCode, t));
-    } finally {
-      setSetPwdLoading(false);
-    }
-  };
-
   const [showLangPicker, setShowLangPicker] = useState(false);
 
   return (
@@ -564,7 +464,7 @@ export default function LoginScreen() {
           <View style={styles.thirdPartyArea}>
             <Text style={[styles.thirdPartyLabel, { color: colors.textTertiary }]}>{t('login.otherLoginMethods')}</Text>
             <View style={styles.thirdPartyIcons}>
-              {isChinaMarket ? (
+              {isChinaMarket() ? (
                 /* 国内版 */
                 <>
                   {/* iOS国内版：Apple + 微信 */}
@@ -579,24 +479,24 @@ export default function LoginScreen() {
                   )}
                   {/* 国内版：微信 */}
                   <TouchableOpacity
-                    style={[styles.thirdPartyBtn, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                    style={[styles.thirdPartyBtn, { backgroundColor: '#07C160', borderWidth: 0 }]}
                     onPress={() => Alert.alert('微信登录', '功能开发中')}
                     disabled={loading}
                   >
-                    <Ionicons name="chatbubble" size={24} color="#07C160" />
+                    <WeChatIcon size={22} color="#fff" />
                   </TouchableOpacity>
                 </>
               ) : (
                 /* 海外版 */
                 <>
                   {/* 海外版：Google */}
-                  <TouchableOpacity
-                    style={[styles.thirdPartyBtn, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-                    onPress={() => promptGoogleAsync()}
-                    disabled={!googleRequest || loading}
-                  >
-                    <Ionicons name="logo-google" size={24} color="#EA4335" />
-                  </TouchableOpacity>
+                  <GoogleLoginSection
+                    colors={colors}
+                    loading={loading}
+                    t={t}
+                    lang={lang}
+                    setLoading={setLoading}
+                  />
                   {/* iOS海外版：Apple */}
                   {Platform.OS === 'ios' && (
                     <TouchableOpacity
@@ -781,54 +681,7 @@ export default function LoginScreen() {
         </View>
       </Modal>
 
-      {/* Google 首次登录设置密码 Modal */}
-      <Modal visible={showSetPassword} animationType="slide" transparent>
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>{t('account.setPassword')}</Text>
-              <TouchableOpacity onPress={() => setShowSetPassword(false)}>
-                <Text style={[styles.modalClose, { color: colors.textTertiary }]}>✕</Text>
-              </TouchableOpacity>
-            </View>
 
-            <Text style={{ fontSize: 13, color: colors.warning, marginBottom: 12, lineHeight: 18 }}>
-              {t('login.googleSetPasswordWarning')}
-            </Text>
-
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
-              placeholder={t('account.newPassword')}
-              placeholderTextColor={colors.textTertiary}
-              secureTextEntry
-              value={setPwd}
-              onChangeText={setSetPwd}
-              maxLength={20}
-            />
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border }]}
-              placeholder={t('account.confirmNewPassword')}
-              placeholderTextColor={colors.textTertiary}
-              secureTextEntry
-              value={setPwdConfirm}
-              onChangeText={setSetPwdConfirm}
-              maxLength={20}
-            />
-
-            <TouchableOpacity
-              style={[styles.primaryBtn, { backgroundColor: colors.primary, marginTop: 16 }]}
-              onPress={handleSetPassword}
-              disabled={setPwdLoading}
-            >
-              {setPwdLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.primaryBtnText}>{t('common.save')}</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </KeyboardAvoidingView>
   );
 }

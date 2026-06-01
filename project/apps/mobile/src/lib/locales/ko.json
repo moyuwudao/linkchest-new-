@@ -419,7 +419,6 @@
     "light": "빛",
     "other": "기타",
     "feedback": "피드백",
-    "feedbackDev": "이메일 클라이언트가 열리지 않으면, 수동으로 support@linkchest.net 으로 피드백을 보내주세요",
     "logout": "로그아웃",
     "logoutConfirm": "정말로 로그아웃하시겠습니까?",
     "logoutBtn": "로그아웃",
@@ -436,7 +435,7 @@
     "updateDesc": "업데이트 방법을 선택하세요",
     "downloadApk": "업데이트 다운로드",
     "openStoreFailed": "스토어를 열 수 없습니다. Google Play에서 LinkChest를 수동으로 검색해 주세요.",
-    "openDownloadFailed": "다운로드 페이지를 열 수 없습니다. https://linkchest.net/download?lang=en 를 방문해 주세요."
+    "openDownloadFailed": "다운로드 페이지를 열 수 없습니다. {url} 를 방문해 주세요."
   },
   "account": {
     "username": "사용자 이름",

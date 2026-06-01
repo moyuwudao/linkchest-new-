@@ -27,7 +27,7 @@
 
 如需申请退款，请通过以下方式联系我们：
 
-- 邮箱：support@linkchest.net
+- 邮箱：support@linkchest.cn
 
 请提供您的账户邮箱和退款原因。我们将在5个工作日内处理您的请求。
 
@@ -48,4 +48,4 @@
 
 ## 8. 联系我们
 
-如有关于本退款政策的任何问题，请通过 support@linkchest.net 联系我们。
+如有关于本退款政策的任何问题，请通过 support@linkchest.cn 联系我们。

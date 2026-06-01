@@ -336,9 +336,9 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 |--------|-------------------|------------------|
 | 应用名称 | LinkChest | 链藏 |
 | 包名 | `com.linkchest.app` | `cn.linkchest.app` |
-| API 地址 | `https://linkchest.net/api` | `http://43.136.82.88/api` |
-| 登录方式 | Google, Apple | 微信, Apple |
-| 支付方式 | PayPal, Google Pay | 微信支付, 支付宝 |
+| API 地址 | `https://linkchest.net/api` | `https://linkchest.cn/api` |
+| 登录方式 | Google (+ iOS Apple) | 微信 (+ iOS Apple) |
+| 支付方式 | PayPal, Google Pay | 微信支付 |
 
 ##### 5.1.8.2 构建前准备
 
@@ -495,8 +495,8 @@ rm -rf ../node_modules/expo-constants/android/build
 |--------|--------|--------|
 | 应用名称 | LinkChest | 链藏 |
 | 包名 | `com.linkchest.app` | `cn.linkchest.app` |
-| API 地址 | `https://linkchest.net/api` | `http://43.136.82.88/api` |
-| 登录按钮 | Google, Apple | 微信, 支付宝 |
+| API 地址 | `https://linkchest.net/api` | `https://linkchest.cn/api` |
+| 登录按钮 | Google (+ iOS Apple) | 微信 (+ iOS Apple) |
 | 登录功能 | 可用 | 可用 |
 | `.env.market` 文件 | 存在，内容为 `global` | 存在，内容为 `china` |
 
@@ -706,6 +706,10 @@ jobs:
 | `Starting an external process during configuration time is unsupported` | 添加 `--no-configuration-cache` 参数 | - |
 | Gradle 配置缓存错误 | 所有构建命令必须包含 `--no-configuration-cache` | - |
 | APK 功能未更新（旧代码） | 代码目录与构建目录不同步，构建前需同步 | [CASE-009](cases/apk-build-errors.md#case-009-代码目录与构建目录不同步) |
+| `Unable to resolve module react-native-svg` | 安装 `react-native-svg` 依赖 | [CASE-017](cases/apk-build-errors.md#case-017-react-native-svg-依赖缺失导致构建失败) |
+| 国内版显示 Google/Apple 登录（应为微信） | `Constants.expoConfig` 未就绪导致市场判断错误 | [CASE-018](cases/apk-build-errors.md#case-018-constantsexpoconfig-未就绪导致市场判断错误) |
+| 国内版 API 请求返回 403 | API URL 使用 IP 地址而非域名 | [CASE-019](cases/apk-build-errors.md#case-019-国内版-api-url-使用-ip-地址导致-nginx-403) |
+| Gradle 无法删除 build 目录 | Windows 文件锁定，修改构建目录或关闭占用进程 | [CASE-020](cases/apk-build-errors.md#case-020-windows-文件锁定导致-gradle-构建目录删除失败) |
 
 ### 10.2 iOS 构建问题
 
@@ -756,5 +760,5 @@ jobs:
 
 ---
 
-*最后更新：2026-05-29*
-*版本：v1.2 — 添加 NEXT_PUBLIC_MARKET Web 环境变量说明*
+*最后更新：2026-05-31*
+*版本：v1.3 — 修正国内版 API URL 为域名，添加 CASE-017~CASE-020 常见问题引用*

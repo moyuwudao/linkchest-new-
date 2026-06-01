@@ -15,17 +15,17 @@ import { useI18n } from '../lib/i18n';
 import { useCollectionViews } from '../lib/collectionViewsContext';
 import type { DisplayFieldKey } from '../lib/collectionViewsStorage';
 
-const FIELD_LABELS: Record<DisplayFieldKey, string> = {
-  cover: '封面图',
-  title: '标题',
-  platform: '平台',
-  rating: '评分',
-  pageType: '页面类型',
-  tags: '标签',
-  lists: '分组',
-  note: '备注',
-  createdAt: '创建时间',
-};
+const useFieldLabels = (t: (key: string) => string): Record<DisplayFieldKey, string> => ({
+  cover: t('settings.fields.cover'),
+  title: t('settings.fields.title'),
+  platform: t('settings.fields.platform'),
+  rating: t('settings.fields.rating'),
+  pageType: t('settings.fields.pageType'),
+  tags: t('settings.fields.tags'),
+  lists: t('settings.fields.lists'),
+  note: t('settings.fields.note'),
+  createdAt: t('settings.fields.createdAt'),
+});
 
 type ViewMode = 'mobileGrid' | 'mobileList';
 
@@ -36,22 +36,24 @@ export default function CollectionViewConfigScreen() {
   const { views, updateViews, resetViews, isReady } = useCollectionViews();
   const [activeMode, setActiveMode] = useState<ViewMode>('mobileGrid');
 
+  const fieldLabels = useFieldLabels(t);
+
   const handleSave = () => {
     Alert.alert(t('common.success'), t('settings.saved'));
   };
 
   useEffect(() => {
     navigation.setOptions({
-      title: '收藏展示设置',
+      title: t('settings.collectionViewTitle'),
       headerRight: () => (
         <TouchableOpacity onPress={handleSave} style={{ marginRight: 16 }}>
           <Text style={{ fontSize: 15, color: colors.primary, fontWeight: '500' }}>
-            保存
+            {t('common.save')}
           </Text>
         </TouchableOpacity>
       ),
     });
-  }, [navigation, colors.primary, handleSave]);
+  }, [navigation, colors.primary, handleSave, t]);
 
   const currentFields = views[activeMode]?.fields || [];
   const sortedFields = [...currentFields].sort((a, b) => a.order - b.order);
@@ -86,12 +88,12 @@ export default function CollectionViewConfigScreen() {
 
   const handleReset = () => {
     Alert.alert(
-      '重置默认',
-      '确定要重置当前视图的默认设置吗？',
+      t('settings.resetDefaultTitle'),
+      t('settings.resetDefaultDesc'),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
-          text: '重置',
+          text: t('common.reset'),
           style: 'destructive',
           onPress: () => {
             resetViews();
@@ -104,7 +106,7 @@ export default function CollectionViewConfigScreen() {
   if (!isReady) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: colors.textTertiary }}>加载中...</Text>
+        <Text style={{ color: colors.textTertiary }}>{t('common.loading')}</Text>
       </View>
     );
   }
@@ -113,7 +115,7 @@ export default function CollectionViewConfigScreen() {
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
         {/* 视图模式切换 */}
         <View style={{ marginHorizontal: 16, marginTop: 16 }}>
-          <Text style={{ fontSize: 13, color: colors.textTertiary, marginBottom: 8 }}>选择视图模式</Text>
+          <Text style={{ fontSize: 13, color: colors.textTertiary, marginBottom: 8 }}>{t('settings.selectViewMode')}</Text>
           <View style={{
             flexDirection: 'row',
             backgroundColor: colors.menuBg,
@@ -121,8 +123,8 @@ export default function CollectionViewConfigScreen() {
             overflow: 'hidden',
           }}>
             {[
-              { key: 'mobileGrid' as ViewMode, label: '卡片视图', icon: 'grid-outline' as const },
-              { key: 'mobileList' as ViewMode, label: '列表视图', icon: 'list-outline' as const },
+              { key: 'mobileGrid' as ViewMode, label: t('settings.gridView'), icon: 'grid-outline' as const },
+              { key: 'mobileList' as ViewMode, label: t('settings.listView'), icon: 'list-outline' as const },
             ].map((mode) => (
               <TouchableOpacity
                 key={mode.key}
@@ -162,9 +164,9 @@ export default function CollectionViewConfigScreen() {
             justifyContent: 'space-between',
             marginBottom: 8,
           }}>
-            <Text style={{ fontSize: 13, color: colors.textTertiary }}>显示字段（点击箭头调整顺序）</Text>
+            <Text style={{ fontSize: 13, color: colors.textTertiary }}>{t('settings.displayFieldsHint')}</Text>
             <TouchableOpacity onPress={handleReset}>
-              <Text style={{ fontSize: 13, color: colors.primary }}>重置默认</Text>
+              <Text style={{ fontSize: 13, color: colors.primary }}>{t('settings.resetDefault')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -203,7 +205,7 @@ export default function CollectionViewConfigScreen() {
                     </TouchableOpacity>
                   </View>
                   <Text style={{ fontSize: 16, color: colors.text }}>
-                    {FIELD_LABELS[field.key]}
+                    {fieldLabels[field.key]}
                   </Text>
                 </View>
                 <Switch

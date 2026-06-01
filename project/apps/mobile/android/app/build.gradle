@@ -2,6 +2,11 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+// 关键修复：使用全新的构建目录，避开被 Windows 锁定的旧目录
+// 支持通过环境变量 BUILD_DIR_NAME 动态指定（build-gradle.sh 会设置）
+def buildDirName = System.getenv('BUILD_DIR_NAME') ?: 'build-fresh'
+buildDir = new File(rootDir, buildDirName)
+
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 static def versionToNumber(major, minor, patch) {
@@ -131,6 +136,18 @@ android {
             dimension "market"
             applicationId 'cn.linkchest.app'
             resValue "string", "app_name", "链藏"
+            manifestPlaceholders = [
+                JPUSH_APPKEY: project.hasProperty('JPUSH_APPKEY') ? JPUSH_APPKEY : '',
+                JPUSH_CHANNEL: project.hasProperty('JPUSH_CHANNEL') ? JPUSH_CHANNEL : '',
+                HUAWEI_APPID: project.hasProperty('HUAWEI_APPID') ? HUAWEI_APPID : '',
+                XIAOMI_APPID: project.hasProperty('XIAOMI_APPID') ? XIAOMI_APPID : '',
+                XIAOMI_APPKEY: project.hasProperty('XIAOMI_APPKEY') ? XIAOMI_APPKEY : '',
+                OPPO_APPKEY: project.hasProperty('OPPO_APPKEY') ? OPPO_APPKEY : '',
+                OPPO_APPSECRET: project.hasProperty('OPPO_APPSECRET') ? OPPO_APPSECRET : '',
+                VIVO_APPID: project.hasProperty('VIVO_APPID') ? VIVO_APPID : '',
+                VIVO_APPKEY: project.hasProperty('VIVO_APPKEY') ? VIVO_APPKEY : '',
+                HONOR_APPID: project.hasProperty('HONOR_APPID') ? HONOR_APPID : ''
+            ]
         }
     }
 

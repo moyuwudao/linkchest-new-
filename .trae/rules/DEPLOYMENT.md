@@ -60,6 +60,12 @@ chmod 600 ~/.ssh/authorized_keys
 ```powershell
 # 3. 配置 SSH 客户端（Windows）
 # 编辑 $env:USERPROFILE\.ssh\config 文件，添加：
+Host 43.157.240.68
+    HostName 43.157.240.68
+    User ubuntu
+    IdentityFile ~/.ssh/id_ed25519
+    StrictHostKeyChecking accept-new
+
 Host 43.133.44.232
     HostName 43.133.44.232
     User ubuntu
@@ -69,14 +75,14 @@ Host 43.133.44.232
 
 ```powershell
 # 4. 验证免密登录
-ssh ubuntu@43.133.44.232 "whoami"
+ssh ubuntu@43.157.240.68 "whoami"
 # 预期输出：ubuntu（无需输入密码）
 ```
 
 **验证命令**：
 ```bash
-# 测试 SSH 免密登录
-ssh -o StrictHostKeyChecking=accept-new ubuntu@43.133.44.232 "echo 'SSH OK'"
+# 测试 SSH 免密登录（应用层）
+ssh -o StrictHostKeyChecking=accept-new ubuntu@43.157.240.68 "echo 'SSH OK'"
 ```
 
 #### 方案 B：使用密码认证（临时方案）
@@ -91,10 +97,10 @@ ssh -o StrictHostKeyChecking=accept-new ubuntu@43.133.44.232 "echo 'SSH OK'"
 如果必须使用密码，请使用以下方式：
 ```powershell
 # 使用 plink 工具（需先安装 PuTTY）
-plink -pw "你的密码" ubuntu@43.133.44.232 "命令"
+plink -pw "你的密码" ubuntu@43.157.240.68 "命令"
 
 # 或使用 sshpass（Linux/Mac）
-sshpass -p "你的密码" ssh ubuntu@43.133.44.232 "命令"
+sshpass -p "你的密码" ssh ubuntu@43.157.240.68 "命令"
 ```
 
 ### 0.4 SSH 连接调试指南
@@ -104,7 +110,7 @@ sshpass -p "你的密码" ssh ubuntu@43.133.44.232 "命令"
 #### 步骤 1：使用详细模式检查连接
 ```powershell
 # 使用 -v 参数查看详细调试信息
-ssh -v ubuntu@43.133.44.232 "whoami"
+ssh -v ubuntu@43.157.240.68 "whoami"
 ```
 
 **关键日志解读**：
@@ -112,7 +118,7 @@ ssh -v ubuntu@43.133.44.232 "whoami"
 # ✅ 正常情况
 debug1: Offering public key: ... id_ed25519 ... explicit
 debug1: Server accepts key: ... id_ed25519 ... explicit
-Authenticated to 43.133.44.232 using "publickey".
+Authenticated to 43.157.240.68 using "publickey".
 
 # ❌ 公钥未配置或配置错误
 debug1: Authentications that can continue: publickey,password
@@ -124,9 +130,9 @@ debug1: Authentications that can continue: publickey,password
 # 检查 SSH 配置文件
 cat $env:USERPROFILE\.ssh\config
 
-# 确认包含以下内容：
-Host 43.133.44.232
-    HostName 43.133.44.232
+# 确认包含以下内容（应用层）：
+Host 43.157.240.68
+    HostName 43.157.240.68
     User ubuntu
     IdentityFile ~/.ssh/id_ed25519
     StrictHostKeyChecking accept-new
@@ -156,12 +162,12 @@ ls -la ~/.ssh/
 #### 步骤 5：最简单的验证命令
 ```powershell
 # 其他 AGENT 应使用最简单的 SSH 命令
-ssh ubuntu@43.133.44.232 "whoami"
+ssh ubuntu@43.157.240.68 "whoami"
 # 预期输出：ubuntu
 
 # 避免使用复杂参数，如：
 # ❌ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL ...
-# ✅ ssh ubuntu@43.133.44.232 "whoami"
+# ✅ ssh ubuntu@43.157.240.68 "whoami"
 ```
 
 #### 常见错误及解决方案
@@ -843,17 +849,80 @@ bash deploy/debug-admin.sh
 ### 7.3 数据库连接失败
 
 **检查步骤**:
-1. 检查 PostgreSQL 容器状态: `docker ps | grep linkchest-db`
-2. 检查数据库是否就绪: `docker exec linkchest-db pg_isready -U linkchest`
+
+**海外版（应用层+数据层分离）**:
+1. 检查 SSH 隧道状态: `systemctl status autossh-tunnel`
+2. 测试隧道端口: `nc -zv 127.0.0.1 5433`
+3. 检查 PostgreSQL 客户端: `which psql`
+4. 检查环境变量中的 DATABASE_URL 是否为 `127.0.0.1:5433`
+
+**国内版（应用层+数据层分离）**:
+1. 检查数据层 PostgreSQL: `ssh ubuntu@114.132.81.246 "docker ps | grep postgres"`
+2. 测试数据库连接: `nc -zv 114.132.81.246 5432`
 3. 检查环境变量中的 DATABASE_URL 是否正确
 4. 检查防火墙是否允许 5432 端口
 
 ### 7.4 静态文件 404
 
 **检查步骤**:
-1. 确认 Web 服务已构建: `ls -la apps/web/.next/`
-2. 检查 Nginx 配置中的静态文件路径
+1. 确认 Web 服务已构建: `ls -la project/apps/web/.next/`
+2. 检查 Nginx 配置中的静态文件路径是否包含 `project/` 子目录
 3. 检查 PM2 进程的工作目录是否正确
+
+### 7.5 部署脚本路径错误（`project/` 子目录）
+
+**现象**: `bash: deploy/update-server.sh: No such file or directory`
+
+**根因**: 服务器上 git 仓库根目录为 `/opt/linkchest/api/`，但实际代码在 `project/` 子目录中。
+
+**解决**:
+```bash
+# deploy.sh 中
+UPDATE_SCRIPT="project/deploy/update-server.sh"
+
+# update-server.sh 中
+BASE_DIR="/opt/linkchest/api/project"
+```
+
+### 7.6 ecosystem.config.js 硬编码环境变量
+
+**现象**: API 连接到了错误的数据库（如海外版连接国内数据库）。
+
+**根因**: `ecosystem.config.js` 中硬编码了 `DATABASE_URL`，覆盖了 `.env` 文件。
+
+**解决**:
+```javascript
+// 正确：不在 ecosystem.config.js 中硬编码数据库 URL
+env: {
+  NODE_ENV: 'production',
+},
+
+// 确保 start-api.sh 加载 .env 文件
+if [ -f .env ]; then
+  set -a && source .env && set +a
+fi
+```
+
+### 7.7 Nginx 配置被 `sed` 全局替换破坏
+
+**现象**: 修改 Nginx 配置后，多个 location 块代理到错误的端口。
+
+**根因**: `sed -i 's|3003|3001|g'` 会替换文件中所有匹配的行。
+
+**解决**:
+- **不推荐**: `sed` 全局替换 Nginx 配置
+- **推荐**: 使用 base64 编码传递完整配置，或修改本地配置模板后通过 git 同步
+
+```bash
+# 备份原配置
+cp /etc/nginx/sites-enabled/linkchest-cn /etc/nginx/sites-enabled/linkchest-cn.bak
+
+# 验证语法
+sudo nginx -t
+
+# 重载配置
+sudo nginx -s reload
+```
 
 ---
 
@@ -1064,5 +1133,5 @@ ssh ubuntu@43.157.240.68 "sudo journalctl -u autossh-tunnel -f"
 
 ---
 
-*最后更新：2026-05-30*
-*版本：v3.0 — 重构海外架构为应用层+数据层分离，统一国内外部署模式*
+*最后更新：2026-05-31*
+*版本：v3.1 — 更新 SSH 配置示例 IP，新增部署脚本路径和 Nginx 配置常见问题*

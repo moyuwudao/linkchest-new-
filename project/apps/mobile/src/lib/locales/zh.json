@@ -176,6 +176,7 @@
     "shareTitle": "导出 LinkChest 数据",
     "hintTitle": "导出说明",
     "hintDesc": "导出包含所有未删除的收藏数据。专业版及以上用户导出包含封面链接。",
+    "importHint": "手机端暂不支持导入数据，如需导入请前往 WEB 端导入。",
     "successMsg": "导出成功！文件已保存到缓存目录。",
     "filePath": "文件路径："
   },
@@ -431,7 +432,6 @@
     "light": "浅色",
     "other": "其他",
     "feedback": "意见反馈",
-    "feedbackDev": "如无法打开邮件客户端，请手动发送反馈至 support@linkchest.net",
     "logout": "退出登录",
     "logoutConfirm": "确定要退出登录吗？",
     "logoutBtn": "退出",
@@ -447,8 +447,9 @@
     "checkUpdate": "检查更新",
     "updateDesc": "请选择更新方式",
     "downloadApk": "下载更新",
-    "openStoreFailed": "无法打开应用商店，请手动前往 Google Play 搜索 LinkChest",
-    "openDownloadFailed": "无法打开下载页面，请访问 https://linkchest.net/download?lang=zh"
+    "yingyongbao": "应用宝",
+    "openStoreFailed": "无法打开应用商店，请手动前往应用商店搜索 LinkChest",
+    "openDownloadFailed": "无法打开下载页面，请访问 {url}"
   },
   "account": {
     "username": "用户名",
@@ -693,7 +694,27 @@
     "backupExportNow": "立即导出",
     "backupExportSuccess": "导出成功",
     "proRequired": "专业版功能",
-    "upgradeHint": "升级套餐以使用此功能"
+    "upgradeHint": "升级套餐以使用此功能",
+    "collectionViewTitle": "收藏展示设置",
+    "selectViewMode": "选择视图模式",
+    "gridView": "卡片视图",
+    "listView": "列表视图",
+    "displayFieldsHint": "显示字段（点击箭头调整顺序）",
+    "resetDefault": "重置默认",
+    "resetDefaultTitle": "重置默认",
+    "resetDefaultDesc": "确定要重置当前视图的默认设置吗？",
+    "saved": "设置已保存",
+    "fields": {
+      "cover": "封面图",
+      "title": "标题",
+      "platform": "平台",
+      "rating": "评分",
+      "pageType": "页面类型",
+      "tags": "标签",
+      "lists": "分组",
+      "note": "备注",
+      "createdAt": "创建时间"
+    }
   },
   "quickAdd": {
     "title": "快速添加",
@@ -772,6 +793,7 @@
     "metadataDailyLimit": "每日元数据获取",
     "trashRetentionDays": "回收站保留天数",
     "forever": "无限",
+    "notSubscribed": "未开通",
     "pro": "专业版",
     "super": "旗舰版",
     "sharePassword": "分享密码保护",

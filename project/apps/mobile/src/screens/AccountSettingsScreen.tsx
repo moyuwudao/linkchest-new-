@@ -458,7 +458,7 @@ export default function AccountSettingsScreen() {
               <Text style={{ fontSize: 13, color: colors.warning, marginLeft: 'auto' }}>
                 {tierData.heavyExpiresAt
                   ? t('tier.expiresAt', { date: new Date(tierData.heavyExpiresAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US') })
-                  : t('tier.forever')}
+                  : t('tier.notSubscribed')}
               </Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -469,7 +469,7 @@ export default function AccountSettingsScreen() {
               <Text style={{ fontSize: 13, color: colors.warning, marginLeft: 'auto' }}>
                 {tierData.superExpiresAt
                   ? t('tier.expiresAt', { date: new Date(tierData.superExpiresAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US') })
-                  : t('tier.forever')}
+                  : t('tier.notSubscribed')}
               </Text>
             </View>
           </View>

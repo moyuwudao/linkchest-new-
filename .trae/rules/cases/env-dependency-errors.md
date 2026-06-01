@@ -814,7 +814,7 @@ status: resolved
 使用双 WSL 实例（`linkchest-global` + `linkchest-cn`）并行构建 APK 时，国内版 APK 仍包含海外配置：
 
 - 国内版 bundle 中出现 `linkchest.net`（海外域名）
-- 国内版显示 Google/Apple 登录按钮而非微信/支付宝
+- 国内版显示 Google/Apple 登录按钮而非微信
 - `Constants.expoConfig.extra.market` 读取为 `global` 而非 `china`
 
 ### 根因
