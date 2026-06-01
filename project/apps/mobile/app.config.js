@@ -23,17 +23,6 @@ if (marketValue === 'global' && process.env.MARKET) {
   marketValue = process.env.MARKET;
 }
 
-// 最终校验：如果检测到 WSL 实例名与 market 值冲突，发出警告
-const wslName = process.env.WSL_DISTRO_NAME || '';
-if (wslName === 'linkchest-cn' && marketValue !== 'china') {
-  console.warn(`[app.config.js] 警告: WSL 实例为 linkchest-cn，但 MARKET=${marketValue}，强制修正为 china`);
-  marketValue = 'china';
-}
-if (wslName === 'linkchest-global' && marketValue !== 'global') {
-  console.warn(`[app.config.js] 警告: WSL 实例为 linkchest-global，但 MARKET=${marketValue}，强制修正为 global`);
-  marketValue = 'global';
-}
-
 // 调试日志：确认最终使用的 market 值
 console.log(`[app.config.js] 最终 marketValue: "${marketValue}"`);
 console.log(`[app.config.js] 环境变量 MARKET: "${process.env.MARKET || '未设置'}"`);
