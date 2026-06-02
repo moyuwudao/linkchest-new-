@@ -94,7 +94,7 @@ export default function TierUpgradeScreen() {
   const { t, locale } = useI18n();
   const [data, setData] = useState<TierData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cycle, setCycle] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
+  const [cycle, setCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [paying, setPaying] = useState(false);
 
   useEffect(() => { loadData(); }, []);
@@ -109,7 +109,6 @@ export default function TierUpgradeScreen() {
   function fmtPrice(tier: TierConfig) {
     const p = tier.pricing || {};
     if (cycle === 'yearly' && p.yearly) return { amt: p.yearly.usd / 100, per: t('tier.perYear') };
-    if (cycle === 'quarterly' && p.quarterly) return { amt: p.quarterly.usd / 100, per: t('tier.perQuarter') };
     if (p.monthly) return { amt: p.monthly.usd / 100, per: t('tier.perMonth') };
     return null;
   }
@@ -159,7 +158,7 @@ export default function TierUpgradeScreen() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, margin: 16 }}>
-        {(['monthly', 'quarterly', 'yearly'] as const).map(c => (
+        {(['monthly', 'yearly'] as const).map(c => (
           <TouchableOpacity key={c} onPress={() => setCycle(c)}
             style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: cycle === c ? colors.primary : colors.secondaryBg }}>
             <Text style={{ color: cycle === c ? colors.headerText : colors.text, fontWeight: '600' }}>{t(`tier.${c}`)}</Text>

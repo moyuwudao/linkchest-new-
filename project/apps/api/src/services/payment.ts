@@ -125,7 +125,7 @@ export async function processPaymentSuccess(params: {
 
 /**
  * 根据 tier 和计费周期计算价格和到期时间
- * [MODIFIED] 优先读取 admin 后台配置的 tier 定价，支持 quarterly
+ * [MODIFIED] 优先读取 admin 后台配置的 tier 定价
  */
 export async function getPaymentDetails(tier: Exclude<UserTier, 'medium'>, billingCycle: BillingCycle) {
   const pricing = await getTierPricing(tier)
@@ -135,8 +135,6 @@ export async function getPaymentDetails(tier: Exclude<UserTier, 'medium'>, billi
   const expiresAt = new Date(now)
   if (billingCycle === 'monthly') {
     expiresAt.setMonth(expiresAt.getMonth() + 1)
-  } else if (billingCycle === 'quarterly') {
-    expiresAt.setMonth(expiresAt.getMonth() + 3)
   } else {
     expiresAt.setFullYear(expiresAt.getFullYear() + 1)
   }

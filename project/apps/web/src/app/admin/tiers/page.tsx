@@ -32,7 +32,7 @@ const emptyForm: TierConfigInput = {
     coverImagesDaily: 5, maxItemsPerShare: 100, dailyImportLimit: 200, metadataDailyLimit: 30, trashRetentionDays: 7,
     sharePassword: 0, shareStats: 0, shareRating: 0, shareViews: 0, customShareCover: 0, shareLayout: 0, batchOps: 0, exportPdf: 0, prioritySupport: 0, earlyAccess: 0,
   },
-  pricingConfig: { monthly: { usd: 0 }, quarterly: { usd: 0 }, yearly: { usd: 0 } }, benefits: [],
+  pricingConfig: { monthly: { usd: 0 }, yearly: { usd: 0 } }, benefits: [],
 };
 
 export default function TierManagementPage() {
@@ -84,7 +84,7 @@ export default function TierManagementPage() {
     const pc = c.pricingConfig || {};
     const normalizedPricing = (pc as any).monthly
       ? pc
-      : { monthly: { usd: Math.round((pc as any).monthlyPrice * 100) || 0 }, quarterly: { usd: 0 }, yearly: { usd: Math.round((pc as any).yearlyPrice * 100) || 0 } };
+      : { monthly: { usd: Math.round((pc as any).monthlyPrice * 100) || 0 }, yearly: { usd: Math.round((pc as any).yearlyPrice * 100) || 0 } };
     // 兼容旧 quotaConfig 字段名 (maxCollections -> collections 等)
     const qc = c.quotaConfig || {};
     const oldQuotaMap: Record<string, string> = {
@@ -146,7 +146,7 @@ export default function TierManagementPage() {
   function up(path: string, v: string) {
     const n = v === '' ? 0 : parseInt(v, 10);
     setForm(p => {
-      const pc = JSON.parse(JSON.stringify(p.pricingConfig || { monthly: { usd: 0 }, quarterly: { usd: 0 }, yearly: { usd: 0 } }));
+      const pc = JSON.parse(JSON.stringify(p.pricingConfig || { monthly: { usd: 0 }, yearly: { usd: 0 } }));
       const [parent, child] = path.split('.');
       if (!pc[parent]) pc[parent] = {};
       pc[parent][child] = isNaN(n) ? 0 : n;
@@ -267,16 +267,6 @@ export default function TierManagementPage() {
                       {market === 'china'
                         ? `¥${((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100}`
                         : `$${((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100}`}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b border-gray-50">
-                  <td className="px-4 py-2.5 text-xs text-gray-600 font-medium">季付价格</td>
-                  {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
-                    <td key={c.id} className="px-4 py-2.5 text-xs text-center text-gray-500">
-                      {market === 'china'
-                        ? `¥${((c.pricingConfig as any)?.quarterly?.usd ?? 0) / 100}`
-                        : `$${((c.pricingConfig as any)?.quarterly?.usd ?? 0) / 100}`}
                     </td>
                   ))}
                 </tr>
@@ -466,15 +456,10 @@ export default function TierManagementPage() {
                 <label className="block text-xs font-medium text-gray-500 mb-2">
                   价格配置 ({market === 'china' ? '¥ / 元' : '$ / 美分'})
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[10px] text-gray-400 mb-0.5">月付 {market === 'china' ? 'CNY' : 'USD'}</label>
                     <input type="number" value={(form.pricingConfig as any)?.monthly?.usd ?? 0} onChange={e => up('monthly.usd', e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-amber-400" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-0.5">季付 {market === 'china' ? 'CNY' : 'USD'}</label>
-                    <input type="number" value={(form.pricingConfig as any)?.quarterly?.usd ?? 0} onChange={e => up('quarterly.usd', e.target.value)}
                       className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-amber-400" />
                   </div>
                   <div>

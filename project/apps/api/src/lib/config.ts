@@ -180,7 +180,7 @@ export const TIER_DISPLAY_NAMES: Record<UserTier, { nameZh: string; nameEn: stri
 }
 
 // ===== 定价配置（价格单位：美元美分，避免浮点精度问题） =====
-export type BillingCycle = 'monthly' | 'quarterly' | 'yearly'
+export type BillingCycle = 'monthly' | 'yearly'
 
 export interface PlanPrice {
   usd: number  // 美元美分
@@ -189,20 +189,17 @@ export interface PlanPrice {
 
 export interface PlanPricing {
   monthly: PlanPrice
-  quarterly: PlanPrice
   yearly: PlanPrice
 }
 
 export const PRICING_CONFIG: Record<Exclude<UserTier, 'medium'>, PlanPricing> = {
   heavy: {
-    monthly:   { usd: 299 },   // $2.99/月
-    quarterly: { usd: 807 },   // $8.07/季(9折)
-    yearly:    { usd: 2871 },  // $28.71/年(8折)
+    monthly: { usd: 299 },   // $2.99/月
+    yearly:  { usd: 2871 },  // $28.71/年(8折)
   },
   super: {
-    monthly:   { usd: 599 },   // $5.99/月
-    quarterly: { usd: 1617 },  // $16.17/季(9折)
-    yearly:    { usd: 5751 },  // $57.51/年(8折)
+    monthly: { usd: 599 },   // $5.99/月
+    yearly:  { usd: 5751 },  // $57.51/年(8折)
   },
 }
 

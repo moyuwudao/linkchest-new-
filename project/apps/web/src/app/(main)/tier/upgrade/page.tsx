@@ -124,7 +124,7 @@ function TierUpgradePageContent() {
   const { t, locale } = useI18n();
   const { showAlert } = useToast();
   const router = useRouter();
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [payingTier, setPayingTier] = useState<string | null>(null);
   const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
   const [marketLoading, setMarketLoading] = useState(true);
@@ -468,16 +468,6 @@ function TierUpgradePageContent() {
             }`}
           >
             {t('tier.monthly')}
-          </button>
-          <button
-            onClick={() => setBillingCycle('quarterly')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              billingCycle === 'quarterly'
-                ? 'bg-amber-400 text-chest-500'
-                : 'bg-parchment/10 dark:bg-chest-700/40 text-charcoal dark:text-parchment hover:bg-parchment/20'
-            }`}
-          >
-            {t('tier.quarterly')}
           </button>
           <button
             onClick={() => setBillingCycle('yearly')}
