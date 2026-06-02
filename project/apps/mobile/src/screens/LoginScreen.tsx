@@ -23,7 +23,7 @@ import { ErrorCodeToI18nKey, AuthErrorCodes } from '../lib/errorCodes';
 import { Ionicons } from '@expo/vector-icons';
 import { usePressableScale } from '../lib/animations';
 import { isChinaMarket } from '../lib/market';
-import GoogleLoginSection from '../components/GoogleLoginSection'
+import GoogleLoginSection from './GoogleLoginSection'
 import WeChatLoginSection from '../components/WeChatLoginSection'
 
 type AccountType = 'email';
