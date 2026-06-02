@@ -53,7 +53,7 @@ export function getLocalServer(): RemoteServerConfig {
     return {
       id: 'china-app',
       name: '国内应用层',
-      region: '深圳',
+      region: '广州',
       apiUrl: 'http://localhost:3001/api/admin/metrics',
       enabled: true,
     }
@@ -132,6 +132,26 @@ export async function fetchRemoteMetrics(server: RemoteServerConfig): Promise<Se
 
     const data = await res.json() as Record<string, unknown>
 
+    // 适配数据层轻量级监控代理返回的格式
+    const cpu = (data as any).cpu
+    const memory = (data as any).memory
+    const disk = (data as any).disk
+    const loadavg = cpu?.loadavg || [0, 0, 0]
+
+    const system = (data as any).system || {
+      cpuCores: cpu?.cores || 0,
+      loadAvg1m: loadavg[0] || 0,
+      loadAvg5m: loadavg[1] || 0,
+      loadAvg15m: loadavg[2] || 0,
+      totalMemoryMB: memory?.total || 0,
+      usedMemoryMB: memory?.used || 0,
+      freeMemoryMB: memory?.free || 0,
+      memoryUsagePercent: memory ? memory.used / memory.total : 0,
+      nodeHeapUsedMB: 0,
+      nodeHeapTotalMB: 0,
+      nodeRssMB: 0,
+    }
+
     return {
       server: server.id,
       totalRequests: (data as any).totalRequests || (data as any).overview?.requests1h || 0,
@@ -139,7 +159,7 @@ export async function fetchRemoteMetrics(server: RemoteServerConfig): Promise<Se
       avgDuration: (data as any).avgDuration || (data as any).overview?.avgDuration1h || 0,
       errorRate: (data as any).errorRate || (data as any).overview?.errorRate1h || 0,
       statusDistribution: (data as any).statusDistribution || {},
-      system: (data as any).system,
+      system,
       timestamp: Date.now(),
     }
   } catch (e) {
@@ -205,7 +225,7 @@ export async function getCachedRemoteMetrics(serverId: string): Promise<ServerMe
  */
 export async function getAllServerMetrics(): Promise<{
   local: ServerMetrics
-  remote: Map<string, ServerMetrics | null>
+  remote: Record<string, ServerMetrics | null>
   timestamp: number
 }> {
   // 1. 获取本地指标（复用现有 metrics 服务）
@@ -242,11 +262,11 @@ export async function getAllServerMetrics(): Promise<{
   }
 
   // 2. 获取远程指标（优先从缓存读取）
-  const remote = new Map<string, ServerMetrics | null>()
+  const remote: Record<string, ServerMetrics | null> = {}
   const servers = getRemoteServers()
   for (const server of servers) {
     const cached = await getCachedRemoteMetrics(server.id)
-    remote.set(server.id, cached)
+    remote[server.id] = cached
   }
 
   return { local, remote, timestamp: Date.now() }
