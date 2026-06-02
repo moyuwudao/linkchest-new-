@@ -8,6 +8,11 @@ interface User {
   nickname: string | null;
   avatar: string | null;
   hasPassword: boolean;
+  googleId?: string | null;
+  appleId?: string | null;
+  wechatOpenId?: string | null;
+  alipayId?: string | null;
+  authSource?: string | null;
 }
 
 interface AuthState {

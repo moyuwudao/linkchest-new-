@@ -448,6 +448,37 @@ export default function AccountSettingsScreen() {
           setEmailModal(true);
         })}
 
+        {/* 第三方登录绑定信息 */}
+        <View style={{ backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 10 }}>{t('account.linkedAccounts')}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+            {/* Google */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: user?.googleId ? colors.primary + '15' : colors.border, borderWidth: 1, borderColor: user?.googleId ? colors.primary + '40' : colors.border }}>
+              <Ionicons name="logo-google" size={14} color={user?.googleId ? colors.primary : colors.textTertiary} />
+              <Text style={{ fontSize: 12, color: user?.googleId ? colors.primary : colors.textTertiary, marginLeft: 4 }}>Google</Text>
+              {user?.googleId && <Ionicons name="checkmark-circle" size={14} color={colors.success} style={{ marginLeft: 4 }} />}
+            </View>
+            {/* Apple */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: user?.appleId ? colors.primary + '15' : colors.border, borderWidth: 1, borderColor: user?.appleId ? colors.primary + '40' : colors.border }}>
+              <Ionicons name="logo-apple" size={14} color={user?.appleId ? colors.primary : colors.textTertiary} />
+              <Text style={{ fontSize: 12, color: user?.appleId ? colors.primary : colors.textTertiary, marginLeft: 4 }}>Apple</Text>
+              {user?.appleId && <Ionicons name="checkmark-circle" size={14} color={colors.success} style={{ marginLeft: 4 }} />}
+            </View>
+            {/* 微信 */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: user?.wechatOpenId ? colors.primary + '15' : colors.border, borderWidth: 1, borderColor: user?.wechatOpenId ? colors.primary + '40' : colors.border }}>
+              <Ionicons name="chatbubble-ellipses-outline" size={14} color={user?.wechatOpenId ? colors.primary : colors.textTertiary} />
+              <Text style={{ fontSize: 12, color: user?.wechatOpenId ? colors.primary : colors.textTertiary, marginLeft: 4 }}>{t('account.wechat')}</Text>
+              {user?.wechatOpenId && <Ionicons name="checkmark-circle" size={14} color={colors.success} style={{ marginLeft: 4 }} />}
+            </View>
+            {/* 支付宝 */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: user?.alipayId ? colors.primary + '15' : colors.border, borderWidth: 1, borderColor: user?.alipayId ? colors.primary + '40' : colors.border }}>
+              <Ionicons name="wallet-outline" size={14} color={user?.alipayId ? colors.primary : colors.textTertiary} />
+              <Text style={{ fontSize: 12, color: user?.alipayId ? colors.primary : colors.textTertiary, marginLeft: 4 }}>{t('account.alipay')}</Text>
+              {user?.alipayId && <Ionicons name="checkmark-circle" size={14} color={colors.success} style={{ marginLeft: 4 }} />}
+            </View>
+          </View>
+        </View>
+
         {tierData && (
           <View style={{ backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>

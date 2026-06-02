@@ -485,6 +485,7 @@ export default function LoginScreen() {
                     lang={lang}
                     setLoading={setLoading}
                     wechatClientId={marketConfig?.clientIds?.wechatMobile}
+                    onSuccess={() => navigation.replace('Main' as never)}
                   />
                 </>
               ) : (
