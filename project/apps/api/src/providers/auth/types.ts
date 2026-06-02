@@ -17,6 +17,8 @@ export interface OAuthCredential {
   token: string
   /** 可选的额外数据 */
   extra?: Record<string, unknown>
+  /** 平台标识（用于区分移动端和网页端微信登录） */
+  platform?: string
 }
 
 /** 认证结果 */

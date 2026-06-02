@@ -23,8 +23,8 @@ import { ErrorCodeToI18nKey, AuthErrorCodes } from '../lib/errorCodes';
 import { Ionicons } from '@expo/vector-icons';
 import { usePressableScale } from '../lib/animations';
 import { isChinaMarket } from '../lib/market';
-import GoogleLoginSection from './GoogleLoginSection';
-import WeChatIcon from '../components/WeChatIcon';
+import GoogleLoginSection from '../components/GoogleLoginSection'
+import WeChatLoginSection from '../components/WeChatLoginSection'
 
 type AccountType = 'email';
 
@@ -478,13 +478,14 @@ export default function LoginScreen() {
                     </TouchableOpacity>
                   )}
                   {/* 国内版：微信 */}
-                  <TouchableOpacity
-                    style={[styles.thirdPartyBtn, { backgroundColor: '#07C160', borderWidth: 0 }]}
-                    onPress={() => Alert.alert('微信登录', '功能开发中')}
-                    disabled={loading}
-                  >
-                    <WeChatIcon size={22} color="#fff" />
-                  </TouchableOpacity>
+                  <WeChatLoginSection
+                    colors={colors}
+                    loading={loading}
+                    t={t}
+                    lang={lang}
+                    setLoading={setLoading}
+                    wechatClientId={marketConfig?.clientIds?.wechatMobile}
+                  />
                 </>
               ) : (
                 /* 海外版 */

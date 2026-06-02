@@ -258,6 +258,12 @@ export interface MarketConfig {
     contentModeration: boolean;
     referralProgram: boolean;
   };
+  clientIds?: {
+    google?: string;
+    wechat?: string;
+    wechatMobile?: string;
+    apple?: string;
+  };
 }
 
 /** 获取市场配置 */

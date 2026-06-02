@@ -1017,7 +1017,7 @@ router.post('/google', async (req, res) => {
 router.post('/wechat', async (req, res) => {
   const reqId = req.reqId
   try {
-    const { credential, lang = 'zh', referralCode } = req.body
+    const { credential, lang = 'zh', referralCode, platform } = req.body
     if (!credential) {
       return errorResponse(res, 400, AuthErrorCodes.INVALID_GOOGLE_TOKEN)
     }
@@ -1030,18 +1030,27 @@ router.post('/wechat', async (req, res) => {
       return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
     }
 
-    const result = await provider.verifyCredential({ token: credential })
+    const result = await provider.verifyCredential({ token: credential, platform })
     
     if (!result.success) {
       return errorResponse(res, 401, AuthErrorCodes.INVALID_GOOGLE_TOKEN)
     }
 
     const wechatId = result.providerUserId
+    const unionId = (result.rawProfile as any)?.unionid
     const email = result.email || null
     const name = result.name || '用户'
     const picture = result.avatar
 
-    let user = await prisma.user.findUnique({ where: { wechatOpenId: wechatId } })
+    // 优先使用 unionid 查找用户（同一微信用户在不同应用中 unionid 相同）
+    let user = null
+    if (unionId) {
+      user = await prisma.user.findFirst({ where: { wechatUnionId: unionId } })
+    }
+    // 其次使用 openid 查找
+    if (!user) {
+      user = await prisma.user.findUnique({ where: { wechatOpenId: wechatId } })
+    }
 
     if (!user && email) {
       user = await prisma.user.findUnique({ where: { email } })
@@ -1057,7 +1066,11 @@ router.post('/wechat', async (req, res) => {
         }
         user = await prisma.user.update({
           where: { id: user.id },
-          data: { wechatOpenId: wechatId, lastLoginAt: new Date() },
+          data: {
+            wechatOpenId: wechatId,
+            ...(unionId ? { wechatUnionId: unionId } : {}),
+            lastLoginAt: new Date(),
+          },
         })
       }
     }
@@ -1067,6 +1080,7 @@ router.post('/wechat', async (req, res) => {
         data: {
           email: email || undefined,
           wechatOpenId: wechatId,
+          ...(unionId ? { wechatUnionId: unionId } : {}),
           nickname: name,
           avatar: picture,
           lang,
@@ -1120,6 +1134,7 @@ router.post('/wechat', async (req, res) => {
           lastLoginIp: clientIp,
           loginAttempts: 0,
           lockedUntil: null,
+          ...(unionId && !user.wechatUnionId ? { wechatUnionId: unionId } : {}),
         },
       })
     }
@@ -1159,6 +1174,20 @@ router.get('/wechat/callback', async (req, res) => {
     const { code, state } = req.query
     if (!code) {
       return res.redirect('/login?error=invalid_code')
+    }
+    // 检测是否为移动端请求
+    let isMobile = false
+    if (state && typeof state === 'string') {
+      try {
+        const parsedState = JSON.parse(Buffer.from(state, 'base64').toString('utf8'))
+        isMobile = parsedState.platform === 'mobile'
+      } catch {
+        // state 解析失败，继续原有逻辑
+      }
+    }
+    if (isMobile) {
+      // 移动端：重定向到 APP 自定义 scheme
+      return res.redirect(`com.linkchest.app://auth?code=${code}`)
     }
     res.redirect(`/login?code=${code}&state=${state || ''}`)
   } catch (error: unknown) {

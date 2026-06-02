@@ -1,33 +1,50 @@
 /**
  * 微信登录 Provider
  * 实现微信 OAuth2 网页授权登录
+ * 支持网站应用和移动应用双配置
  */
 
 import type { AuthProvider, OAuthCredential, AuthResult } from './types'
 import logger from '../../lib/logger'
 
-// 兼容多种微信登录环境变量命名
-const WECHAT_APP_ID = process.env.WECHAT_APP_ID || process.env.WECHAT_CLIENT_ID || process.env.WECHAT_LOGIN_APPID || ''
-const WECHAT_APP_SECRET = process.env.WECHAT_APP_SECRET || process.env.WECHAT_LOGIN_SECRET || ''
+// 网站应用配置（WEB端）
+const WECHAT_WEB_APP_ID = process.env.WECHAT_APP_ID || process.env.WECHAT_CLIENT_ID || process.env.WECHAT_LOGIN_APPID || ''
+const WECHAT_WEB_APP_SECRET = process.env.WECHAT_APP_SECRET || process.env.WECHAT_LOGIN_SECRET || ''
+
+// 移动应用配置（iOS/Android端）
+const WECHAT_MOBILE_APP_ID = process.env.WECHAT_MOBILE_APPID || ''
+const WECHAT_MOBILE_APP_SECRET = process.env.WECHAT_MOBILE_SECRET || ''
 
 export class WechatAuthProvider implements AuthProvider {
   readonly name = 'wechat' as const
 
   isConfigured(): boolean {
-    return !!(WECHAT_APP_ID && WECHAT_APP_SECRET)
+    return !!(WECHAT_WEB_APP_ID && WECHAT_WEB_APP_SECRET)
+  }
+
+  /**
+   * 获取对应平台的 AppID 和 AppSecret
+   */
+  private getAppCredentials(platform?: string): { appId: string; appSecret: string } {
+    if (platform === 'mobile' && WECHAT_MOBILE_APP_ID && WECHAT_MOBILE_APP_SECRET) {
+      return { appId: WECHAT_MOBILE_APP_ID, appSecret: WECHAT_MOBILE_APP_SECRET }
+    }
+    return { appId: WECHAT_WEB_APP_ID, appSecret: WECHAT_WEB_APP_SECRET }
   }
 
   /**
    * 用 code 换取 access_token 和 openid
    */
-  private async getAccessToken(code: string): Promise<{
+  private async getAccessToken(code: string, platform?: string): Promise<{
     access_token: string
     openid: string
     unionid?: string
     expires_in: number
     refresh_token: string
   }> {
-    const url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${WECHAT_APP_ID}&secret=${WECHAT_APP_SECRET}&code=${code}&grant_type=authorization_code`
+    const { appId, appSecret } = this.getAppCredentials(platform)
+
+    const url = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${appSecret}&code=${code}&grant_type=authorization_code`
 
     const res = await fetch(url)
     const data = await res.json() as {
@@ -41,7 +58,7 @@ export class WechatAuthProvider implements AuthProvider {
     }
 
     if (data.errcode) {
-      logger.error({ data, code }, 'WeChat get access token failed')
+      logger.error({ data, code, platform }, 'WeChat get access token failed')
       throw new Error(`WeChat auth failed: ${data.errmsg || data.errcode}`)
     }
 
@@ -90,14 +107,14 @@ export class WechatAuthProvider implements AuthProvider {
   }
 
   async verifyCredential(credential: OAuthCredential): Promise<AuthResult> {
-    const { token } = credential
+    const { token, platform } = credential
 
     if (!token) {
       throw new Error('WeChat auth code is required')
     }
 
-    // 1. 用 code 换 token
-    const tokenData = await this.getAccessToken(token)
+    // 1. 用 code 换 token（根据平台选择对应的应用配置）
+    const tokenData = await this.getAccessToken(token, platform)
 
     // 2. 获取用户信息
     const userInfo = await this.getUserInfo(tokenData.access_token, tokenData.openid)

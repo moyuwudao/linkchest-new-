@@ -571,7 +571,9 @@
     "termsSuffix": "",
     "otherLoginMethods": "其他登录方式",
     "googleLoginFailed": "Google 登录失败，请重试",
+    "wechatLoginFailed": "微信登录失败，请重试",
     "googleSetPasswordPrompt": "检测到您通过 Google 登录，建议设置独立密码，以便日后使用邮箱+密码直接登录",
+    "setPasswordHint": "检测到您通过微信登录，建议设置独立密码，以便日后使用邮箱+密码直接登录",
     "googleSetPasswordWarning": "为了账户安全，建议不要与您的 Google 账户密码一致",
     "emailRegister": "邮箱注册",
     "fillAllFields": "请填写所有字段",
@@ -582,7 +584,10 @@
     "newPassword": "新密码",
     "resetPassword": "重置密码",
     "forgotPasswordHint": "请输入验证码设置新密码",
-    "referralCode": "邀请码（选填）"
+    "referralCode": "邀请码（选填）",
+    "enterPasswordAndConfirm": "请填写密码和确认密码",
+    "passwordsDoNotMatch": "两次密码不一致",
+    "passwordTooShort": "密码至少6位"
   },
   "terms": {
     "title": "服务条款",

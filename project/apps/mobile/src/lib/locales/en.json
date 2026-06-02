@@ -560,7 +560,9 @@
     "termsSuffix": "",
     "otherLoginMethods": "More ways to sign in",
     "googleLoginFailed": "Google login failed, please try again",
+    "wechatLoginFailed": "WeChat login failed, please try again",
     "googleSetPasswordPrompt": "You logged in via Google. Setting a separate password lets you log in with email + password directly.",
+    "setPasswordHint": "You logged in via WeChat. Setting a separate password lets you log in with email + password directly.",
     "googleSetPasswordWarning": "For security, we recommend using a different password from your Google account.",
     "emailRegister": "Email Register",
     "fillAllFields": "Please fill in all fields",
@@ -571,7 +573,10 @@
     "newPassword": "New Password",
     "resetPassword": "Reset Password",
     "forgotPasswordHint": "Enter the verification code to set a new password",
-    "referralCode": "Referral Code (optional)"
+    "referralCode": "Referral Code (optional)",
+    "enterPasswordAndConfirm": "Please enter password and confirm password",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 6 characters"
   },
   "terms": {
     "title": "Terms of Service",
