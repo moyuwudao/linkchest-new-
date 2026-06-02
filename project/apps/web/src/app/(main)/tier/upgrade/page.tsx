@@ -179,20 +179,34 @@ function TierUpgradePageContent() {
   }
 
   function getPrice(tier: TierConfig) {
-    const config = (tier.pricing || {}) as Record<string, { usd?: number }>;
+    const config = (tier.pricing || {}) as Record<string, { usd?: number; cny?: number }>;
     const cycleConfig = config[billingCycle];
-    const price = cycleConfig?.usd;
-    if (typeof price === 'number' && price > 0) {
-      const displayPrice = (price / 100).toFixed(2);
-      return { price: displayPrice, symbol: '$', period: t(`tier.${billingCycle}`) };
+    const isChina = marketConfig?.market === 'china';
+
+    if (isChina) {
+      // 国内市场：优先读取 cny，fallback 到 usd（兼容旧数据）
+      const price = cycleConfig?.cny ?? cycleConfig?.usd;
+      if (typeof price === 'number' && price > 0) {
+        return { price: price.toFixed(0), symbol: '¥', period: t(`tier.${billingCycle}`) };
+      }
+    } else {
+      // 海外市场：读取 usd（美分）
+      const price = cycleConfig?.usd;
+      if (typeof price === 'number' && price > 0) {
+        const displayPrice = (price / 100).toFixed(2);
+        return { price: displayPrice, symbol: '$', period: t(`tier.${billingCycle}`) };
+      }
     }
+
     // 兼容旧数据结构
     const legacy = tier.pricing as Record<string, number> | undefined;
     if (billingCycle === 'yearly' && legacy?.yearlyPrice) {
-      return { price: legacy.yearlyPrice, symbol: '$', period: t('tier.yearly') };
+      const symbol = isChina ? '¥' : '$';
+      return { price: legacy.yearlyPrice, symbol, period: t('tier.yearly') };
     }
     if (legacy?.monthlyPrice) {
-      return { price: legacy.monthlyPrice, symbol: '$', period: t('tier.monthly') };
+      const symbol = isChina ? '¥' : '$';
+      return { price: legacy.monthlyPrice, symbol, period: t('tier.monthly') };
     }
     return null;
   }

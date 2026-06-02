@@ -35,7 +35,8 @@ const GLOBAL_SERVERS: RemoteServerConfig[] = [
     id: 'global-db',
     name: '海外数据层',
     region: '新加坡',
-    apiUrl: process.env.GLOBAL_DB_METRICS_URL || 'http://43.133.44.232:3001/api/admin/metrics',
+    // 通过 SSH 隧道访问新加坡数据层监控代理（雅加达本地 3002 端口转发到新加坡 3001）
+    apiUrl: process.env.GLOBAL_DB_METRICS_URL || 'http://127.0.0.1:3002/api/admin/metrics',
     token: process.env.GLOBAL_SERVER_API_TOKEN,
     enabled: true,
   },
@@ -239,7 +240,7 @@ export async function getAllServerMetrics(): Promise<{
   const loadAvg = os.loadavg()
 
   const local: ServerMetrics = {
-    server: 'china',
+    server: isChinaMarket() ? 'china-app' : 'global-app',
     totalRequests: localData.totalRequests,
     totalErrors: localData.totalErrors,
     avgDuration: localData.avgDuration,

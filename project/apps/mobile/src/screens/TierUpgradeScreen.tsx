@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { api, getBaseDomain } from '../lib/api';
+import { isChinaMarket } from '../lib/market';
 import { useThemeStore } from '../store/theme';
 import { useI18n } from '../lib/i18n';
 
@@ -58,7 +59,7 @@ function getLimitKeys(allTiers: Array<{ limits?: Record<string, number | boolean
   ];
 }
 
-const featureFlagKeys = ['sharePassword', 'shareStats', 'shareExpiry', 'shareRating'];
+const featureFlagKeys = ['sharePassword', 'shareStats', 'shareRating', 'shareViews'];
 
 function getFeatureFlags(tier: TierConfig) {
   return featureFlagKeys.map(key => ({
@@ -108,8 +109,31 @@ export default function TierUpgradeScreen() {
 
   function fmtPrice(tier: TierConfig) {
     const p = tier.pricing || {};
-    if (cycle === 'yearly' && p.yearly) return { amt: p.yearly.usd / 100, per: t('tier.perYear') };
-    if (p.monthly) return { amt: p.monthly.usd / 100, per: t('tier.perMonth') };
+    const isChina = isChinaMarket();
+    const yearlyConfig = p.yearly || {};
+    const monthlyConfig = p.monthly || {};
+
+    if (isChina) {
+      // 国内市场：优先读取 cny，fallback 到 usd（兼容旧数据）
+      if (cycle === 'yearly') {
+        const price = yearlyConfig.cny ?? yearlyConfig.usd;
+        if (typeof price === 'number' && price > 0) {
+          return { amt: price.toFixed(0), symbol: '¥', per: t('tier.perYear') };
+        }
+      }
+      const price = monthlyConfig.cny ?? monthlyConfig.usd;
+      if (typeof price === 'number' && price > 0) {
+        return { amt: price.toFixed(0), symbol: '¥', per: t('tier.perMonth') };
+      }
+    } else {
+      // 海外市场：读取 usd（美分）
+      if (cycle === 'yearly' && yearlyConfig.usd) {
+        return { amt: (yearlyConfig.usd / 100).toFixed(2), symbol: '$', per: t('tier.perYear') };
+      }
+      if (monthlyConfig.usd) {
+        return { amt: (monthlyConfig.usd / 100).toFixed(2), symbol: '$', per: t('tier.perMonth') };
+      }
+    }
     return null;
   }
 
@@ -186,7 +210,7 @@ export default function TierUpgradeScreen() {
               {tier.description ? <Text style={{ marginTop: 4, fontSize: 13, color: colors.textTertiary }}>{tier.description}</Text> : null}
               {price ? (
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 8 }}>
-                  <Text style={{ fontSize: 24, fontWeight: 'bold', color: colors.text }}>${price.amt}</Text>
+                  <Text style={{ fontSize: 24, fontWeight: 'bold', color: colors.text }}>{price.symbol}{price.amt}</Text>
                   <Text style={{ fontSize: 13, color: colors.textTertiary, marginLeft: 4 }}>{price.per}</Text>
                 </View>
               ) : (
