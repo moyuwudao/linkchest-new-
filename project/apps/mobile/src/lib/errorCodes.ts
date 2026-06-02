@@ -36,6 +36,7 @@ export const AuthErrorCodes = {
 
   // 第三方登录相关 (5100-5199)
   INVALID_GOOGLE_TOKEN: 'ERR_INVALID_GOOGLE_TOKEN',
+  INVALID_WECHAT_TOKEN: 'ERR_INVALID_WECHAT_TOKEN',
   EMAIL_SEND_FAILED: 'ERR_EMAIL_SEND_FAILED',
 
   // 用户相关 (6000-6099)
@@ -112,6 +113,7 @@ export const ErrorCodeToI18nKey: Record<AuthErrorCode, string> = {
 
   // 第三方登录相关
   [AuthErrorCodes.INVALID_GOOGLE_TOKEN]: 'error.invalidGoogleToken',
+  [AuthErrorCodes.INVALID_WECHAT_TOKEN]: 'error.invalidWechatToken',
   [AuthErrorCodes.EMAIL_SEND_FAILED]: 'error.emailSendFailed',
 
   // 用户相关

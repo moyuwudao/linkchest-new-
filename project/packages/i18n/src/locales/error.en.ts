@@ -24,6 +24,7 @@ export default {
   ERR_TOKEN_EXPIRED: "Token expired",
   ERR_UNAUTHORIZED: "Unauthorized",
   ERR_INVALID_GOOGLE_TOKEN: "Invalid Google token",
+  ERR_INVALID_WECHAT_TOKEN: "WeChat authorization failed, please try again",
   ERR_GOOGLE_EMAIL_CANNOT_CHANGE: "Google login users cannot change their email",
   ERR_USER_NOT_FOUND: "User not found",
   ERR_EMAIL_NOT_SET: "Cannot send verification code, please set up your email first",

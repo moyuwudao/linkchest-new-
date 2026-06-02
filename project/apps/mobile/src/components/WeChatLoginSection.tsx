@@ -55,7 +55,7 @@ export default function WeChatLoginSection({
 
   useEffect(() => {
     if (wechatClientId && !isRegistered) {
-      WeChat.registerApp(wechatClientId)
+      WeChat.registerApp(wechatClientId, '')
         .then(() => {
           console.log('WeChat SDK registered');
           setIsRegistered(true);

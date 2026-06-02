@@ -1017,9 +1017,10 @@ router.post('/google', async (req, res) => {
 router.post('/wechat', async (req, res) => {
   const reqId = req.reqId
   try {
-    const { credential, lang = 'zh', referralCode, platform } = req.body
-    if (!credential) {
-      return errorResponse(res, 400, AuthErrorCodes.INVALID_GOOGLE_TOKEN)
+    const { credential, code, lang = 'zh', referralCode, platform } = req.body
+    const authCode = credential || code
+    if (!authCode) {
+      return errorResponse(res, 400, AuthErrorCodes.INVALID_WECHAT_TOKEN)
     }
 
     const { getAuthProvider } = await import('../providers/auth')
@@ -1030,10 +1031,10 @@ router.post('/wechat', async (req, res) => {
       return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
     }
 
-    const result = await provider.verifyCredential({ token: credential, platform })
-    
+    const result = await provider.verifyCredential({ token: authCode, platform })
+
     if (!result.success) {
-      return errorResponse(res, 401, AuthErrorCodes.INVALID_GOOGLE_TOKEN)
+      return errorResponse(res, 401, AuthErrorCodes.INVALID_WECHAT_TOKEN)
     }
 
     const wechatId = result.providerUserId
@@ -1164,7 +1165,7 @@ router.post('/wechat', async (req, res) => {
     const err = error as { message?: string }
     logger.error({ err: err.message }, '微信登录错误')
     res.locals.errorMessage = err.message
-    return errorResponse(res, 401, AuthErrorCodes.INVALID_GOOGLE_TOKEN)
+    return errorResponse(res, 401, AuthErrorCodes.INVALID_WECHAT_TOKEN)
   }
 })
 

@@ -24,6 +24,7 @@ export default {
   ERR_TOKEN_EXPIRED: "Token已过期",
   ERR_UNAUTHORIZED: "未授权",
   ERR_INVALID_GOOGLE_TOKEN: "Google 令牌无效",
+  ERR_INVALID_WECHAT_TOKEN: "微信授权失败，请重试",
   ERR_GOOGLE_EMAIL_CANNOT_CHANGE: "Google 登录用户的邮箱不可修改",
   ERR_USER_NOT_FOUND: "用户不存在",
   ERR_EMAIL_NOT_SET: "无法发送验证码，请先维护邮箱信息",

@@ -835,6 +835,7 @@
     "accountGoogleNoPassword": "该账户通过 Google 登录，请使用 Google 登录后设置密码",
     "emailSendFailed": "验证码邮件发送失败，请稍后重试",
     "invalidGoogleToken": "Google 令牌无效",
+    "invalidWechatToken": "微信授权失败，请重试",
     "emailAlreadyRegistered": "该邮箱已被注册",
     "usernameAlreadyExists": "用户名已被使用",
     "usernameContainsBannedWords": "用户名包含违禁词",
