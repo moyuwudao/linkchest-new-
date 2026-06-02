@@ -459,6 +459,7 @@ export default function SharePageClient({ initialData }: SharePageClientProps) {
                 <LazyImage
                   src={item.coverImage || generateDefaultCover(item.platform, item.title)}
                   alt={item.title}
+                  title={item.title}
                   platform={item.platform}
                   collectionId={item.id}
                   containerClassName="aspect-video bg-parchment/20 dark:bg-chest-700/40"

@@ -241,6 +241,7 @@ const GridItem = React.memo(function GridItem({ item, colors, editMode, selected
               uri={item.coverStrategy === 'brand' ? null : item.coverImage}
               style={{ width: 120, height: 100 }}
               fallbackPlatform={item.platform}
+              fallbackTitle={item.title}
               showGradientFallback={item.coverStrategy === 'brand'}
             />
           </TouchableOpacity>
@@ -757,6 +758,7 @@ export default function CollectionsScreen() {
         uri={item.coverStrategy === 'brand' ? null : item.coverImage}
         style={{ width: 60, height: 40, borderRadius: 4 }}
         fallbackPlatform={item.platform}
+        fallbackTitle={item.title}
         showGradientFallback={item.coverStrategy === 'brand'}
       />
       <View style={{ flex: 1 }}>

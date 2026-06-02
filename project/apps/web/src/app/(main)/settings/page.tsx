@@ -209,6 +209,7 @@ function TrashSection({ inline }: { inline?: boolean }) {
                       <LazyImage
                         src={item.coverImage}
                         alt={item.title}
+                        title={item.title}
                         platform={item.platform}
                         className="w-full h-full object-cover"
                       />
@@ -366,6 +367,7 @@ function TrashSection({ inline }: { inline?: boolean }) {
                       <LazyImage
                         src={item.coverImage}
                         alt={item.title}
+                        title={item.title}
                         platform={item.platform}
                         className="w-full h-full object-cover"
                       />

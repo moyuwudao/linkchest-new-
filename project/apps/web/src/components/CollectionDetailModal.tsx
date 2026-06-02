@@ -39,6 +39,7 @@ export default function CollectionDetailModal({ item, onClose, onDelete, editMod
           <LazyImage
             src={item.coverImage}
             alt={item.title}
+            title={item.title}
             platform={item.platform}
             collectionId={item.id}
             containerClassName="w-full h-full"

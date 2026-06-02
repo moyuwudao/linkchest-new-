@@ -16,6 +16,7 @@ import { api } from '../lib/api';
 import { getPlatformName, getPlatformColor, getPlatformIcon } from '../lib/platforms';
 import { useThemeStore } from '../store/theme';
 import { useI18n, getListDisplayName, getListPathDisplayName } from '../lib/i18n';
+import { ErrorCodeToI18nKey } from '../lib/errorCodes';
 import { logEvent } from '../lib/analytics';
 import CoverEditor from '../components/CoverEditor';
 import StarRating from '../components/StarRating';
@@ -338,7 +339,24 @@ export default function CollectionFormScreen() {
       navigation.goBack();
     },
     onError: (error: any) => {
-      const errMsg = error.response?.data?.message || error.response?.data?.error || t('add.addFailed');
+      const data = error.response?.data;
+      let errMsg = t('add.addFailed');
+      if (data?.message) {
+        errMsg = data.message;
+      } else if (data?.error) {
+        // 尝试翻译错误码
+        const i18nKey = data.error ? (ErrorCodeToI18nKey as any)[data.error] : null;
+        if (i18nKey) {
+          errMsg = t(i18nKey);
+        } else {
+          errMsg = data.error;
+        }
+      }
+      // 如果有验证详情，拼接具体错误
+      if (data?.details && Array.isArray(data.details) && data.details.length > 0) {
+        const detailMsgs = data.details.map((d: any) => d.msg || d.message || JSON.stringify(d)).join('\n');
+        errMsg = detailMsgs || errMsg;
+      }
       Alert.alert(t('common.error'), errMsg);
     },
   });
@@ -433,8 +451,14 @@ export default function CollectionFormScreen() {
       return;
     }
 
+    // 自动补全 URL 协议
+    let finalUrl = url.trim();
+    if (!finalUrl.match(/^https?:\/\//i)) {
+      finalUrl = 'https://' + finalUrl;
+    }
+
     const data: any = {
-      url: url.trim(),
+      url: finalUrl,
       title: title.trim(),
       platform,
       tagIds: selectedTags,

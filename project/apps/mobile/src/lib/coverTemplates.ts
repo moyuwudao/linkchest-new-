@@ -66,9 +66,6 @@ export function getCategoryStyle(category: string): CategoryStyle {
 export function getFirstChar(text?: string): string {
   if (!text || !text.trim()) return '?';
   const trimmed = text.trim();
-  if (/^[a-zA-Z]/.test(trimmed)) {
-    return trimmed.charAt(0).toUpperCase();
-  }
   return trimmed.charAt(0);
 }
 

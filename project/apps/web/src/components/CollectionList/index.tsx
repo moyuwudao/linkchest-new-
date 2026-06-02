@@ -438,7 +438,7 @@ export default function CollectionList() {
                 )}
                 <div className="flex gap-4">
                   <div className="w-28 h-20 rounded-xl flex-shrink-0 overflow-hidden relative group shadow-sm">
-                    <LazyImage src={item.coverImage} alt={item.title} platform={item.platform} collectionId={item.id} containerClassName="w-full h-full" className="transition-transform duration-300 group-hover:scale-105" />
+                    <LazyImage src={item.coverImage} alt={item.title} title={item.title} platform={item.platform} collectionId={item.id} containerClassName="w-full h-full" className="transition-transform duration-300 group-hover:scale-105" />
                     <div className="absolute bottom-1.5 left-1.5 z-10">
                       <PlatformBadge platform={item.platform} size="sm" />
                     </div>

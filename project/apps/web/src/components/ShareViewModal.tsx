@@ -341,6 +341,7 @@ export default function ShareViewModal({ shareId, onClose, showSaveButton }: { s
                   <LazyImage
                     src={item.coverImage || generateDefaultCover(item.platform, item.title)}
                     alt=""
+                    title={item.title}
                     platform={item.platform}
                     collectionId={item.id}
                     containerClassName={`w-16 h-12 bg-chest-100 dark:bg-chest-700 rounded flex-shrink-0 ${isLocked ? 'opacity-30 blur-sm select-none' : ''}`}

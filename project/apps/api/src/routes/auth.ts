@@ -251,17 +251,20 @@ router.post('/send-code', async (req, res) => {
       return errorResponse(res, 400, AuthErrorCodes.INVALID_EMAIL_FORMAT)
     }
 
-    // 检查已登录用户是否已维护邮箱
-    const token = req.headers.authorization?.replace('Bearer ', '')
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: string }
-        const user = await prisma.user.findUnique({ where: { id: decoded.userId } })
-        if (user && !user.email) {
-          return errorResponse(res, 400, AuthErrorCodes.EMAIL_NOT_SET)
+    // 检查已登录用户是否已维护邮箱（仅在未提供email时检查）
+    // 绑定邮箱场景：用户没有邮箱但需要发送验证码到新邮箱，应允许
+    if (!email) {
+      const token = req.headers.authorization?.replace('Bearer ', '')
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET) as { userId: string }
+          const user = await prisma.user.findUnique({ where: { id: decoded.userId } })
+          if (user && !user.email) {
+            return errorResponse(res, 400, AuthErrorCodes.EMAIL_NOT_SET)
+          }
+        } catch {
+          // token 无效，忽略
         }
-      } catch {
-        // token 无效，忽略
       }
     }
 

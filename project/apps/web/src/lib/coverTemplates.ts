@@ -162,7 +162,7 @@ function sanitizeForUri(str: string): string {
 }
 
 /**
- * 提取文本首字符（中文取首字，英文取首字母）
+ * 提取文本首字符（中文取首字，英文取首字母，保持原大小写）
  */
 export function getFirstChar(text?: string): string {
   if (!text || !text.trim()) return '?';
@@ -170,11 +170,7 @@ export function getFirstChar(text?: string): string {
   // 清理非法字符
   const clean = sanitizeForUri(trimmed);
   if (!clean) return '?';
-  // 如果是英文，取第一个字母（大写）
-  if (/^[a-zA-Z]/.test(clean)) {
-    return clean.charAt(0).toUpperCase();
-  }
-  // 否则取第一个字符（中文/日文/韩文等）
+  // 取第一个字符（中文/日文/韩文/英文等），保持原大小写
   return clean.charAt(0);
 }
 
@@ -196,7 +192,7 @@ export function getContrastColor(bgColor: string): string {
  * @param platformName 平台名称
  * @param platformColor 平台主色
  * @param category 品类
- * @param title 标题（用于首字）
+ * @param title 标题（优先显示标题，不大写，正常两行）
  * @param url 链接（用于哈希配色兜底）
  */
 export function generateEnhancedCoverSVG(
@@ -208,7 +204,6 @@ export function generateEnhancedCoverSVG(
   url?: string,
 ): string {
   const style = getCategoryStyle(category);
-  const firstChar = getFirstChar(title || platformName);
 
   // 如果 platformColor 是浅色系，使用 category 的暗色渐变；否则用 platformColor 变暗
   const hex = platformColor.replace('#', '');
@@ -226,15 +221,18 @@ export function generateEnhancedCoverSVG(
     // 基于平台色生成暗色渐变
     const darken = (c: number) => Math.max(0, Math.floor(c * 0.45));
     const darkColor = `rgb(${darken(r)},${darken(g)},${darken(b)})`;
-    const darkerColor = `rgb(${darken(r) * 0.6},${darken(g) * 0.6},${darken(b) * 0.6})`;
+    const darkerColor = `rgb(${Math.floor(darken(r) * 0.6)},${Math.floor(darken(g) * 0.6)},${Math.floor(darken(b) * 0.6)})`;
     gradientStops = `<stop offset="0%" stop-color="${darkColor}"/><stop offset="100%" stop-color="${darkerColor}"/>`;
   }
 
   const vb = style.iconViewBox || '0 0 24 24';
   const textColor = '#ffffff';
 
-  const safeFirstChar = escapeXml(sanitizeForUri(firstChar));
   const safeDisplayText = escapeXml(sanitizeForUri(title || platformName));
+
+  // 如果有标题，显示标题（两行）；否则显示首字
+  const hasTitle = title && title.trim().length > 0;
+  const displayText = hasTitle ? safeDisplayText : escapeXml(sanitizeForUri(platformName));
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
   <defs>
@@ -246,14 +244,14 @@ export function generateEnhancedCoverSVG(
     </filter>
   </defs>
   <rect width="400" height="300" fill="url(#g)" rx="12"/>
-  <g transform="translate(200,115)" filter="url(#shadow)">
-    <circle cx="0" cy="0" r="38" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-    <svg x="-14" y="-14" width="28" height="28" viewBox="${vb}">
-      <path d="${style.iconPath}" fill="${textColor}" fill-opacity="0.9"/>
-    </svg>
-  </g>
-  <text x="200" y="195" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="56" font-weight="700" fill="${textColor}" text-anchor="middle" dominant-baseline="middle" filter="url(#shadow)">${safeFirstChar}</text>
-  <text x="200" y="245" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="16" fill="${textColor}" text-anchor="middle" opacity="0.55">${safeDisplayText}</text>
+  ${hasTitle ? `
+  <text x="200" y="150" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="32" font-weight="700" fill="${textColor}" text-anchor="middle" dominant-baseline="middle" filter="url(#shadow)">
+    <tspan x="200" dy="0">${displayText.length > 20 ? displayText.substring(0, 20) + '...' : displayText.split('\n')[0]}</tspan>
+    <tspan x="200" dy="1.2em">${displayText.length > 20 ? '' : (displayText.split('\n')[1] || '')}</tspan>
+  </text>
+  ` : `
+  <text x="200" y="150" font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="56" font-weight="700" fill="${textColor}" text-anchor="middle" dominant-baseline="middle" filter="url(#shadow)">${displayText}</text>
+  `}
 </svg>`;
 
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;

@@ -38,6 +38,7 @@ export const AuthErrorCodes = {
   INVALID_GOOGLE_TOKEN: 'ERR_INVALID_GOOGLE_TOKEN',
   INVALID_WECHAT_TOKEN: 'ERR_INVALID_WECHAT_TOKEN',
   EMAIL_SEND_FAILED: 'ERR_EMAIL_SEND_FAILED',
+  EMAIL_NOT_SET: 'ERR_EMAIL_NOT_SET',
 
   // 用户相关 (6000-6099)
   USER_NOT_FOUND: 'ERR_USER_NOT_FOUND',
@@ -115,6 +116,7 @@ export const ErrorCodeToI18nKey: Record<AuthErrorCode, string> = {
   [AuthErrorCodes.INVALID_GOOGLE_TOKEN]: 'error.invalidGoogleToken',
   [AuthErrorCodes.INVALID_WECHAT_TOKEN]: 'error.invalidWechatToken',
   [AuthErrorCodes.EMAIL_SEND_FAILED]: 'error.emailSendFailed',
+  [AuthErrorCodes.EMAIL_NOT_SET]: 'error.emailNotSet',
 
   // 用户相关
   [AuthErrorCodes.USER_NOT_FOUND]: 'error.userNotFound',

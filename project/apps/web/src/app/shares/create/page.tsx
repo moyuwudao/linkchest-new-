@@ -348,6 +348,7 @@ export default function CreateSharePage() {
                             <LazyImage
                               src={collection.coverImage}
                               alt=""
+                              title={collection.title}
                               platform={collection.platform}
                               collectionId={collection.id}
                               containerClassName="w-12 h-12 rounded-lg flex-shrink-0"

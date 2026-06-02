@@ -92,22 +92,6 @@ function BrandCoverFallback({ style, platformColor, title, platformName }: {
         style,
       ]}
     >
-      {/* 半透明装饰圆 */}
-      <View
-        style={{
-          position: 'absolute',
-          width: 80,
-          height: 80,
-          borderRadius: 40,
-          backgroundColor: luminance > 0.6 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.1)',
-          borderWidth: 1,
-          borderColor: luminance > 0.6 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Ionicons name="globe-outline" size={22} color={secondaryTextColor} />
-      </View>
       {/* 标题 */}
       <Text
         style={{
@@ -123,17 +107,6 @@ function BrandCoverFallback({ style, platformColor, title, platformName }: {
         numberOfLines={2}
       >
         {title || ''}
-      </Text>
-      {/* 平台名 */}
-      <Text
-        style={{
-          fontSize: 11,
-          color: secondaryTextColor,
-          marginTop: 6,
-        }}
-        numberOfLines={1}
-      >
-        {platformName || ''}
       </Text>
     </View>
   );

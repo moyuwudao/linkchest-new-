@@ -24,6 +24,7 @@ import { useAuthStore } from '../store/auth';
 import { api, setApiUrl, resetApiUrl, getApiUrl, getBaseDomain } from '../lib/api';
 import { useThemeStore } from '../store/theme';
 import { useI18n } from '../lib/i18n';
+import { ErrorCodeToI18nKey } from '../lib/errorCodes';
 
 export default function AccountSettingsScreen() {
   const navigation = useNavigation();
@@ -189,7 +190,7 @@ export default function AccountSettingsScreen() {
     });
   };
 
-  const isChangingEmail = !!user?.email && emailValue.trim() !== user?.email;
+  const needsEmailCode = !!emailValue.trim() && emailValue.trim() !== (user?.email || '');
 
   const handleSendEmailCode = async () => {
     const target = emailValue.trim();
@@ -216,7 +217,9 @@ export default function AccountSettingsScreen() {
         });
       }, 1000);
     } catch (err: any) {
-      Alert.alert(t('common.error'), err.response?.data?.error || t('login.sendCodeFailed'));
+      const errorCode = err.response?.data?.error;
+      const i18nKey = errorCode ? ErrorCodeToI18nKey[errorCode as keyof typeof ErrorCodeToI18nKey] : null;
+      Alert.alert(t('common.error'), i18nKey ? t(i18nKey) : (errorCode || t('login.sendCodeFailed')));
     } finally {
       setEmailSending(false);
     }
@@ -227,12 +230,12 @@ export default function AccountSettingsScreen() {
       Alert.alert(t('common.hint'), t('account.enterEmailHint'));
       return;
     }
-    if (isChangingEmail && !emailCode.trim()) {
+    if (needsEmailCode && !emailCode.trim()) {
       Alert.alert(t('common.hint'), t('account.enterCode'));
       return;
     }
     const payload: Record<string, string> = { email: emailValue.trim() };
-    if (isChangingEmail) payload.code = emailCode.trim();
+    if (needsEmailCode) payload.code = emailCode.trim();
     profileMutation.mutate(payload, {
       onSuccess: () => {
         setEmailModal(false);
@@ -693,7 +696,7 @@ export default function AccountSettingsScreen() {
               autoCapitalize="none"
               autoFocus
             />
-            {isChangingEmail && (
+            {needsEmailCode && (
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
                 <TextInput
                   style={{ flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, fontSize: 16, color: colors.text }}

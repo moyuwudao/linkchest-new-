@@ -395,7 +395,7 @@ export default function ShareDetailScreen() {
       disabled={isLocked}
     >
       <View style={{ opacity: isLocked ? 0.3 : 1 }}>
-        <LazyImage uri={item.coverImage} style={{ width: '100%', height: 180 }} fallbackPlatform={item.platform} />
+        <LazyImage uri={item.coverStrategy === 'brand' ? null : item.coverImage} style={{ width: '100%', height: 180 }} fallbackPlatform={item.platform} fallbackTitle={item.title} showGradientFallback={item.coverStrategy === 'brand'} />
         <View style={{ padding: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 }}>
             <Ionicons name={getPlatformIcon(item.platform) as any} size={12} color={getPlatformColor(item.platform)} />

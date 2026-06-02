@@ -227,6 +227,7 @@ export default function TrashPage() {
                       <LazyImage
                         src={item.coverImage}
                         alt={item.title}
+                        title={item.title}
                         platform={item.platform}
                         className="w-full h-full object-cover"
                       />

@@ -105,7 +105,7 @@ export default function TrashScreen() {
         activeOpacity={0.7}
       >
         <View style={styles.cover}>
-          <LazyImage uri={item.coverImage} style={{ width: '100%', height: '100%' }} fallbackPlatform={item.platform} />
+          <LazyImage uri={item.coverStrategy === 'brand' ? null : item.coverImage} style={{ width: '100%', height: '100%' }} fallbackPlatform={item.platform} fallbackTitle={item.title} showGradientFallback={item.coverStrategy === 'brand'} />
           {isSelected && (
             <View style={styles.checkOverlay}>
               <Ionicons name="checkmark-circle" size={24} color="#F59E0B" />

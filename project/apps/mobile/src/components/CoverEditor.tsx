@@ -97,7 +97,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
   // 用户最近上传的封面
   const latestLibraryCover = libraryCovers[0] || null;
   // 当前选中的 library 封面（用于预览）
-  const selectedLibraryCover = libraryCovers.find((c: any) => c.cosUrl === value) || latestLibraryCover;
+  const selectedLibraryCover = libraryCovers.find((c: any) => c.cosUrl === urlValue) || libraryCovers.find((c: any) => c.cosUrl === value) || latestLibraryCover;
 
   // URL 封面是否可用
   const urlCoverAvailable = useMemo(() => {
@@ -168,7 +168,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
         setMode('library');
         await cacheCoverFromUri(fileUri, uploadedUrl);
         // 刷新封面库数据，使新上传的封面立即显示
-        refetchCovers();
+        await refetchCovers();
       } else {
         Alert.alert(t('common.error'), t('edit.uploadFailed'));
       }
@@ -427,18 +427,6 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
                 paddingHorizontal: 8,
               }}
             >
-              {/* 装饰圆 */}
-              <View
-                style={{
-                  position: 'absolute',
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.2)',
-                }}
-              />
               <Text
                 style={{
                   fontSize: 12,
@@ -453,17 +441,6 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
                 numberOfLines={2}
               >
                 {title || ''}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 9,
-                  color: 'rgba(255,255,255,0.6)',
-                  marginTop: 4,
-                  textAlign: 'center',
-                }}
-                numberOfLines={1}
-              >
-                {gradientStyle.platformName}
               </Text>
             </View>
           </TouchableOpacity>
@@ -564,29 +541,13 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
               width: '100%',
               height: 120,
               borderRadius: 8,
-              backgroundColor: platformColor,
+              backgroundColor: gradientStyle.from,
               justifyContent: 'center',
               alignItems: 'center',
               overflow: 'hidden',
               paddingHorizontal: 16,
             }}
           >
-            {/* 装饰圆 */}
-            <View
-              style={{
-                position: 'absolute',
-                width: 80,
-                height: 80,
-                borderRadius: 40,
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.2)',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons name="globe-outline" size={22} color="rgba(255,255,255,0.6)" />
-            </View>
             <Text
               style={{
                 fontSize: 16,
@@ -601,16 +562,6 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
               numberOfLines={2}
             >
               {title || ''}
-            </Text>
-            <Text
-              style={{
-                fontSize: 11,
-                color: 'rgba(255,255,255,0.6)',
-                marginTop: 6,
-              }}
-              numberOfLines={1}
-            >
-              {gradientStyle.platformName}
             </Text>
           </View>
         </View>

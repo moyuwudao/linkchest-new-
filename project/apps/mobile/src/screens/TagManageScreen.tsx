@@ -256,7 +256,7 @@ export default function TagManageScreen() {
                         style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.borderLight }}
                         onPress={() => item.url && openUrl(item.url, item.platform)}
                       >
-                        <LazyImage uri={item.coverImage} style={{ width: 44, height: 36, borderRadius: 4, marginRight: 10 }} fallbackPlatform={item.platform} />
+                        <LazyImage uri={item.coverStrategy === 'brand' ? null : item.coverImage} style={{ width: 44, height: 36, borderRadius: 4, marginRight: 10 }} fallbackPlatform={item.platform} fallbackTitle={item.title} showGradientFallback={item.coverStrategy === 'brand'} />
                         <Text style={{ flex: 1, fontSize: 14, color: colors.text }} numberOfLines={2}>{item.title}</Text>
                       </TouchableOpacity>
                     ))

@@ -158,6 +158,7 @@ export default function CoverEditor({ value, platform, title, onChange, disabled
       if (data?.url) {
         onChange(data.url);
         setMode('library');
+        refetchCovers();
       }
     } catch (err: unknown) {
       const apiErr = err as ApiError;
@@ -286,9 +287,11 @@ export default function CoverEditor({ value, platform, title, onChange, disabled
   const gradientCoverPreview = gradientSvg;
 
   const libraryCoverPreview = useMemo(() => {
+    const selected = libraryCovers.find((c) => c.cosUrl === value);
+    if (selected) return selected.cosUrl;
     if (latestLibraryCover) return latestLibraryCover.cosUrl;
     return null;
-  }, [latestLibraryCover]);
+  }, [libraryCovers, latestLibraryCover, value]);
 
   const aiCoverPreview = useMemo(() => {
     if (randomAiCover) return randomAiCover.cosUrl;
