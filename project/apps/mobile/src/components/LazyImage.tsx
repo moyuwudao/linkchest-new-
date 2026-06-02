@@ -63,7 +63,7 @@ function CoverFallback({ style, coverStyle }: { style?: StyleProp<ImageStyle>; c
   );
 }
 
-/** 品牌色封面 Fallback：使用平台品牌色作为背景 */
+/** 品牌色封面 Fallback：使用平台品牌色作为背景，显示标题 */
 function BrandCoverFallback({ style, platformColor, title, platformName }: {
   style?: StyleProp<ImageStyle>;
   platformColor: string;
@@ -79,9 +79,6 @@ function BrandCoverFallback({ style, platformColor, title, platformName }: {
   const textColor = luminance > 0.6 ? '#333333' : '#ffffff';
   const secondaryTextColor = luminance > 0.6 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)';
 
-  // 获取首字
-  const initial = title?.trim()?.charAt(0) || platformName?.trim()?.charAt(0) || '?';
-
   return (
     <View
       style={[
@@ -90,6 +87,7 @@ function BrandCoverFallback({ style, platformColor, title, platformName }: {
           justifyContent: 'center',
           alignItems: 'center',
           overflow: 'hidden',
+          paddingHorizontal: 12,
         },
         style,
       ]}
@@ -110,26 +108,28 @@ function BrandCoverFallback({ style, platformColor, title, platformName }: {
       >
         <Ionicons name="globe-outline" size={22} color={secondaryTextColor} />
       </View>
-      {/* 首字 */}
+      {/* 标题 */}
       <Text
         style={{
-          fontSize: 36,
-          fontWeight: '700',
+          fontSize: 16,
+          fontWeight: '600',
           color: textColor,
-          marginTop: 48,
+          textAlign: 'center',
+          lineHeight: 22,
           textShadowColor: luminance > 0.6 ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.3)',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 3,
         }}
+        numberOfLines={2}
       >
-        {initial}
+        {title || ''}
       </Text>
       {/* 平台名 */}
       <Text
         style={{
           fontSize: 11,
           color: secondaryTextColor,
-          marginTop: 4,
+          marginTop: 6,
         }}
         numberOfLines={1}
       >

@@ -96,6 +96,8 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
 
   // 用户最近上传的封面
   const latestLibraryCover = libraryCovers[0] || null;
+  // 当前选中的 library 封面（用于预览）
+  const selectedLibraryCover = libraryCovers.find((c: any) => c.cosUrl === value) || latestLibraryCover;
 
   // URL 封面是否可用
   const urlCoverAvailable = useMemo(() => {
@@ -165,6 +167,8 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
         onChange(uploadedUrl, 'library');
         setMode('library');
         await cacheCoverFromUri(fileUri, uploadedUrl);
+        // 刷新封面库数据，使新上传的封面立即显示
+        refetchCovers();
       } else {
         Alert.alert(t('common.error'), t('edit.uploadFailed'));
       }
@@ -400,7 +404,7 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
             )}
           </TouchableOpacity>
 
-          {/* 平台色封面预览 */}
+          {/* 平台色封面预览 - 标题+品牌色 */}
           <TouchableOpacity
             style={{
               flex: 1,
@@ -420,31 +424,46 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
                 backgroundColor: gradientStyle.from,
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: 8,
+                paddingHorizontal: 8,
               }}
             >
+              {/* 装饰圆 */}
+              <View
+                style={{
+                  position: 'absolute',
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.2)',
+                }}
+              />
               <Text
                 style={{
-                  fontSize: 32,
-                  fontWeight: '700',
+                  fontSize: 12,
+                  fontWeight: '600',
                   color: '#ffffff',
                   textAlign: 'center',
+                  lineHeight: 16,
+                  textShadowColor: 'rgba(0,0,0,0.3)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 2,
                 }}
-                numberOfLines={1}
+                numberOfLines={2}
               >
-                {gradientStyle.initial}
+                {title || ''}
               </Text>
               <Text
                 style={{
-                  fontSize: 10,
-                  color: '#ffffff',
-                  opacity: 0.7,
+                  fontSize: 9,
+                  color: 'rgba(255,255,255,0.6)',
                   marginTop: 4,
                   textAlign: 'center',
                 }}
                 numberOfLines={1}
               >
-                {title || gradientStyle.platformName}
+                {gradientStyle.platformName}
               </Text>
             </View>
           </TouchableOpacity>
@@ -462,8 +481,8 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
             onPress={() => handleSelectMode('library')}
             activeOpacity={0.7}
           >
-            {latestLibraryCover ? (
-              <LazyImage uri={latestLibraryCover.cosUrl} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+            {selectedLibraryCover ? (
+              <LazyImage uri={selectedLibraryCover.cosUrl} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
             ) : (
               <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: colors.inputBg }}>
                 <Ionicons name="cloud-upload-outline" size={24} color={colors.textTertiary} />
@@ -539,24 +558,61 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
 
       {mode === 'gradient' && (
         <View style={{ alignItems: 'center', gap: 12 }}>
-          <TouchableOpacity
+          {/* 渐变色封面预览 - 显示标题+品牌色 */}
+          <View
             style={{
               width: '100%',
               height: 120,
               borderRadius: 8,
-              backgroundColor: gradientStyle.from + '18',
+              backgroundColor: platformColor,
               justifyContent: 'center',
               alignItems: 'center',
-              borderWidth: 1,
-              borderColor: gradientStyle.from + '40',
+              overflow: 'hidden',
+              paddingHorizontal: 16,
             }}
-            onPress={handleGradientSelect}
           >
-            <Text style={{ fontSize: 16, fontWeight: '600', color: gradientStyle.from }}>
-              {title || gradientStyle.platformName}
+            {/* 装饰圆 */}
+            <View
+              style={{
+                position: 'absolute',
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.2)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Ionicons name="globe-outline" size={22} color="rgba(255,255,255,0.6)" />
+            </View>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: '#ffffff',
+                textAlign: 'center',
+                lineHeight: 22,
+                textShadowColor: 'rgba(0,0,0,0.3)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 3,
+              }}
+              numberOfLines={2}
+            >
+              {title || ''}
             </Text>
-            <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>{t('edit.tapToSelectGradient')}</Text>
-          </TouchableOpacity>
+            <Text
+              style={{
+                fontSize: 11,
+                color: 'rgba(255,255,255,0.6)',
+                marginTop: 6,
+              }}
+              numberOfLines={1}
+            >
+              {gradientStyle.platformName}
+            </Text>
+          </View>
         </View>
       )}
 

@@ -509,7 +509,7 @@ export default function CollectionList() {
                     </div>
                   )}
                   <div className="relative aspect-[3/4] overflow-hidden">
-                    <LazyImage src={item.coverImage} alt={item.title} platform={item.platform} collectionId={item.id} containerClassName="w-full h-full" className="group-hover:scale-105 transition-transform duration-500 ease-out" />
+                    <LazyImage src={item.coverImage} alt={item.title} title={item.title} platform={item.platform} collectionId={item.id} containerClassName="w-full h-full" className="group-hover:scale-105 transition-transform duration-500 ease-out" />
                     <div className="absolute top-2 right-2 flex items-center gap-1">
                       {item.pageType && item.pageType !== 'other' && (
                         <span className="p-1 rounded-full bg-black/50 text-white backdrop-blur-sm"><PageTypeIcon type={item.pageType} size={10} /></span>

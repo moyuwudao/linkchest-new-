@@ -212,6 +212,7 @@ export default function CollectionDetailScreen() {
         uri={collection.coverStrategy === 'brand' ? null : collection.coverImage}
         style={{ width: '100%', aspectRatio: 16 / 9 }}
         fallbackPlatform={collection.platform}
+        fallbackTitle={collection.title}
         showGradientFallback={collection.coverStrategy === 'brand'}
       />
 

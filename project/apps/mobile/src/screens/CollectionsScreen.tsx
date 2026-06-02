@@ -161,6 +161,7 @@ const CardItem = React.memo(function CardItem({ item, colors, editMode, selected
               uri={item.coverStrategy === 'brand' ? null : item.coverImage}
               style={{ width: '100%', aspectRatio: 1 }}
               fallbackPlatform={item.platform}
+              fallbackTitle={item.title}
               showGradientFallback={item.coverStrategy === 'brand'}
             />
           </TouchableOpacity>
