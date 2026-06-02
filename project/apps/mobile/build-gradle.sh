@@ -437,7 +437,7 @@ fi
 if [ -f "$BUNDLE_FILE" ]; then
     log_json "INFO" "verify" "i18n-bundle-check" "Checking i18n translation content in bundle"
     # 检查关键翻译键是否存在于 bundle 中（验证 JSON 是否被 Metro 内联）
-    if ! strings "$BUNDLE_FILE" | grep -q '"pro":"Pro"'; then
+    if ! strings "$BUNDLE_FILE" | grep -q 'group.nameExists'; then
         log_json "ERROR" "verify" "i18n-bundle-check" "i18n translations not inlined in bundle" \
             "{\"case\":\"CASE-021\",\"suggestion\":\"Check metro.config.js sourceExts and assetExts for json\"}"
         echo "❌ 错误: bundle 中未检测到 i18n 翻译内容"

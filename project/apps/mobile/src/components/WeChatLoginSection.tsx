@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   TouchableOpacity,
   Alert,
@@ -8,8 +8,8 @@ import {
   TextInput,
   StyleSheet,
 } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import { api, getPublicBaseUrl } from '../lib/api';
+import * as WeChat from 'react-native-wechat-lib';
+import { api } from '../lib/api';
 import { useAuthStore } from '../store/auth';
 import { useNavigation } from '@react-navigation/native';
 import { ErrorCodeToI18nKey, AuthErrorCodes } from '../lib/errorCodes';
@@ -19,18 +19,6 @@ function getErrorMessage(errorCode: string, t: (key: string) => string): string 
   const i18nKey = ErrorCodeToI18nKey[errorCode as keyof typeof ErrorCodeToI18nKey];
   if (i18nKey) return t(i18nKey);
   return t('error.unknown');
-}
-
-function encodeState(data: Record<string, unknown>): string {
-  try {
-    const str = JSON.stringify(data);
-    if (typeof btoa === 'function') {
-      return btoa(str);
-    }
-    return str;
-  } catch {
-    return '';
-  }
 }
 
 type Props = {
@@ -63,54 +51,25 @@ export default function WeChatLoginSection({
   const [setPwd, setSetPwd] = useState('');
   const [setPwdConfirm, setSetPwdConfirm] = useState('');
   const [setPwdLoading, setSetPwdLoading] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
-  const handleWechatLogin = useCallback(async () => {
-    if (!wechatClientId) {
-      Alert.alert(t('common.error'), t('login.wechatLoginFailed'));
-      return;
+  useEffect(() => {
+    if (wechatClientId && !isRegistered) {
+      WeChat.registerApp(wechatClientId)
+        .then(() => {
+          console.log('WeChat SDK registered');
+          setIsRegistered(true);
+        })
+        .catch((err: Error) => {
+          console.error('WeChat register failed:', err);
+        });
     }
-    try {
-      setLoading(true);
-      const baseUrl = getPublicBaseUrl();
-      const redirectUri = encodeURIComponent(`${baseUrl}/api/auth/wechat/callback`);
-      const state = encodeState({ platform: 'mobile', redirect: '/login', lang });
-      const authUrl =
-        `https://open.weixin.qq.com/connect/qrconnect?` +
-        `appid=${wechatClientId}` +
-        `&redirect_uri=${redirectUri}` +
-        `&response_type=code` +
-        `&scope=snsapi_login` +
-        `&state=${state}` +
-        `#wechat_redirect`;
-
-      const returnUrl = 'com.linkchest.app://auth';
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, returnUrl);
-
-      if (result.type === 'success' && result.url) {
-        const url = new URL(result.url);
-        const code = url.searchParams.get('code');
-        const error = url.searchParams.get('error');
-
-        if (error) {
-          Alert.alert(t('common.error'), t('login.wechatLoginFailed'));
-          return;
-        }
-
-        if (code) {
-          await handleWechatCode(code);
-        }
-      }
-    } catch {
-      Alert.alert(t('common.error'), t('login.wechatLoginFailed'));
-    } finally {
-      setLoading(false);
-    }
-  }, [wechatClientId, lang, t, setLoading]);
+  }, [wechatClientId, isRegistered]);
 
   const handleWechatCode = async (code: string) => {
     try {
       setLoading(true);
-      const response = await api.post('/auth/wechat', { credential: code, lang, platform: 'mobile' });
+      const response = await api.post('/auth/wechat', { code, lang, platform: 'mobile' });
       const { token, user } = response.data;
       await setToken(token);
       setUser(user);
@@ -128,6 +87,35 @@ export default function WeChatLoginSection({
       setLoading(false);
     }
   };
+
+  const handleWechatLogin = useCallback(async () => {
+    if (!wechatClientId) {
+      Alert.alert(t('common.error'), t('login.wechatLoginFailed'));
+      return;
+    }
+    if (!isRegistered) {
+      Alert.alert(t('common.error'), t('login.wechatLoginFailed'));
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const resp = await WeChat.sendAuthRequest('snsapi_userinfo', lang);
+      if (resp && resp.code) {
+        await handleWechatCode(resp.code);
+      }
+    } catch (err: any) {
+      if (err.code === -2) {
+        console.log('用户取消微信登录');
+      } else if (err.code === -4) {
+        Alert.alert(t('common.error'), t('login.wechatLoginFailed'));
+      } else {
+        Alert.alert(t('common.error'), t('login.wechatLoginFailed'));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [wechatClientId, isRegistered, lang, setLoading]);
 
   const handleSetPassword = async () => {
     if (!setPwd || !setPwdConfirm) {

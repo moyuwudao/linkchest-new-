@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools">
   <!-- 国内版允许 HTTP 明文流量（国内服务器暂无 HTTPS） -->
+  <!-- 查询微信APP是否安装 -->
+  <queries>
+    <package android:name="com.tencent.mm" />
+  </queries>
   <!-- 国内推送厂商通道 meta-data -->
   <application
     android:usesCleartextTraffic="true"
@@ -21,5 +25,13 @@
     <meta-data android:name="VIVO_APPKEY" android:value="${VIVO_APPKEY}"/>
     <!-- 荣耀推送 AppID -->
     <meta-data android:name="HONOR_APPID" android:value="${HONOR_APPID}"/>
+    <!-- 微信登录回调 Activity -->
+    <activity
+      android:name="cn.linkchest.app.wxapi.WXEntryActivity"
+      android:label="@string/app_name"
+      android:theme="@android:style/Theme.Translucent.NoTitleBar"
+      android:exported="true"
+      android:taskAffinity="cn.linkchest.app"
+      android:launchMode="singleTask" />
   </application>
 </manifest>
