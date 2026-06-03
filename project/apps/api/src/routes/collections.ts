@@ -453,7 +453,7 @@ router.post('/', authenticate, [
         url,
         title,
         coverImage,
-        coverStrategy: coverStrategy || 'url',
+        coverStrategy: coverStrategy || 'brand',
         platform,
         pageType,
         note,

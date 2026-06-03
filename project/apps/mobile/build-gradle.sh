@@ -225,6 +225,40 @@ if [ -d "$EXPO_CONSTANTS_BUILD" ]; then
     CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
 fi
 
+# 关键：清理所有 expo-* / react-native-* 原生模块的构建产物
+# 防止 WSL2 在 /mnt/d 上的 inode 缓存导致跨实例污染
+for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android \
+                     /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android \
+                     /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android \
+                     /mnt/d/trae_projects/linkchest/project/node_modules/@react-navigation-*/lib/module/views/assets \
+                     /mnt/d/trae_projects/linkchest/project/node_modules/react-native-wechat-lib/android/build \
+                     /mnt/d/trae_projects/linkchest/project/node_modules/react-native-svg/android/build; do
+    if [ -d "$native_module/build" ]; then
+        rm -rf "$native_module/build" 2>/dev/null || true
+        CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
+    fi
+done
+
+# 清理 Metro 缓存（强制全量重建 JS bundle）
+if [ -d "$METRO_CACHE_DIR" ]; then
+    rm -rf "$METRO_CACHE_DIR"/*
+    CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
+fi
+
+# 清理 Gradle 全局缓存中可能被污染的 task 输出
+# （按 WSL 实例独立目录，避免误清其它实例缓存）
+GRADLE_USER_HOME="${GRADLE_USER_HOME:-/root/.gradle}"
+if [ -d "$GRADLE_USER_HOME/caches" ]; then
+    find "$GRADLE_USER_HOME/caches" -path "*/transforms*" -name "*.bin" -newer "$BUILD_DIR" -delete 2>/dev/null || true
+    CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
+fi
+
+# 清理 WSL 实例的 transformed resources 临时目录
+TRANSFORM_DIRS=$(find /tmp -maxdepth 2 -name "transforms*" -type d 2>/dev/null)
+for td in $TRANSFORM_DIRS; do
+    rm -rf "$td" 2>/dev/null || true
+done
+
 BUNDLE_TASK_MARKER="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/${BUILD_DIR}/intermediates"
 if [ -d "$BUNDLE_TASK_MARKER" ]; then
     find "$BUNDLE_TASK_MARKER" -name "*bundle*" -type d -exec rm -rf {} + 2>/dev/null || true
