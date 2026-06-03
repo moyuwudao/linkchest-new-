@@ -443,3 +443,22 @@ model PushToken {
   @@index([token])
   @@map("push_tokens")
 }
+
+// 备份历史表（统一记录自动/手动备份）
+model Backup {
+  id        String   @id @default(uuid())
+  userId    String
+  source    String   // auto | manual
+  format    String   // json | csv | html
+  filename  String
+  cosKey    String
+  size      Int
+  count     Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, source])
+  @@map("backups")
+}
