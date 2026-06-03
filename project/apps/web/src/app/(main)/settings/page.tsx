@@ -544,11 +544,15 @@ export default function SettingsPage() {
   const { data: stats } = useQuery({
     queryKey: ['stats-platforms'],
     queryFn: async () => { const r = await api.get('/stats/platforms'); return (r.data.data || r.data) as PlatformStat[]; },
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
 
   const { data: overview } = useQuery({
     queryKey: ['stats-overview'],
     queryFn: async () => { const r = await api.get('/stats/overview'); return (r.data.data || r.data) as Overview; },
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
 
   const totalCollections = overview?.collectionCount || 0;

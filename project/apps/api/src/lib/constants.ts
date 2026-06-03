@@ -20,9 +20,9 @@ export const METADATA_CACHE_TTL_SECONDS = 86400 // 24小时
 export const IP_RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000 // 1小时
 export const IP_RATE_LIMIT_MAX = 10
 export const GLOBAL_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000 // 15分钟
-export const GLOBAL_RATE_LIMIT_MAX = 2000 // 提升限流阈值，避免正常用户被误拦截
+export const GLOBAL_RATE_LIMIT_MAX = 5000 // 放宽：服务器资源增大后，正常用户 15 分钟内不应被误拦
 export const AUTH_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000 // 15分钟
-export const AUTH_RATE_LIMIT_MAX = 20
+export const AUTH_RATE_LIMIT_MAX = 60 // 放宽：登录/验证码高频操作可用
 
 // ===== 分页配置 =====
 export const DEFAULT_PAGE_SIZE = 40

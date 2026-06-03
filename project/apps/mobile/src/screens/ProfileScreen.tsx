@@ -47,15 +47,26 @@ export default function ProfileScreen() {
     },
   });
 
+  // 缓存当前用户信息（避免每次进入页面都打 /auth/me）
+  // staleTime: 60s 内复用缓存，避免切 Tab 触发重复请求
+  const { data: cachedMe } = useQuery({
+    queryKey: ['auth-me'],
+    queryFn: async () => {
+      const res = await api.get('/auth/me');
+      return res.data.data || res.data;
+    },
+    enabled: !!user,
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+
   // 屏幕获得焦点时刷新用户信息和统计数据
+  // 注意：cachedMe 60s 内复用缓存，refetchStats 触发统计刷新（不触发 auth 限流）
   useFocusEffect(
     React.useCallback(() => {
-      api.get('/auth/me').then((res: any) => {
-        const userData = res.data.data || res.data;
-        setUser(userData);
-      }).catch(() => {});
+      if (cachedMe) setUser(cachedMe);
       refetchStats();
-    }, [refetchStats])
+    }, [cachedMe, refetchStats])
   );
 
   const handleLogout = () => {
@@ -147,7 +158,7 @@ export default function ProfileScreen() {
           ? {
               text: t('profile.yingyongbao'),
               onPress: () => {
-                const yingyongbaoUrl = 'https://android.myapp.com/myapp/detail.htm?apkName=cn.linkchest.app';
+                const yingyongbaoUrl = 'https://android.myapp.com/myapp/detail.htm?apkName=com.linkchest.app';
                 Linking.openURL(yingyongbaoUrl).catch(() =>
                   Alert.alert(t('common.hint'), t('profile.openStoreFailed'))
                 );

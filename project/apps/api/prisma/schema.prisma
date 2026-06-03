@@ -51,6 +51,7 @@ model User {
   referralCode     ReferralCode?
   referralUse      ReferralUse?
   pushTokens       PushToken[]
+  backups          Backup[]
 
   @@index([status])
   @@index([createdAt])

@@ -61,6 +61,18 @@ export default function AccountSettingsScreen() {
   const [referralLoading, setReferralLoading] = useState(false);
   const [referralError, setReferralError] = useState(false);
 
+  // 统一刷新当前用户信息（通过 react-query 缓存，避免短时间内多次打 /auth/me）
+  // 触发时机：修改资料、改密码、上传头像等动作成功后
+  const refreshUserMe = React.useCallback(async () => {
+    try {
+      const res = await api.get('/auth/me');
+      setUser(res.data.data || res.data);
+      queryClient.invalidateQueries({ queryKey: ['auth-me'] });
+    } catch {
+      // 静默失败，不影响用户操作
+    }
+  }, [queryClient, setUser]);
+
   useEffect(() => {
     loadTier();
   }, []);
@@ -136,9 +148,7 @@ export default function AccountSettingsScreen() {
   const profileMutation = useMutation({
     mutationFn: (data: any) => api.patch('/auth/profile', data),
     onSuccess: () => {
-      api.get('/auth/me').then((res: any) => {
-        setUser(res.data.data || res.data);
-      }).catch(() => {});
+      refreshUserMe();
       queryClient.invalidateQueries({ queryKey: ['user'] });
     },
     onError: (error: any) => {
@@ -153,9 +163,7 @@ export default function AccountSettingsScreen() {
       setPasswordModal(false);
       setNewPassword('');
       setConfirmPassword('');
-      api.get('/auth/me').then((res: any) => {
-        setUser(res.data.data || res.data);
-      }).catch(() => {});
+      refreshUserMe();
     },
     onError: (error: any) => {
       Alert.alert(t('common.error'), error.response?.data?.message || error.response?.data?.error || t('account.setPasswordFailed'));
@@ -334,9 +342,8 @@ export default function AccountSettingsScreen() {
       const avatarUrl = response.data?.data?.url;
 
       if (avatarUrl) {
-        // Refresh user data
-        const meRes = await api.get('/auth/me');
-        setUser(meRes.data.data || meRes.data);
+        // Refresh user data（统一走 refreshUserMe）
+        await refreshUserMe();
         Alert.alert(t('common.success'), t('account.avatarUpdated'));
       } else {
         Alert.alert(t('common.error'), t('account.avatarUploadFailed'));
@@ -355,8 +362,7 @@ export default function AccountSettingsScreen() {
       const response = await api.post('/upload/avatar-from-cover', { coverUrl: imageUrl });
       const avatarUrl = response.data?.data?.url;
       if (avatarUrl) {
-        const meRes = await api.get('/auth/me');
-        setUser(meRes.data.data || meRes.data);
+        await refreshUserMe();
         Alert.alert(t('common.success'), t('account.avatarUpdated'));
       }
       setShowCoverPicker(false);

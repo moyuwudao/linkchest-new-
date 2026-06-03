@@ -1,122 +1,149 @@
 import prisma from '../lib/prisma'
-import { sendHtmlEmail } from './ses'
+import { uploadToCos, isCosConfigured, getSignedUrl, deleteFromCos } from './cos'
+import { sendPushToUser } from './push'
 import logger from '../lib/logger'
 
 // 备份频率配置
 export type BackupFrequency = 'weekly' | 'monthly' | 'off'
 export type BackupFormat = 'csv' | 'html' | 'json'
+export type BackupSource = 'auto' | 'manual'
 
-interface BackupSettings {
-  backupFrequency: BackupFrequency
-  backupFormat: BackupFormat
-  backupLastSent?: string // ISO date
+// 备份目录：COS 对象键前缀
+const BACKUP_COS_PREFIX = 'backups'
+
+// 备份文件最大保留数量（每个用户）
+const BACKUP_KEEP_MAX = 4
+
+export interface BackupRecord {
+  id: string
+  userId: string
+  source: BackupSource
+  format: BackupFormat
+  filename: string
+  cosKey: string
+  size: number
+  count: number
+  createdAt: Date
 }
 
 /**
- * 执行用户备份：导出收藏数据并发送邮件
+ * 构造备份内容（collections + lists + tags）
  */
-export async function executeUserBackup(userId: string, format: BackupFormat = 'csv'): Promise<boolean> {
+async function buildBackupPayload(userId: string): Promise<{
+  content: string
+  filename: string
+  mimeType: string
+  count: number
+  size: number
+}> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { username: true, nickname: true, lang: true },
+  })
+
+  const collections = await prisma.collection.findMany({
+    where: { userId, deletedAt: null },
+    include: {
+      tags: { select: { id: true, name: true } },
+      lists: { select: { id: true, name: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  const lists = await prisma.list.findMany({
+    where: { userId },
+    select: { id: true, name: true, description: true, parentId: true, createdAt: true },
+  })
+
+  const tags = await prisma.tag.findMany({
+    where: { userId },
+    select: { id: true, name: true, createdAt: true },
+  })
+
+  const backupData = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    user: {
+      username: user?.username,
+      nickname: user?.nickname,
+    },
+    stats: {
+      collections: collections.length,
+      lists: lists.length,
+      tags: tags.length,
+    },
+    collections,
+    lists,
+    tags,
+  }
+
+  const content = JSON.stringify(backupData, null, 2)
+  const buf = Buffer.from(content, 'utf-8')
+
+  const ts = new Date()
+  const dateStr = ts.toISOString().slice(0, 10).replace(/-/g, '')
+  const timeStr = ts.toISOString().slice(11, 19).replace(/:/g, '')
+  const filename = `linkchest-backup-${dateStr}-${timeStr}.json`
+
+  return {
+    content,
+    filename,
+    mimeType: 'application/json',
+    count: collections.length,
+    size: buf.byteLength,
+  }
+}
+
+/**
+ * 上传 buffer 到 COS 并返回对象键
+ */
+function makeCosKey(userId: string, filename: string): string {
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+  return `${BACKUP_COS_PREFIX}/${userId}/${date}/${Date.now()}-${filename}`
+}
+
+/**
+ * 核心：执行一次备份（用户/管理员/自动任务都调此函数）
+ * - 上传 COS
+ * - 写 Backup 表
+ * - 自动触发 JPush 推送
+ * - 自动清理超过保留数量的旧备份
+ */
+export async function executeBackup(
+  userId: string,
+  source: BackupSource
+): Promise<{ ok: boolean; record?: BackupRecord; reason?: string }> {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true, username: true, nickname: true, lang: true },
-    })
-
-    if (!user?.email) {
-      logger.warn({ userId }, '备份跳过：用户无邮箱')
-      return false
+    if (!isCosConfigured()) {
+      logger.warn({ userId }, '备份失败：COS 未配置')
+      return { ok: false, reason: 'COS_NOT_CONFIGURED' }
     }
 
-    // 获取收藏数据
-    const collections = await prisma.collection.findMany({
-      where: { userId, deletedAt: null },
-      include: {
-        tags: { select: { id: true, name: true } },
-        lists: { select: { id: true, name: true } },
+    const payload = await buildBackupPayload(userId)
+
+    if (payload.count === 0 && source === 'auto') {
+      logger.info({ userId }, '自动备份跳过：无收藏数据')
+      return { ok: false, reason: 'NO_DATA' }
+    }
+
+    const cosKey = makeCosKey(userId, payload.filename)
+    const buffer = Buffer.from(payload.content, 'utf-8')
+    await uploadToCos(cosKey, buffer, payload.mimeType)
+
+    // 写 Backup 表
+    const record = await prisma.backup.create({
+      data: {
+        userId,
+        source,
+        format: 'json',
+        filename: payload.filename,
+        cosKey,
+        size: payload.size,
+        count: payload.count,
       },
-      orderBy: { createdAt: 'desc' },
     })
 
-    if (collections.length === 0) {
-      logger.info({ userId }, '备份跳过：无收藏数据')
-      return false
-    }
-
-    // 生成导出内容
-    let content: string
-    let mimeType: string
-    let filename: string
-
-    if (format === 'csv') {
-      const BOM = '\uFEFF'
-      const header = '标题,链接,平台,备注,标签,分组,创建时间\n'
-      const escapeCsv = (val: string) => val.replace(/"/g, '""').replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/\r/g, ' ')
-      const rows = collections.map(c =>
-        `"${escapeCsv(c.title || '')}","${escapeCsv(c.url)}","${escapeCsv(c.platform)}","${escapeCsv(c.note || '')}","${c.tags?.map(t => t.name).join(';') || ''}","${c.lists?.map(l => l.name).join(';') || ''}","${c.createdAt.toISOString()}"`
-      ).join('\n')
-      content = BOM + header + rows
-      mimeType = 'text/csv'
-      filename = `linkchest-backup-${new Date().toISOString().slice(0, 10)}.csv`
-    } else if (format === 'html') {
-      // 简化版 HTML 书签格式
-      const lines: string[] = [
-        '<!DOCTYPE NETSCAPE-Bookmark-file-1>',
-        '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">',
-        '<TITLE>LinkChest Backup</TITLE>',
-        '<H1>LinkChest Backup</H1>',
-        '<DL><p>',
-      ]
-      for (const c of collections) {
-        const addDate = Math.floor(c.createdAt.getTime() / 1000)
-        lines.push(`    <DT><A HREF="${c.url}" ADD_DATE="${addDate}">${c.title || 'Untitled'}</A>`)
-      }
-      lines.push('</DL><p>')
-      content = lines.join('\n')
-      mimeType = 'text/html'
-      filename = `linkchest-backup-${new Date().toISOString().slice(0, 10)}.html`
-    } else {
-      content = JSON.stringify({
-        version: '1.0',
-        exportedAt: new Date().toISOString(),
-        count: collections.length,
-        data: collections,
-      }, null, 2)
-      mimeType = 'application/json'
-      filename = `linkchest-backup-${new Date().toISOString().slice(0, 10)}.json`
-    }
-
-    // 发送备份邮件
-    // 注意：腾讯云 SES 模板邮件不支持附件，这里使用 HTML 邮件内嵌导出链接
-    // 实际实现中，可以：
-    // 1. 将备份文件上传到 COS，生成临时下载链接
-    // 2. 在邮件中提供下载链接
-    // 当前简化实现：发送通知邮件，引导用户到设置页手动导出
-
-    const displayName = user.nickname || user.username || 'User'
-    const isZh = user.lang === 'zh'
-    const subject = isZh ? '链藏 - 你的定期备份已准备就绪' : 'LinkChest - Your periodic backup is ready'
-    const htmlBody = isZh
-      ? `<p>你好 ${displayName}，</p>
-         <p>你的链藏定期备份已准备就绪。你共有 <strong>${collections.length}</strong> 条收藏。</p>
-         <p>请登录 <a href="https://linkchest.net/settings">链藏设置页</a> 导出你的备份数据。</p>
-         <p>备份格式：${format.toUpperCase()}</p>
-         <hr style="border:none;border-top:1px solid #eee;margin:20px 0">
-         <p style="color:#999;font-size:12px">此邮件由链藏自动发送，如需修改备份设置请前往设置页。</p>`
-      : `<p>Hi ${displayName},</p>
-         <p>Your LinkChest periodic backup is ready. You have <strong>${collections.length}</strong> bookmarks.</p>
-         <p>Please visit <a href="https://linkchest.net/settings">LinkChest Settings</a> to export your backup data.</p>
-         <p>Backup format: ${format.toUpperCase()}</p>
-         <hr style="border:none;border-top:1px solid #eee;margin:20px 0">
-         <p style="color:#999;font-size:12px">This email was sent automatically by LinkChest. To change backup settings, visit the Settings page.</p>`
-
-    await sendHtmlEmail(
-      [user.email],
-      subject,
-      htmlBody,
-      { fromAlias: isZh ? '链藏' : 'LinkChest', triggerType: 0 }
-    )
-
-    // 更新用户设置中的最后备份时间
+    // 更新最后备份时间
     const currentSettings = (await prisma.user.findUnique({
       where: { id: userId },
       select: { settings: true },
@@ -132,17 +159,90 @@ export async function executeUserBackup(userId: string, format: BackupFormat = '
       },
     })
 
-    logger.info({ userId, format, count: collections.length }, '✅ 用户备份邮件已发送')
-    return true
+    // 清理超出保留数量的旧备份（DB + COS）
+    await pruneOldBackups(userId, BACKUP_KEEP_MAX)
+
+    // 触发 JPush 推送通知
+    await notifyBackupComplete(userId, source, record.count, record.filename).catch((err) => {
+      logger.warn({ err: err?.message, userId }, '备份推送通知失败（非阻塞）')
+    })
+
+    logger.info({ userId, source, count: record.count, key: cosKey }, '✅ 备份完成')
+    return { ok: true, record: record as BackupRecord }
   } catch (error) {
-    logger.error({ err: error instanceof Error ? error.message : String(error), userId }, '❌ 用户备份失败')
-    return false
+    logger.error(
+      { err: error instanceof Error ? error.message : String(error), userId, source },
+      '❌ 备份失败'
+    )
+    return { ok: false, reason: 'INTERNAL_ERROR' }
   }
 }
 
 /**
- * 批量执行到期备份
- * 由定时任务调用
+ * 推送通知：备份完成
+ */
+async function notifyBackupComplete(
+  userId: string,
+  source: BackupSource,
+  count: number,
+  filename: string
+): Promise<void> {
+  // 取用户语言偏好，决定推送文案
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { lang: true, nickname: true, username: true },
+  })
+  const isZh = (user?.lang || 'zh') === 'zh'
+  const displayName = user?.nickname || user?.username || ''
+
+  const title = isZh ? '链藏 · 备份完成' : 'LinkChest · Backup complete'
+  const content =
+    source === 'auto'
+      ? isZh
+        ? `${displayName ? displayName + '，' : ''}你的定期备份已完成，共 ${count} 条收藏`
+        : `${displayName ? displayName + ', ' : ''}your periodic backup is done, ${count} bookmarks`
+      : isZh
+        ? `已成功备份 ${count} 条收藏`
+        : `Successfully backed up ${count} bookmarks`
+
+  await sendPushToUser(userId, title, content, {
+    screen: 'AutoBackup',
+    type: 'backup_complete',
+    source,
+    filename,
+    count,
+  })
+}
+
+/**
+ * 清理用户的旧备份（仅保留最新的 N 条）
+ */
+async function pruneOldBackups(userId: string, keepMax: number): Promise<void> {
+  const backups = await prisma.backup.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, cosKey: true },
+  })
+
+  if (backups.length <= keepMax) return
+
+  const toDelete = backups.slice(keepMax)
+  const cosKeys = toDelete.map((b) => b.cosKey)
+
+  try {
+    const { batchDeleteFromCos } = await import('./cos')
+    await batchDeleteFromCos(cosKeys).catch(() => {})
+  } catch {
+    // COS 批量删除失败不阻塞流程
+  }
+
+  await prisma.backup.deleteMany({
+    where: { id: { in: toDelete.map((b) => b.id) } },
+  })
+}
+
+/**
+ * 批量执行到期备份（定时任务调用）
  */
 export async function processPendingBackups(): Promise<{ processed: number; success: number; failed: number }> {
   const now = new Date()
@@ -150,12 +250,10 @@ export async function processPendingBackups(): Promise<{ processed: number; succ
   let success = 0
   let failed = 0
 
-  // 查找所有专业版及以上、且启用了自动备份的用户
   const users = await prisma.user.findMany({
     where: {
       userTier: { in: ['heavy', 'super'] },
       status: 'active',
-      email: { not: null },
     },
     select: { id: true, settings: true },
   })
@@ -167,7 +265,6 @@ export async function processPendingBackups(): Promise<{ processed: number; succ
 
     if (frequency === 'off') continue
 
-    // 检查是否到期
     const lastSentDate = lastSent ? new Date(lastSent) : new Date(0)
     const daysSinceLastBackup = (now.getTime() - lastSentDate.getTime()) / (1000 * 60 * 60 * 24)
 
@@ -178,11 +275,69 @@ export async function processPendingBackups(): Promise<{ processed: number; succ
     if (!shouldBackup) continue
 
     processed++
-    const format = (settings.backupFormat as BackupFormat) || 'csv'
-    const result = await executeUserBackup(user.id, format)
-    if (result) success++
+    const result = await executeBackup(user.id, 'auto')
+    if (result.ok) success++
     else failed++
   }
 
   return { processed, success, failed }
 }
+
+/**
+ * 列出用户的所有备份
+ */
+export async function listUserBackups(userId: string, limit = 50): Promise<BackupRecord[]> {
+  return prisma.backup.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  })
+}
+
+/**
+ * 获取备份的临时下载链接（COS 签名 URL）
+ */
+export async function getBackupDownloadUrl(backupId: string, userId: string): Promise<{
+  ok: boolean
+  url?: string
+  filename?: string
+  reason?: string
+}> {
+  const backup = await prisma.backup.findFirst({
+    where: { id: backupId, userId },
+  })
+
+  if (!backup) return { ok: false, reason: 'NOT_FOUND' }
+
+  try {
+    const url = await getSignedUrl(backup.cosKey, 3600)
+    return { ok: true, url, filename: backup.filename }
+  } catch (err) {
+    logger.error(
+      { err: err instanceof Error ? err.message : String(err), backupId },
+      '生成备份下载链接失败'
+    )
+    return { ok: false, reason: 'SIGN_URL_FAILED' }
+  }
+}
+
+/**
+ * 删除单条备份（DB + COS）
+ */
+export async function deleteBackup(backupId: string, userId: string): Promise<boolean> {
+  const backup = await prisma.backup.findFirst({
+    where: { id: backupId, userId },
+  })
+  if (!backup) return false
+
+  try {
+    await deleteFromCos(backup.cosKey)
+  } catch {
+    // COS 删除失败不影响 DB 删除（避免卡住）
+  }
+  await prisma.backup.delete({ where: { id: backup.id } })
+  return true
+}
+
+// 保留兼容：旧接口 processPendingBackups 仍在使用
+export { executeBackup as executeUserBackup }

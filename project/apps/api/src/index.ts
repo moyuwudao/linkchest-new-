@@ -38,6 +38,7 @@ import subscriptionRoutes from './routes/share-imports'
 import planRoutes from './routes/subscription-plans'
 import tierRoutes from './routes/tiers'
 import userRoutes from './routes/users'
+import backupRoutes from './routes/backup'
 import referralRoutes from './routes/referrals'
 import paypalPaymentRoutes from './routes/payments/paypal'
 import wechatPaymentRoutes from './routes/payments/wechat'
@@ -107,11 +108,14 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter)
 
 // 认证路由更严格限流（防暴力破解）
+// 注意：/auth/me 是获取当前用户信息（已认证），不是认证动作本身，
+// 高频调用是正常的（每次进首页/我的页面都会调用），不应被限流。
 const authLimiter = rateLimit({
   windowMs: AUTH_RATE_LIMIT_WINDOW_MS,
   max: AUTH_RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.path === '/me' || req.path.endsWith('/me'),
   handler: (req, res) => {
     return errorResponse(res, 429, CommonErrorCodes.AUTH_TOO_MANY_REQUESTS)
   },
@@ -155,6 +159,7 @@ app.use('/api/subscriptions', subscriptionRoutes)
 app.use('/api/subscription', planRoutes)
 app.use('/api/tiers', tierRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/backups', backupRoutes)
 app.use('/api/referrals', referralRoutes)
 app.use('/api/payments/paypal', paypalPaymentRoutes)
 app.use('/api/payments/wechat', wechatPaymentRoutes)

@@ -4,7 +4,8 @@ import prisma from '../lib/prisma'
 import { authenticate, AuthenticatedRequest } from '../middleware/auth'
 import { CommonErrorCodes, AuthErrorCodes, errorResponse } from '../lib/errorCodes'
 import logger from '../lib/logger'
-import { isCosConfigured, uploadToCos } from '../services/cos'
+import { isCosConfigured } from '../services/cos'
+import { executeBackup } from '../services/backup'
 
 const router = Router()
 
@@ -222,80 +223,27 @@ router.post('/backup', authenticate, async (req: AuthenticatedRequest, res) => {
       return errorResponse(res, 503, CommonErrorCodes.SERVER_ERROR, '云端存储暂不可用')
     }
 
-    // 获取用户数据
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { username: true, nickname: true },
-    })
+    // 调用通用备份服务（自动写 Backup 表 + 触发推送）
+    const result = await executeBackup(userId, 'manual')
 
-    const collections = await prisma.collection.findMany({
-      where: { userId, deletedAt: null },
-      include: {
-        tags: { select: { id: true, name: true } },
-        lists: { select: { id: true, name: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
-
-    const lists = await prisma.list.findMany({
-      where: { userId },
-      select: { id: true, name: true, description: true, parentId: true, createdAt: true },
-    })
-
-    const tags = await prisma.tag.findMany({
-      where: { userId },
-      select: { id: true, name: true, createdAt: true },
-    })
-
-    // 生成备份数据
-    const backupData = {
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      user: {
-        username: user?.username,
-        nickname: user?.nickname,
-      },
-      stats: {
-        collections: collections.length,
-        lists: lists.length,
-        tags: tags.length,
-      },
-      collections,
-      lists,
-      tags,
+    if (!result.ok) {
+      if (result.reason === 'COS_NOT_CONFIGURED') {
+        return errorResponse(res, 503, CommonErrorCodes.SERVER_ERROR, '云端存储暂不可用')
+      }
+      logger.error({ userId, reason: result.reason }, '立即备份失败')
+      return errorResponse(res, 500, CommonErrorCodes.SERVER_ERROR, '备份失败，请稍后重试')
     }
 
-    const content = JSON.stringify(backupData, null, 2)
-    const buffer = Buffer.from(content, 'utf-8')
-    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-    const key = `backups/${userId}/${date}/linkchest-backup-${Date.now()}.json`
-
-    // 上传到COS
-    await uploadToCos(key, buffer, 'application/json')
-
-    // 更新最后备份时间
-    const currentSettings = (await prisma.user.findUnique({
-      where: { id: userId },
-      select: { settings: true },
-    }))?.settings as Record<string, unknown> || {}
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        settings: {
-          ...currentSettings,
-          backupLastSent: new Date().toISOString(),
-        },
-      },
-    })
-
-    logger.info({ userId, key, count: collections.length }, '✅ 用户立即备份成功')
+    const r = result.record!
+    logger.info({ userId, id: r.id, count: r.count }, '✅ 用户立即备份成功')
     res.json({
       data: {
         success: true,
         message: '备份成功',
-        count: collections.length,
-        timestamp: new Date().toISOString(),
+        count: r.count,
+        timestamp: r.createdAt.toISOString(),
+        id: r.id,
+        filename: r.filename,
       },
     })
   } catch (error) {

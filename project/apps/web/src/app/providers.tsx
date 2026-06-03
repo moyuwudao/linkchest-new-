@@ -3,7 +3,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { fetchPlatforms, updatePlatformNames } from '@/lib/platforms';
 import { ToastProvider, useToast } from '@/components/Toast';
 import { I18nProvider, useI18n } from '@/lib/i18n';
@@ -68,18 +68,23 @@ const ssrPersister = {
 };
 const persister = browserPersister || ssrPersister;
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
             // 基于查询 key 的差异化 staleTime：静态配置延长，动态数据保持较短
+            // 优化目标：避免过度点击触发后端访问限制（限流已放宽，但前端仍要减少无效请求）
             staleTime: (query) => {
               const key = query.queryKey[0] as string;
               if (key === 'platforms') return 30 * 60 * 1000; // 平台配置 30 分钟
               if (key === 'tags' || key === 'lists') return 5 * 60 * 1000; // 标签/分组 5 分钟
-              return 60 * 1000; // 默认 1 分钟（收藏列表等动态数据）
+              if (key === 'auth-me' || key === 'my-tier') return 5 * 60 * 1000; // 用户信息/套餐 5 分钟
+              if (key === 'stats-platforms' || key === 'stats-overview' || key === 'quota') return 3 * 60 * 1000; // 统计 3 分钟
+              if (key === 'backups') return 60 * 1000; // 备份列表 1 分钟
+              if (key === 'user-settings-backup') return 2 * 60 * 1000; // 备份设置 2 分钟
+              return 90 * 1000; // 默认 90 秒（收藏列表等动态数据）
             },
             refetchOnWindowFocus: false,
             // 只在数据过期(stale)时重新获取，避免页面切换无条件重复请求
