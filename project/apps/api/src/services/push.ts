@@ -6,11 +6,34 @@
  *
  * 配置文件：
  * - 国内：JPUSH_APPKEY / JPUSH_MASTER_SECRET
- * - 海外：FCM_SERVER_KEY（Legacy HTTP API 的 server key，从 Firebase Console 获取）
+ * - 海外（当前）：FCM_SERVER_KEY（Legacy HTTP API 的 server key，从 Firebase Console 获取）
  *
- * 注意：FCM Legacy HTTP API 即将于 2024-06-20 弃用，
- * 后续应迁移到 FCM HTTP v1 API（需要 firebase-admin SDK + service account JSON）。
- * 详见：https://firebase.google.com/docs/cloud-messaging/migrate-v1
+ * =============================================================
+ * ⚠️ TODO: 升级到 FCM HTTP v1 API（方案 B）
+ * =============================================================
+ * FCM Legacy HTTP API 即将于 2024-06-20 弃用。
+ * 长期应迁移到 FCM HTTP v1 API，迁移步骤：
+ *
+ * 1. 安装依赖
+ *    `npm install firebase-admin` （在 apps/api 下）
+ *
+ * 2. 从 Firebase Console 获取 Service Account
+ *    Project Settings → Service Accounts → "Generate new private key"
+ *    下载 JSON 文件，命名为 `firebase-sa.json`
+ *
+ * 3. 把 JSON 放到海外应用层服务器（不进 git）
+ *    /opt/linkchest/api/credentials/firebase-sa.json
+ *
+ * 4. 在 .env.global / .env.example 添加：
+ *    FIREBASE_SERVICE_ACCOUNT_PATH=/opt/linkchest/api/credentials/firebase-sa.json
+ *    FCM_PROJECT_ID=linkchest-7e82f
+ *
+ * 5. 用 firebase-admin 替换下方 sendFcmPush 实现
+ *    - 初始化：admin.initializeApp({ credential: admin.credential.cert(require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH)) })
+ *    - 发送：admin.messaging().send({ token, notification: { title, body }, data })
+ *
+ * 6. 移除下方 sendFcmPush 与 FCM_SERVER_KEY 依赖。
+ * =============================================================
  */
 
 import JPush from 'jpush-async'
@@ -52,6 +75,7 @@ interface FcmMessage {
 /**
  * 发送 FCM 推送（海外版）
  * 使用 FCM Legacy HTTP API（无 SDK 依赖）
+ * ⚠️ 临时方案：长期应升级到 FCM HTTP v1 API（见文件头 TODO）
  */
 async function sendFcmPush(
   token: string,
