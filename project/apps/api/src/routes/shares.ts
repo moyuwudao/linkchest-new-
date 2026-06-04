@@ -154,11 +154,11 @@ router.post('/', authenticate, [
 
     // 根据分享类型获取要分享的收藏（包含完整元数据 + tags 快照用于分享）
     const collectionSelect = {
-      id: true, title: true, coverImage: true, platform: true, url: true, createdAt: true, rating: true,
+      id: true, title: true, coverImage: true, coverStrategy: true, platform: true, url: true, createdAt: true, rating: true,
       tags: { select: { nameCn: true, nameEn: true } },
     } as const
     let collections: {
-      id: string; title: string; coverImage: string | null; platform: string; url: string; createdAt: Date; rating: Prisma.Decimal | null;
+      id: string; title: string; coverImage: string | null; coverStrategy: string | null; platform: string; url: string; createdAt: Date; rating: Prisma.Decimal | null;
       tags: { nameCn: string; nameEn: string }[]
     }[] = []
 
@@ -264,6 +264,8 @@ router.post('/', authenticate, [
         shareItems: {
           create: uniqueCollections.map(c => {
             const isUserUpload = uploadedCoverIds.has(c.id)
+            // 用户上传的自定义封面在分享页强制替换为品牌色封面，封面策略标记为 brand
+            const coverStrategy = isUserUpload ? 'brand' : (c.coverStrategy || 'brand')
             const coverImage = isUserUpload
               ? (() => {
                   const platform = getPlatformConfig(c.platform)
@@ -274,6 +276,7 @@ router.post('/', authenticate, [
               collectionId: c.id,
               title: c.title,
               coverImage,
+              coverStrategy,
               platform: c.platform,
               url: c.url,
               originalCreatedAt: c.createdAt,

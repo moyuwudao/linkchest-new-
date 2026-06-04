@@ -185,6 +185,7 @@ model ShareItem {
   // 快照字段（创建分享时从 Collection 复制）
   title       String
   coverImage  String?
+  coverStrategy String? @default("brand") // 封面策略快照: url, brand(平台色), ai；默认 brand 便于未迁移历史数据
   platform    String
   url         String
   tags        Json?    // 标签快照 [{nameCn, nameEn}]

@@ -255,6 +255,7 @@ router.get('/:shareId', async (req, res) => {
       id: item.collectionId || item.id,
       title: item.title,
       coverImage: ensureHttps(item.coverImage),
+      coverStrategy: item.coverStrategy || 'brand', // 默认 brand 兼容历史未迁移数据
       platform: item.platform,
       url: item.url,
       rating: item.rating != null ? Number(item.rating) : null,

@@ -29,6 +29,7 @@ interface Collection {
   id: string;
   title: string;
   coverImage: string | null;
+  coverStrategy?: string | null;
   platform: string;
   url?: string;
   rating?: number | null;

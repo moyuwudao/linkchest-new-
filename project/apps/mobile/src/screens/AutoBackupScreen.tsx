@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -320,77 +321,12 @@ export default function AutoBackupScreen() {
         ) : (
           <View style={{ marginTop: 12, gap: 8 }}>
             {backups.map((bk) => (
-              <TouchableOpacity
+              <View
                 key={bk.id}
                 style={[
                   styles.backupItem,
                   { backgroundColor: colors.background, borderColor: colors.border },
                 ]}
-                activeOpacity={0.7}
-                onPress={() => {
-                  // 弹出操作选择：恢复 / 下载
-                  Alert.alert(
-                    bk.filename,
-                    t('settings.backupActionsHint'),
-                    [
-                      {
-                        text: t('settings.backupActionRestore'),
-                        onPress: async () => {
-                          Alert.alert(
-                            t('settings.backupRestoreConfirmTitle'),
-                            t('settings.backupRestoreConfirmDesc'),
-                            [
-                              { text: t('common.cancel'), style: 'cancel' },
-                              {
-                                text: t('settings.backupActionRestore'),
-                                onPress: async () => {
-                                  try {
-                                    setRestoringId(bk.id);
-                                    const r = await api.post(`/backups/${bk.id}/restore`);
-                                    const s = r.data?.data || {};
-                                    Alert.alert(
-                                      t('settings.backupRestoreSuccess'),
-                                      `${t('settings.backupRestoredTags')}: ${s.tagsCreated || 0}\n${t('settings.backupRestoredLists')}: ${s.listsCreated || 0}\n${t('settings.backupRestoredCollections')}: ${s.collectionsCreated || 0}\n${t('settings.backupSkippedCollections')}: ${s.collectionsSkipped || 0}`
-                                    );
-                                    queryClient.invalidateQueries({ queryKey: ['backups'] });
-                                    queryClient.invalidateQueries({ queryKey: ['collections'] });
-                                    queryClient.invalidateQueries({ queryKey: ['tags'] });
-                                    queryClient.invalidateQueries({ queryKey: ['lists'] });
-                                  } catch (err: any) {
-                                    const msg =
-                                      err?.response?.data?.message ||
-                                      err?.response?.data?.error ||
-                                      err?.message ||
-                                      t('common.operationFailed');
-                                    Alert.alert(t('settings.backupRestoreFailed'), msg);
-                                  } finally {
-                                    setRestoringId(null);
-                                  }
-                                },
-                              },
-                            ]
-                          );
-                        },
-                      },
-                      {
-                        text: t('settings.backupActionDownload'),
-                        onPress: async () => {
-                          try {
-                            const r = await api.get(`/backups/${bk.id}/download`);
-                            const data = r.data.data;
-                            if (data?.url) {
-                              const { Linking } = require('react-native');
-                              await Linking.openURL(data.url).catch(() => {});
-                            }
-                          } catch {
-                            // 下载失败由用户看到下次
-                          }
-                        },
-                      },
-                      { text: t('common.cancel'), style: 'cancel' },
-                    ]
-                  );
-                }}
               >
                 <View style={styles.backupItemIcon}>
                   <Ionicons
@@ -412,8 +348,74 @@ export default function AutoBackupScreen() {
                     {t('settings.backupItems')}
                   </Text>
                 </View>
-                <Ionicons name="ellipsis-horizontal" size={18} color={colors.textTertiary} />
-              </TouchableOpacity>
+                {/* 恢复按钮 - 内嵌可见图标，避免依赖 Alert.alert 造成部分场景闪退 */}
+                <TouchableOpacity
+                  style={[styles.backupActionBtn, { backgroundColor: colors.primary + '14' }]}
+                  onPress={() => {
+                    Alert.alert(
+                      t('settings.backupRestoreConfirmTitle'),
+                      t('settings.backupRestoreConfirmDesc'),
+                      [
+                        { text: t('common.cancel'), style: 'cancel' },
+                        {
+                          text: t('settings.backupActionRestore'),
+                          onPress: async () => {
+                            try {
+                              setRestoringId(bk.id);
+                              const r = await api.post(`/backups/${bk.id}/restore`);
+                              const s = r.data?.data || {};
+                              Alert.alert(
+                                t('settings.backupRestoreSuccess'),
+                                `${t('settings.backupRestoredTags')}: ${s.tagsCreated || 0}\n${t('settings.backupRestoredLists')}: ${s.listsCreated || 0}\n${t('settings.backupRestoredCollections')}: ${s.collectionsCreated || 0}\n${t('settings.backupSkippedCollections')}: ${s.collectionsSkipped || 0}`
+                              );
+                              queryClient.invalidateQueries({ queryKey: ['backups'] });
+                              queryClient.invalidateQueries({ queryKey: ['collections'] });
+                              queryClient.invalidateQueries({ queryKey: ['tags'] });
+                              queryClient.invalidateQueries({ queryKey: ['lists'] });
+                            } catch (err: any) {
+                              const msg =
+                                err?.response?.data?.message ||
+                                err?.response?.data?.error ||
+                                err?.message ||
+                                t('common.operationFailed');
+                              Alert.alert(t('settings.backupRestoreFailed'), msg);
+                            } finally {
+                              setRestoringId(null);
+                            }
+                          },
+                        },
+                      ]
+                    );
+                  }}
+                  disabled={restoringId === bk.id}
+                  activeOpacity={0.6}
+                >
+                  {restoringId === bk.id ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Ionicons name="cloud-download-outline" size={18} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+                {/* 下载按钮 - 获取临时下载链接 */}
+                <TouchableOpacity
+                  style={[styles.backupActionBtn, { backgroundColor: colors.secondaryBg }]}
+                  onPress={async () => {
+                    try {
+                      const r = await api.get(`/backups/${bk.id}/download`);
+                      const data = r.data.data;
+                      if (data?.url) {
+                        const { Linking } = require('react-native');
+                        await Linking.openURL(data.url).catch(() => {});
+                      }
+                    } catch {
+                      // 下载失败静默
+                    }
+                  }}
+                  activeOpacity={0.6}
+                >
+                  <Ionicons name="link-outline" size={18} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
             ))}
           </View>
         )}
@@ -529,6 +531,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
     gap: 10,
+  },
+  backupActionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backupItemIcon: {
     width: 32,
