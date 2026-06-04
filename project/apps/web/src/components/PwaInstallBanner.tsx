@@ -84,7 +84,7 @@ export default function PwaInstallBanner() {
 
   if (isInstalled || dismissed || !deferredPrompt) return null;
 
-  const texts = PWA_TEXTS[market];
+  const texts = PWA_TEXTS[market] || PWA_TEXTS.global;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 z-[90] bg-white dark:bg-chest-800 rounded-2xl shadow-modal border border-chest-500/[0.08] dark:border-parchment/10 p-4 animate-slide-up">
