@@ -246,7 +246,8 @@ dependencies {
     }
 
     // 支付宝移动支付 SDK（仅 china flavor 包含，减小 global APK 体积）
-    chinaImplementation 'com.alipay.sdk:alipay-sdk:15.8.21'
+    // 正确 artifactId: com.alipay.sdk:alipaysdk-android（注意是 alipaysdk-android，不是 alipay-sdk）
+    chinaImplementation 'com.alipay.sdk:alipaysdk-android:15.8.33'
 
 }
 
