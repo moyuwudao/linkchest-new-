@@ -19,7 +19,7 @@
  *   2. NativeModules.AlipayPay.pay(orderString) 调起支付宝 APP
  *   3. 接收 PayResult 处理结果
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -78,6 +78,19 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
   const { colors } = useThemeStore();
   const { t } = useI18n();
   const { tier, billingCycle, tierName, price } = route.params;
+
+  // 防御性处理：price 可能是 string（标准）或 fmtPrice 返回的 {amt, symbol, per} 对象
+  const priceText = useMemo(() => {
+    if (typeof price === 'string') return price;
+    if (price && typeof price === 'object') {
+      const p = price as { amt?: string | number; symbol?: string; per?: string };
+      const amt = p.amt != null ? String(p.amt) : '';
+      const symbol = p.symbol || '';
+      const per = p.per || '';
+      return `${symbol}${amt} / ${per}`.trim();
+    }
+    return '';
+  }, [price]);
 
   const [phase, setPhase] = useState<PayPhase>('idle');
   const [orderId, setOrderId] = useState<string>('');
@@ -249,7 +262,7 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <View style={styles.row}>
             <LocalizedText text={t('payment.amount')} variant="body" color="textSecondary" />
-            <LocalizedText text={price} variant="title" color="primary" />
+            <LocalizedText text={priceText} variant="title" color="primary" />
           </View>
           {orderId ? (
             <View style={[styles.orderRow]}>

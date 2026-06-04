@@ -152,14 +152,15 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
   async function handleUpgrade(tierKey: string) {
     // 跳转到原生支付宝支付页（替代 WebView 跳转）
     if (navigation?.navigate) {
-      const formattedPrice = fmtPrice(
-        (data?.allTiers || []).find((x: any) => x.key === tierKey) || ({ pricing: {} } as any)
-      );
+      const tierInfo = (data?.allTiers || []).find((x: any) => x.key === tierKey) || ({ pricing: {} } as any);
+      const formattedPrice = fmtPrice(tierInfo);
+      // AlipayPayScreen.price 接收 string（不要传 fmtPrice 返回的对象 {amt,symbol,per}）
+      const priceText = `${formattedPrice.symbol}${formattedPrice.amt} / ${formattedPrice.per}`;
       navigation.navigate('AlipayPay', {
         tier: tierKey,
         billingCycle: cycle,
         tierName: tierKey, // 由 AlipayPayScreen 根据 i18n 翻译
-        price: formattedPrice,
+        price: priceText,
       });
       return;
     }
