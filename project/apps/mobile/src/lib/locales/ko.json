@@ -138,11 +138,21 @@
       "edit": "편집",
       "delete": "삭제",
       "deleted": "삭제됨",
-      "deleteConfirm": "이 컬렉션을 삭제하시겠습니까?"
+      "deleteConfirm": "이 컬렉션을 삭제하시겠습니까?",
+      "rating": "Rating"
     },
     "noSearchResults": "검색 결과가 없습니다",
     "tryDifferentKeywords": "다른 키워드를 시도해 보세요",
-    "importConfirmDesc": "이 공유에는 {total}개의 북마크가 있습니다. {duplicate}개는 이미 존재하고, {new}개가 추가됩니다. 중복 항목은 새 그룹에 연결됩니다."
+    "importConfirmDesc": "이 공유에는 {total}개의 북마크가 있습니다. {duplicate}개는 이미 존재하고, {new}개가 추가됩니다. 중복 항목은 새 그룹에 연결됩니다.",
+    "pageType": "Page Type",
+    "pageType.home": "Home",
+    "pageType.detail": "Detail",
+    "pageType.list": "List",
+    "pageType.search": "Search",
+    "pageType.navigation": "Navigation",
+    "pageType.document": "Document",
+    "pageType.download": "Download",
+    "pageType.other": "Other"
   },
   "cover": {
     "modeAi": "AI 커버",
@@ -660,7 +670,21 @@
     "duplicateDetect": "중복 감지",
     "comingSoon": "곧 출시",
     "autoBackup": "자동 백업",
-    "loading": "로딩 중..."
+    "loading": "로딩 중...",
+    "backupImmediate": "Backup Now",
+    "backupImmediateDesc": "Upload bookmarks, groups, tags and other data to cloud storage",
+    "goExport": "Go to Export",
+    "scanDuplicates": "Scan Duplicates",
+    "duplicateGroupsFound": "Found {count} duplicate group(s)",
+    "urlDuplicates": "Duplicate URLs",
+    "titleDuplicates": "Similar Titles",
+    "similarity": "Similarity",
+    "keep": "Keep",
+    "keepNewest": "Keep Newest",
+    "merge": "Merge",
+    "mergeSuccess": "Merge successful",
+    "noDuplicates": "No duplicates found",
+    "proRequired": "Pro feature"
   },
   "quickAdd": {
     "title": "빠른 추가",
@@ -742,7 +766,20 @@
     "perMonth": "/모",
     "perYear": "/년",
     "tierManagement": "계획 관리",
-    "perQuarter": "/쿼터"
+    "perQuarter": "/쿼터",
+    "coverImagesDaily": "Daily Cover Generation",
+    "metadataDailyLimit": "Daily Metadata Fetch",
+    "trashRetentionDays": "Trash Retention Days",
+    "benefitBatchOps": "Batch Operations",
+    "benefitExportPdf": "Export to PDF",
+    "benefitEarlyAccess": "Early Access to New Features",
+    "benefitShareLayout": "Custom Share Layout",
+    "benefitPrioritySupport": "Priority Support",
+    "benefitCustomShareCover": "Custom Share Cover",
+    "sharePassword": "Share Password Protection",
+    "shareStats": "Share View Stats",
+    "shareRating": "Share Rating",
+    "shareViews": "View Share Details"
   },
   "error": {
     "unknown": "알 수 없는 오류가 발생했습니다",

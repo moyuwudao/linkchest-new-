@@ -5,8 +5,8 @@ const globalBundle = fs.readFileSync(path.join(__dirname, 'android/app/build/gen
 const chinaBundle = fs.readFileSync(path.join(__dirname, 'android/app/build/generated/assets/createBundleChinaReleaseJsAndAssets/index.android.bundle'), 'utf8');
 
 function findConfig(bundle, label) {
-  // 搜索 com.linkchest.app 和 cn.linkchest.app 出现的上下文
-  const patterns = ['com.linkchest.app', 'cn.linkchest.app'];
+  // 包名已统一为 com.linkchest.app（与软著登记一致）
+  const patterns = ['com.linkchest.app'];
   for (const p of patterns) {
     const idx = bundle.indexOf(p);
     if (idx >= 0) {

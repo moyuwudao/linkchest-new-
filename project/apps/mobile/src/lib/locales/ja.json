@@ -138,10 +138,20 @@
       "edit": "編集",
       "delete": "削除",
       "deleted": "Deleted",
-      "deleteConfirm": "Delete this collection?"
+      "deleteConfirm": "Delete this collection?",
+      "rating": "Rating"
     },
     "noSearchResults": "No search results",
-    "tryDifferentKeywords": "Try different keywords"
+    "tryDifferentKeywords": "Try different keywords",
+    "pageType": "Page Type",
+    "pageType.home": "Home",
+    "pageType.detail": "Detail",
+    "pageType.list": "List",
+    "pageType.search": "Search",
+    "pageType.navigation": "Navigation",
+    "pageType.document": "Document",
+    "pageType.download": "Download",
+    "pageType.other": "Other"
   },
   "cover": {
     "modeAi": "AIカバー",
@@ -656,7 +666,21 @@
     "viewAll": "すべて表示",
     "duplicateDetect": "Duplicate Detection",
     "comingSoon": "Coming Soon",
-    "autoBackup": "Auto Backup"
+    "autoBackup": "Auto Backup",
+    "backupImmediate": "Backup Now",
+    "backupImmediateDesc": "Upload bookmarks, groups, tags and other data to cloud storage",
+    "goExport": "Go to Export",
+    "scanDuplicates": "Scan Duplicates",
+    "duplicateGroupsFound": "Found {count} duplicate group(s)",
+    "urlDuplicates": "Duplicate URLs",
+    "titleDuplicates": "Similar Titles",
+    "similarity": "Similarity",
+    "keep": "Keep",
+    "keepNewest": "Keep Newest",
+    "merge": "Merge",
+    "mergeSuccess": "Merge successful",
+    "noDuplicates": "No duplicates found",
+    "proRequired": "Pro feature"
   },
   "quickAdd": {
     "title": "クイック追加",
@@ -732,7 +756,20 @@
     "perMonth": "/月",
     "perYear": "/年",
     "tierManagement": "等级管理",
-    "perQuarter": "/quarter"
+    "perQuarter": "/quarter",
+    "coverImagesDaily": "Daily Cover Generation",
+    "metadataDailyLimit": "Daily Metadata Fetch",
+    "trashRetentionDays": "Trash Retention Days",
+    "benefitBatchOps": "Batch Operations",
+    "benefitExportPdf": "Export to PDF",
+    "benefitEarlyAccess": "Early Access to New Features",
+    "benefitShareLayout": "Custom Share Layout",
+    "benefitPrioritySupport": "Priority Support",
+    "benefitCustomShareCover": "Custom Share Cover",
+    "sharePassword": "Share Password Protection",
+    "shareStats": "Share View Stats",
+    "shareRating": "Share Rating",
+    "shareViews": "View Share Details"
   },
   "error": {
     "unknown": "不明なエラーが発生しました",

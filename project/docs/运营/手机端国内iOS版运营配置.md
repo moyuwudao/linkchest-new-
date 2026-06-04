@@ -1,11 +1,11 @@
-# 链藏手机端国内iOS版运营配置
+﻿# 链藏手机端国内iOS版运营配置
 
 ## 一、基础信息
 
 | 项目 | 配置 |
 |------|------|
 | 品牌名称 | 链藏 |
-| Bundle ID | cn.linkchest.app |
+| Bundle ID | com.linkchest.app（与软著登记一致，国内外版统一） |
 | 市场标识 | china |
 | 平台 | iOS |
 | 构建工具 | Expo + EAS Build |
@@ -94,7 +94,7 @@ eas build --profile production-china --platform ios --local
     name: '链藏',
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'cn.linkchest.app',
+      bundleIdentifier: 'com.linkchest.app',
     },
     extra: {
       market: 'china',
@@ -130,7 +130,7 @@ eas build --profile production-china --platform ios --local
 - App ID
 - App Secret
 - Universal Links
-- Bundle ID（cn.linkchest.app）
+- Bundle ID（com.linkchest.app，与软著登记一致）
 
 ## 十、权限配置
 
@@ -144,7 +144,7 @@ iOS版需要的权限：
 | 项目 | 配置 |
 |------|------|
 | 应用商店 | Apple App Store（中国区） |
-| Bundle ID | cn.linkchest.app |
+| Bundle ID | com.linkchest.app（与软著登记一致，国内外版统一） |
 | 审核要求 | 符合Apple审核指南 |
 | ICP备案 | 必须（中国区App Store要求） |
 | 软著登记 | 必须 |

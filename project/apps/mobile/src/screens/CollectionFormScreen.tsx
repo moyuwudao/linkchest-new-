@@ -693,18 +693,16 @@ export default function CollectionFormScreen() {
         <Text style={{ textAlign: 'right', color: colors.textTertiary, fontSize: 12, marginTop: 4 }}>{note.length}/100</Text>
       </View>
 
-      {/* 评分（仅编辑模式） */}
-      {isEdit && (
-        <View style={{ backgroundColor: colors.card, padding: 16, marginBottom: 8 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 }}>{t('collection.detail.rating')}</Text>
-          <StarRating
-            value={rating}
-            onChange={setRating}
-            size={32}
-            allowHalf={true}
-          />
-        </View>
-      )}
+      {/* 评分 - 编辑与新增模式均显示 */}
+      <View style={{ backgroundColor: colors.card, padding: 16, marginBottom: 8 }}>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 }}>{t('collection.detail.rating')}</Text>
+        <StarRating
+          value={rating}
+          onChange={setRating}
+          size={32}
+          allowHalf={true}
+        />
+      </View>
 
       {/* 标签 - 展开式选择 */}
       {renderExpandableSection(

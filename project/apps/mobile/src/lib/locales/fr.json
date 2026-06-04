@@ -138,10 +138,20 @@
       "edit": "Modifier",
       "delete": "Supprimer",
       "deleted": "Supprimé",
-      "deleteConfirm": "Supprimer cette collection ?"
+      "deleteConfirm": "Supprimer cette collection ?",
+      "rating": "Rating"
     },
     "noSearchResults": "Aucun résultat de recherche",
-    "tryDifferentKeywords": "Essayez différents mots-clés"
+    "tryDifferentKeywords": "Essayez différents mots-clés",
+    "pageType": "Page Type",
+    "pageType.home": "Home",
+    "pageType.detail": "Detail",
+    "pageType.list": "List",
+    "pageType.search": "Search",
+    "pageType.navigation": "Navigation",
+    "pageType.document": "Document",
+    "pageType.download": "Download",
+    "pageType.other": "Other"
   },
   "cover": {
     "modeAi": "Couverture IA",
@@ -658,7 +668,21 @@
     "viewAll": "Voir tout",
     "duplicateDetect": "Détection des doublons",
     "comingSoon": "Bientôt disponible",
-    "autoBackup": "Sauvegarde automatique"
+    "autoBackup": "Sauvegarde automatique",
+    "backupImmediate": "Backup Now",
+    "backupImmediateDesc": "Upload bookmarks, groups, tags and other data to cloud storage",
+    "goExport": "Go to Export",
+    "scanDuplicates": "Scan Duplicates",
+    "duplicateGroupsFound": "Found {count} duplicate group(s)",
+    "urlDuplicates": "Duplicate URLs",
+    "titleDuplicates": "Similar Titles",
+    "similarity": "Similarity",
+    "keep": "Keep",
+    "keepNewest": "Keep Newest",
+    "merge": "Merge",
+    "mergeSuccess": "Merge successful",
+    "noDuplicates": "No duplicates found",
+    "proRequired": "Pro feature"
   },
   "quickAdd": {
     "title": "Ajout rapide",
@@ -734,7 +758,20 @@
     "perMonth": "/mois",
     "perYear": "/an",
     "tierManagement": "Gestion du niveau",
-    "perQuarter": "/quart"
+    "perQuarter": "/quart",
+    "coverImagesDaily": "Daily Cover Generation",
+    "metadataDailyLimit": "Daily Metadata Fetch",
+    "trashRetentionDays": "Trash Retention Days",
+    "benefitBatchOps": "Batch Operations",
+    "benefitExportPdf": "Export to PDF",
+    "benefitEarlyAccess": "Early Access to New Features",
+    "benefitShareLayout": "Custom Share Layout",
+    "benefitPrioritySupport": "Priority Support",
+    "benefitCustomShareCover": "Custom Share Cover",
+    "sharePassword": "Share Password Protection",
+    "shareStats": "Share View Stats",
+    "shareRating": "Share Rating",
+    "shareViews": "View Share Details"
   },
   "payment": {
     "success": "Paiement réussi ! Forfait mis à jour.",

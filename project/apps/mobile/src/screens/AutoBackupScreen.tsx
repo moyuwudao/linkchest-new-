@@ -193,8 +193,8 @@ export default function AutoBackupScreen() {
 
         {/* 立即备份到云端 */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>立即备份</Text>
-          <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 6 }}>将收藏、分组、标签等数据上传至云端存储</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>{t('settings.backupImmediate')}</Text>
+          <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 6 }}>{t('settings.backupImmediateDesc')}</Text>
           <TouchableOpacity
             style={[styles.saveBtn, { backgroundColor: colors.primary, marginTop: 12 }]}
             onPress={handleImmediateBackup}
@@ -206,7 +206,7 @@ export default function AutoBackupScreen() {
             ) : (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Ionicons name="cloud-upload-outline" size={18} color="#fff" />
-                <Text style={styles.saveBtnText}>立即备份</Text>
+                <Text style={styles.saveBtnText}>{t('settings.backupImmediate')}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -267,7 +267,7 @@ export default function AutoBackupScreen() {
                     >
                       <Ionicons name="download-outline" size={16} color={colors.primary} />
                       <Text style={[styles.resultActionText, { color: colors.primary }]}>
-                        去导出
+                        {t('settings.goExport')}
                       </Text>
                     </TouchableOpacity>
                   )}

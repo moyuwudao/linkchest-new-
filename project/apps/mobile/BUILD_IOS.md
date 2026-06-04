@@ -53,9 +53,7 @@
 
 - **有效 Apple Developer Program 账户**（$99/年）
 - **Team ID** 已确认
-- **Bundle Identifier** 已注册：
-  - 国际版：`com.linkchest.app`
-  - 国内版：`cn.linkchest.app`
+- **Bundle Identifier** 已注册：`com.linkchest.app`（国内外版统一，与软著登记一致）
 
 ---
 
@@ -88,18 +86,19 @@ project/apps/mobile/ios/
 
 ```javascript
 // app.config.js 关键配置
+// 国内外版统一 bundleId（与软著登记一致）
 ios: {
-  bundleIdentifier: marketValue === 'china'
-    ? 'cn.linkchest.app'
-    : 'com.linkchest.app',
+  bundleIdentifier: 'com.linkchest.app',
 }
 ```
 
 ### 3.3 国内版特殊配置
 
+> **重要变更（2026-06-03）**：国内外版统一使用 `com.linkchest.app`（与国内软著登记一致），通过应用名称、API、登录方式等内容维度区分版本。**iOS Bundle ID 不再区分国内/海外**。
+
 | 配置项 | 国际版 (global) | 国内版 (china) |
 |--------|----------------|----------------|
-| Bundle ID | `com.linkchest.app` | `cn.linkchest.app` |
+| Bundle ID | `com.linkchest.app` | `com.linkchest.app`（统一） |
 | 应用名称 | LinkChest | 链藏 |
 | 服务器地址 | `https://linkchest.net` | `http://linkchest.cn` |
 | ATS (HTTPS) | 强制 HTTPS | 允许 HTTP |
@@ -288,8 +287,6 @@ xcodebuild \
   <dict>
     <key>com.linkchest.app</key>
     <string>LinkChest AppStore</string>
-    <key>cn.linkchest.app</key>
-    <string>LinkChest China AppStore</string>
   </dict>
   <key>signingCertificate</key>
   <string>Apple Distribution</string>
@@ -320,8 +317,6 @@ xcodebuild \
   <dict>
     <key>com.linkchest.app</key>
     <string>LinkChest AdHoc</string>
-    <key>cn.linkchest.app</key>
-    <string>LinkChest China AdHoc</string>
   </dict>
   <key>signingCertificate</key>
   <string>Apple Distribution</string>

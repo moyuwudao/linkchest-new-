@@ -206,11 +206,32 @@ export default function ProfileScreen() {
             {
               text: t('common.copy'),
               onPress: async () => {
+                let copied = false;
+                // 优先使用 expo-clipboard（同步 require 更稳定，避免动态 import 在某些环境失败）
                 try {
-                  const { Clipboard } = await import('expo-clipboard');
-                  await Clipboard.setStringAsync(supportEmail);
+                  const Clipboard = require('expo-clipboard').Clipboard;
+                  if (Clipboard && typeof Clipboard.setStringAsync === 'function') {
+                    await Clipboard.setStringAsync(supportEmail);
+                    copied = true;
+                  }
+                } catch (e1) {
+                  console.warn('expo-clipboard setStringAsync failed:', e1);
+                }
+                if (!copied) {
+                  // 回退：直接写入字符串（expo-clipboard 也提供 setString 同步版本）
+                  try {
+                    const Clipboard = require('expo-clipboard').Clipboard;
+                    if (Clipboard && typeof Clipboard.setString === 'function') {
+                      Clipboard.setString(supportEmail);
+                      copied = true;
+                    }
+                  } catch (e2) {
+                    console.warn('expo-clipboard setString failed:', e2);
+                  }
+                }
+                if (copied) {
                   Alert.alert(t('common.success'), t('common.copied'));
-                } catch {
+                } else {
                   Alert.alert(t('common.error'), t('common.copyFailed'));
                 }
               },

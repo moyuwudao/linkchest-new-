@@ -12,7 +12,7 @@
 | 平台 | OPPO软件商店 |
 | 平台地址 | https://open.oppomobile.com |
 | 应用名称 | 链藏 |
-| 包名 | cn.linkchest.app |
+| 包名 | com.linkchest.app（与软著登记一致，国内外版统一） |
 | 构建方式 | WSL本地Gradle构建 |
 | 开发者账号 | ✅ 已申请 |
 
@@ -32,13 +32,13 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 
 | 项目 | 值 |
 |------|-----|
-| Keystore文件 | `release-keystore.jks`（项目内管理） |
+| Keystore文件 | `debug.keystore`（项目内 `android/app/debug.keystore`，密码 `android`） |
 | 签名算法 | V1 + V2 |
 | OPPO应用签名SHA1 | ⚠️ 待填写（OPPO后台需绑定） |
 
 ### 2.3 构建产物验证
 
-同小米应用商店，验证包名为 `cn.linkchest.app`。
+同小米应用商店，验证包名为 `com.linkchest.app`。
 
 ---
 
@@ -55,7 +55,7 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 | 字段 | 填写内容 | 备注 |
 |------|---------|------|
 | 应用名称 | 链藏 | ≤15字 |
-| 包名 | cn.linkchest.app | - |
+| 包名 | com.linkchest.app | - |
 | 版本号 | 构建时的 versionCode | - |
 | 分类 | 效率工具 | - |
 | 一句话介绍 | 你的数字收藏宝库 | ≤20字 |
@@ -136,6 +136,7 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 | 时间 | 更新内容 | 操作人 |
 |------|----------|--------|
 | 2026-05-29 | 创建OPPO软件商店上架指南 | - |
+| 2026-06-03 | 包名从 cn.linkchest.app 统一为 com.linkchest.app（与软著登记一致），修正 Keystore 文件名 | - |
 
 ---
 
