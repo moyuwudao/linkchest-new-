@@ -849,6 +849,7 @@
   "payment": {
     "success": "支付成功！套餐已升级",
     "canceled": "支付已取消",
+    "userCancelled": "支付已取消",
     "checkoutFailed": "打开升级页面失败",
     "processing": "处理中...",
     "title": "确认支付",
@@ -862,6 +863,9 @@
     "payInApp": "已从支付宝返回，请打开App确认支付状态",
     "payFailed": "支付失败，请重试",
     "sdkPending": "移动支付SDK接入中，请暂时使用Web支付",
+    "completeTitle": "支付完成",
+    "completeDesc": "请在浏览器中完成支付，返回后将更新订单状态。",
+    "paid": "已完成支付",
     "contactSupport": "联系客服",
     "contactSupportDesc": "如遇支付问题，请联系 support@linkchest.net"
   },

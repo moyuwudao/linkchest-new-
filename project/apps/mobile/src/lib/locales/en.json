@@ -798,6 +798,7 @@
   "payment": {
     "success": "Payment successful! Plan upgraded.",
     "canceled": "Payment canceled",
+    "userCancelled": "Payment canceled",
     "checkoutFailed": "Failed to open upgrade page",
     "processing": "Processing...",
     "title": "Confirm Payment",
@@ -811,6 +812,9 @@
     "payInApp": "Returned from Alipay. Open the app to confirm payment status.",
     "payFailed": "Payment failed, please try again",
     "sdkPending": "Mobile SDK is being integrated, please use web payment for now",
+    "completeTitle": "Payment Complete",
+    "completeDesc": "Please complete the payment in the browser, return to update the order status.",
+    "paid": "I have paid",
     "contactSupport": "Contact Support",
     "contactSupportDesc": "Please contact us at support@linkchest.net if you have any payment issues"
   },

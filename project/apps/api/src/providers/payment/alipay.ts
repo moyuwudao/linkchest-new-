@@ -79,33 +79,55 @@ export class AlipayProvider implements PaymentProvider {
 
     const outTradeNo = `LC${Date.now()}${userId.slice(0, 8)}`
 
+    // 业务参数（移动 APP 支付和网页支付参数一致）
     const bizContent = {
       out_trade_no: outTradeNo,
       total_amount: (amountCny / 100).toFixed(2),
       subject: `LinkChest ${tier} (${billingCycle})`,
-      product_code: 'FAST_INSTANT_TRADE_PAY',
+      // APP 支付 product_code 必须为 QUICK_MSECURITY_PAY
+      product_code: 'QUICK_MSECURITY_PAY',
       body: JSON.stringify({ userId, tier, billingCycle }),
     }
 
-    const commonParams = this.buildCommonParams('alipay.trade.page.pay')
-    const requestParams = {
+    // 公共请求参数（移动 APP 支付和网页支付一致）
+    const commonParams = this.buildCommonParams('alipay.trade.app.pay')
+    const requestParams: Record<string, unknown> = {
       ...commonParams,
       biz_content: JSON.stringify(bizContent),
-      return_url: `${process.env.WEB_BASE_URL || ''}/tier/upgrade/success`,
     }
 
     const sign = this.sign(requestParams)
-    const queryParams = new URLSearchParams()
+
+    // 移动 APP 支付：返回 orderString（待签名字符串），不需拼成 URL
+    // 客户端 SDK 拿到 orderString 后直接调起支付宝 APP 完成支付
+    const orderStringParts: string[] = []
     Object.entries(requestParams).forEach(([k, v]) => {
+      orderStringParts.push(`${k}=${encodeURIComponent(String(v))}`)
+    })
+    orderStringParts.push(`sign=${encodeURIComponent(sign)}`)
+    const orderString = orderStringParts.join('&')
+
+    // 同时生成网页支付的 payUrl，作为 web 端兜底
+    const webCommonParams = this.buildCommonParams('alipay.trade.page.pay')
+    const webRequestParams = {
+      ...webCommonParams,
+      biz_content: JSON.stringify(bizContent),
+      return_url: `${process.env.WEB_BASE_URL || ''}/tier/upgrade/success`,
+    }
+    const webSign = this.sign(webRequestParams)
+    const queryParams = new URLSearchParams()
+    Object.entries(webRequestParams).forEach(([k, v]) => {
       queryParams.append(k, String(v))
     })
-    queryParams.append('sign', sign)
-
+    queryParams.append('sign', webSign)
     const payUrl = `${ALIPAY_BASE_URL}?${queryParams.toString()}`
 
     return {
       orderId: outTradeNo,
+      // 移动端 SDK 使用 orderString
+      // web 端使用 payUrl 跳转
       extra: {
+        orderString,
         payUrl,
       },
     }

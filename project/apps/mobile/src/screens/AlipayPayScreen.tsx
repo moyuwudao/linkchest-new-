@@ -31,6 +31,7 @@ import {
   AppState,
   Platform,
   Animated,
+  NativeModules,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
@@ -41,6 +42,23 @@ import { spacing, radius, shadow } from '../theme/tokens';
 import { LocalizedText } from '../components/LocalizedText';
 import { LinkText } from '../components/LinkText';
 import { useStaggerFadeIn } from '../lib/animations';
+
+/**
+ * 支付宝支付结果状态码（来自 AlipayPay NativeModule 返回的 resultStatus）
+ * 9000 = 支付成功
+ * 8000 = 正在处理中
+ * 4000 = 支付失败
+ * 6001 = 用户取消
+ * 6002 = 网络错误
+ */
+function interpretAlipayResult(resultStatus: string): { success: boolean; pending: boolean; cancelled: boolean; failed: boolean } {
+  return {
+    success: resultStatus === '9000',
+    pending: resultStatus === '8000',
+    cancelled: resultStatus === '6001',
+    failed: resultStatus === '4000' || resultStatus === '6002',
+  }
+}
 
 export interface AlipayPayScreenProps {
   route: {
@@ -90,17 +108,16 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
     setError('');
     setPhase('creating');
     try {
-      // 1. 调后端创建订单
+      // 1. 调后端创建订单（后端根据 platform 字段决定返回 orderString 或 payUrl）
       const r = await api.post('/api/payments/alipay/create-order', {
         tier,
         billingCycle,
-        // 平台标识：阶段2 后端将根据此字段返回 orderString
         platform: Platform.OS === 'ios' ? 'ios' : 'android',
       });
       const data = r.data?.data || r.data;
       const oId = data?.orderId;
       const payUrl = data?.payUrl;
-      const orderString = data?.orderString; // 阶段2 后端将返回此字段
+      const orderString = data?.orderString;
 
       if (!oId) throw new Error('orderId missing');
       setOrderId(String(oId));
@@ -109,20 +126,81 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
         throw new Error('payUrl/orderString missing');
       }
 
-      // 2. 阶段2 真实调起（先占位，暂未启用）
-      // 阶段2 启用后: if (orderString && Platform.OS === 'android') {
-      //   const result = await NativeModules.AlipayPay.pay(orderString);
-      //   处理 result.resultStatus: '9000'=成功
-      //   return;
-      // }
+      // 2. 安卓优先：调起支付宝 APP 完成支付（Native SDK 已在 china flavor 集成）
+      if (Platform.OS === 'android' && orderString && NativeModules.AlipayPay) {
+        setPhase('opening');
+        try {
+          const result: { resultStatus: string; result: string; memo: string } = await NativeModules.AlipayPay.pay(orderString);
+          const { success, pending, cancelled, failed } = interpretAlipayResult(result.resultStatus);
 
-      // 3. 阶段1 兜底：WebView 跳 payUrl
+          if (success || pending) {
+            // 成功或处理中：通知后端确认（capture 会通过 alipay.trade.query 校验真实状态）
+            try {
+              await api.post('/api/payments/alipay/capture', {
+                orderId: oId,
+                tier,
+                billingCycle,
+              });
+            } catch (captureErr) {
+              console.warn('capture after pay failed:', captureErr);
+            }
+            setPhase('success');
+            return;
+          }
+
+          if (cancelled) {
+            setPhase('idle');
+            setError(t('payment.userCancelled') || '支付已取消');
+            return;
+          }
+
+          if (failed) {
+            throw new Error(t('payment.payFailed') || '支付失败，请重试');
+          }
+
+          throw new Error(`Unknown resultStatus: ${result.resultStatus}`);
+        } catch (e: any) {
+          // 用户取消时 NativeModule 也会 reject，需要区别对待
+          const code = e?.code || '';
+          if (code === 'ALIPAY_PAY_ERROR' && /cancel/i.test(e?.message || '')) {
+            setPhase('idle');
+            setError(t('payment.userCancelled') || '支付已取消');
+            return;
+          }
+          throw e;
+        }
+      }
+
+      // 3. iOS / 无 NativeModule：使用 payUrl 走 Web 浏览器兜底
       if (payUrl) {
         setPhase('opening');
         await WebBrowser.openBrowserAsync(payUrl);
         setPhase('opened');
+        // 询问用户支付结果
+        Alert.alert(
+          t('payment.completeTitle') || '支付完成',
+          t('payment.completeDesc') || '请在浏览器中完成支付，返回后将更新订单状态。',
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+              text: t('payment.paid') || '已完成支付',
+              onPress: async () => {
+                try {
+                  await api.post('/api/payments/alipay/capture', {
+                    orderId: oId,
+                    tier,
+                    billingCycle,
+                  });
+                  setPhase('success');
+                } catch (e: any) {
+                  setPhase('failed');
+                  setError(e?.message || t('common.error'));
+                }
+              },
+            },
+          ]
+        );
       } else {
-        // 后端已返回 orderString 但移动端 SDK 尚未集成（阶段2 切换）
         throw new Error(t('payment.sdkPending') || 'Alipay SDK is being integrated, please use web payment');
       }
     } catch (e: any) {
