@@ -9,6 +9,8 @@ const router = Router()
  */
 router.get('/config', (req, res) => {
   const features = getMarketFeatures()
+  // 强制注入 market 字段（MarketFeatures 接口未声明 market，需额外补充）
+  const featuresWithMarket = { ...features, market: getMarket() }
 
   // 兼容多种微信登录环境变量命名
   const wechatWebClientId = process.env.WECHAT_APP_ID || process.env.WECHAT_CLIENT_ID || process.env.WECHAT_LOGIN_APPID || null
@@ -17,11 +19,11 @@ router.get('/config', (req, res) => {
   res.json({
     success: true,
     data: {
-      market: features.market,
-      authProviders: features.authProviders,
-      paymentProviders: features.paymentProviders,
-      pricing: features.pricing,
-      platforms: features.platforms,
+      market: featuresWithMarket.market,
+      authProviders: featuresWithMarket.authProviders,
+      paymentProviders: featuresWithMarket.paymentProviders,
+      pricing: featuresWithMarket.pricing,
+      platforms: featuresWithMarket.platforms,
       // 前端需要的配置
       clientIds: {
         google: process.env.GOOGLE_CLIENT_ID || null,
