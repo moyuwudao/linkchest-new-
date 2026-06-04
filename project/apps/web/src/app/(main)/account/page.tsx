@@ -133,8 +133,10 @@ export default function AccountPage() {
         ? (payload as MyTierData)
         : null;
     },
-    staleTime: 5 * 60 * 1000, // 5 分钟内视为新鲜，减少重复请求
-    refetchOnWindowFocus: false,
+    staleTime: 0, // 套餐配置由管理后台控制，价格/权益变更需立即生效
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 
   // Referral data — 同样使用 React Query 缓存

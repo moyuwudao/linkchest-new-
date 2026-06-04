@@ -141,8 +141,11 @@ function TierUpgradePageContent() {
       const res = await api.get('/tiers/me');
       return (res.data.data || res.data) as MyTierData;
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    // 套餐配置由管理后台控制，价格/权益变更需立即生效，不允许 5 分钟缓存
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 
   useEffect(() => {
