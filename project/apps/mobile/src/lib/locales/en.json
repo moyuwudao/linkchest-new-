@@ -799,7 +799,20 @@
     "success": "Payment successful! Plan upgraded.",
     "canceled": "Payment canceled",
     "checkoutFailed": "Failed to open upgrade page",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "title": "Confirm Payment",
+    "orderSummary": "Order Summary",
+    "amount": "Amount",
+    "orderId": "Order ID",
+    "paymentMethod": "Payment Method",
+    "alipay": "Alipay",
+    "alipayDesc": "Pay securely with Alipay",
+    "payNow": "Pay Now",
+    "payInApp": "Returned from Alipay. Open the app to confirm payment status.",
+    "payFailed": "Payment failed, please try again",
+    "sdkPending": "Mobile SDK is being integrated, please use web payment for now",
+    "contactSupport": "Contact Support",
+    "contactSupportDesc": "Please contact us at support@linkchest.net if you have any payment issues"
   },
   "tier": {
     "title": "Plan & Tier",

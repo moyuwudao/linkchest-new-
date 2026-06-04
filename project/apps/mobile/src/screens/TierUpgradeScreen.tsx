@@ -90,7 +90,7 @@ const benefitI18nMap: Record<string, string> = {
 
 const hiddenBenefitKeys = ['batchops', 'exportpdf', 'sharestats', 'earlyaccess', 'sharelayout', 'sharepassword', 'prioritysupport', 'customsharecover'];
 
-export default function TierUpgradeScreen() {
+export default function TierUpgradeScreen({ navigation }: { navigation?: any }) {
   const { colors } = useThemeStore();
   const { t, locale } = useI18n();
   const [data, setData] = useState<TierData | null>(null);
@@ -150,6 +150,19 @@ export default function TierUpgradeScreen() {
   }
 
   async function handleUpgrade(tierKey: string) {
+    // 跳转到原生支付宝支付页（替代 WebView 跳转）
+    if (navigation?.navigate) {
+      const formattedPrice = fmtPrice(
+        (data?.allTiers || []).find((x: any) => x.key === tierKey) || ({ pricing: {} } as any)
+      );
+      navigation.navigate('AlipayPay', {
+        tier: tierKey,
+        billingCycle: cycle,
+        tierName: tierKey, // 由 AlipayPayScreen 根据 i18n 翻译
+        price: formattedPrice,
+      });
+      return;
+    }
     setPaying(true);
     try {
       const baseDomain = getBaseDomain();

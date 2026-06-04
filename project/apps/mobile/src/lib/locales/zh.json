@@ -850,7 +850,20 @@
     "success": "支付成功！套餐已升级",
     "canceled": "支付已取消",
     "checkoutFailed": "打开升级页面失败",
-    "processing": "处理中..."
+    "processing": "处理中...",
+    "title": "确认支付",
+    "orderSummary": "订单概要",
+    "amount": "应付金额",
+    "orderId": "订单号",
+    "paymentMethod": "支付方式",
+    "alipay": "支付宝",
+    "alipayDesc": "使用支付宝安全支付",
+    "payNow": "立即支付",
+    "payInApp": "已从支付宝返回，请打开App确认支付状态",
+    "payFailed": "支付失败，请重试",
+    "sdkPending": "移动支付SDK接入中，请暂时使用Web支付",
+    "contactSupport": "联系客服",
+    "contactSupportDesc": "如遇支付问题，请联系 support@linkchest.net"
   },
   "error": {
     "unknown": "发生了未知错误",

@@ -23,7 +23,18 @@ class MainApplication : Application(), ReactApplication {
           override fun getPackages(): List<ReactPackage> {
             // Packages that cannot be autolinked yet can be added manually here, for example:
             // packages.add(new MyReactNativePackage());
-            return PackageList(this).packages
+            val packages = PackageList(this).packages.toMutableList()
+            // 中国市场按需加载支付宝支付 Package（china 源集才编译）
+            if (BuildConfig.MARKET == "china") {
+              try {
+                val cls = Class.forName("com.linkchest.app.alipay.AlipayPayPackage")
+                val pkg = cls.getDeclaredConstructor().newInstance() as ReactPackage
+                packages.add(pkg)
+              } catch (e: Throwable) {
+                android.util.Log.e("LinkChest", "Failed to load AlipayPayPackage", e)
+              }
+            }
+            return packages
           }
 
           override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"

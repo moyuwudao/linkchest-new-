@@ -114,6 +114,11 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
+    // 启用 BuildConfig 生成（用于 buildConfigField 定义的字段）
+    buildFeatures {
+        buildConfig true
+    }
+
     namespace 'com.linkchest.app'
     defaultConfig {
         applicationId 'com.linkchest.app'
@@ -124,6 +129,9 @@ android {
         resValue "string", "app_name", "LinkChest"
     }
 
+    // 为不同市场生成不同 BuildConfig.MARKET（供 NativeModule 按风味编译）
+    buildConfigField "String", "MARKET", "\"default\""
+
     // 产品风味：区分国内版和海外版
     flavorDimensions += "market"
     productFlavors {
@@ -131,6 +139,7 @@ android {
             dimension "market"
             applicationId 'com.linkchest.app'
             resValue "string", "app_name", "LinkChest"
+            buildConfigField "String", "MARKET", "\"global\""
         }
         china {
             dimension "market"
@@ -138,6 +147,7 @@ android {
             // 通过其他维度（app_name / icon / API / features）区分国内/海外版本
             applicationId 'com.linkchest.app'
             resValue "string", "app_name", "链藏"
+            buildConfigField "String", "MARKET", "\"china\""
             manifestPlaceholders = [
                 JPUSH_APPKEY: project.hasProperty('JPUSH_APPKEY') ? JPUSH_APPKEY : '',
                 JPUSH_CHANNEL: project.hasProperty('JPUSH_CHANNEL') ? JPUSH_CHANNEL : '',
@@ -235,6 +245,9 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // 支付宝移动支付 SDK（仅 china flavor 包含，减小 global APK 体积）
+    chinaImplementation 'com.alipay.sdk:alipay-sdk:15.8.21'
 
 }
 

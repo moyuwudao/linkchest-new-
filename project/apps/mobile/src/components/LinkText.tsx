@@ -12,7 +12,7 @@ export interface LinkTextProps {
   text: string;
   onPress: () => void;
   variant?: 'body' | 'caption';
-  color?: 'primary' | 'danger';
+  color?: 'primary' | 'danger' | 'textSecondary' | 'textTertiary';
   /** 链接与左右文字之间的间距 */
   gap?: number;
   /** 整行容器水平对齐 */

@@ -40,6 +40,7 @@ import TrashScreen from './src/screens/TrashScreen';
 import DuplicateDetectScreen from './src/screens/DuplicateDetectScreen';
 import AutoBackupScreen from './src/screens/AutoBackupScreen';
 import ExportScreen from './src/screens/ExportScreen';
+import AlipayPayScreen from './src/screens/AlipayPayScreen';
 
 const Stack = createStackNavigator();
 const queryClient = new QueryClient();
@@ -797,6 +798,14 @@ function AppContent() {
             options={{ 
               headerShown: true,
               title: t('tier.comparePlans')
+            }}
+          />
+          <Stack.Screen 
+            name="AlipayPay" 
+            component={AlipayPayScreen as any}
+            options={{ 
+              headerShown: true,
+              title: t('payment.title')
             }}
           />
           <Stack.Screen 
