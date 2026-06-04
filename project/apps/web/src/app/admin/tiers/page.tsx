@@ -270,8 +270,8 @@ export default function TierManagementPage() {
                   {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
                     <td key={c.id} className="px-4 py-2.5 text-xs text-center text-gray-500">
                       {market === 'china'
-                        ? `¥${(c.pricingConfig as any)?.monthly?.cny ?? ((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100}`
-                        : `$${((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100}`}
+                        ? `¥${(((c.pricingConfig as any)?.monthly?.cny ?? 0) / 100).toFixed(2)}`
+                        : `$${(((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100).toFixed(2)}`}
                     </td>
                   ))}
                 </tr>
@@ -280,8 +280,8 @@ export default function TierManagementPage() {
                   {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
                     <td key={c.id} className="px-4 py-2.5 text-xs text-center text-gray-500">
                       {market === 'china'
-                        ? `¥${(c.pricingConfig as any)?.yearly?.cny ?? ((c.pricingConfig as any)?.yearly?.usd ?? 0) / 100}`
-                        : `$${((c.pricingConfig as any)?.yearly?.usd ?? 0) / 100}`}
+                        ? `¥${(((c.pricingConfig as any)?.yearly?.cny ?? 0) / 100).toFixed(2)}`
+                        : `$${(((c.pricingConfig as any)?.yearly?.usd ?? 0) / 100).toFixed(2)}`}
                     </td>
                   ))}
                 </tr>

@@ -192,14 +192,20 @@ export interface PlanPricing {
   yearly: PlanPrice
 }
 
+// ===== 定价配置 =====
+// 国内市场：价格单位为人民币分（cny），国内市场必须配置 cny，缺失时显示为 $0 是错误的
+// 海外市场：价格单位为美元美分（usd）
+// cny 与 usd 同步设置，避免任一市场显示为空或单位错误
 export const PRICING_CONFIG: Record<Exclude<UserTier, 'medium'>, PlanPricing> = {
   heavy: {
-    monthly: { usd: 299 },   // $2.99/月
-    yearly:  { usd: 2871 },  // $28.71/年(8折)
+    // 国内：¥19/月、¥199/年（8折）；海外：$2.99/月、$28.71/年
+    monthly: { usd: 299, cny: 1990 },
+    yearly:  { usd: 2871, cny: 19900 },
   },
   super: {
-    monthly: { usd: 599 },   // $5.99/月
-    yearly:  { usd: 5751 },  // $57.51/年(8折)
+    // 国内：¥39/月、¥399/年（8折）；海外：$5.99/月、$57.51/年
+    monthly: { usd: 599, cny: 3990 },
+    yearly:  { usd: 5751, cny: 39900 },
   },
 }
 

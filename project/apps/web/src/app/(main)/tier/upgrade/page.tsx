@@ -184,11 +184,16 @@ function TierUpgradePageContent() {
     const isChina = marketConfig?.market === 'china';
 
     if (isChina) {
-      // 国内市场：优先读取 cny，fallback 到 usd（兼容旧数据）
-      const price = cycleConfig?.cny ?? cycleConfig?.usd;
-      if (typeof price === 'number' && price > 0) {
-        return { price: price.toFixed(0), symbol: '¥', period: t(`tier.${billingCycle}`) };
+      // 国内市场：优先读取 cny（人民币分），fallback 到 usd（美元美分）并按汇率折算显示
+      const cnyPrice = cycleConfig?.cny;
+      if (typeof cnyPrice === 'number' && cnyPrice > 0) {
+        // cny 是「分」单位，需要除以 100 转为元
+        const yuan = cnyPrice / 100;
+        // 整数元显示（如 19），小数显示（如 19.9）
+        return { price: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', period: t(`tier.${billingCycle}`) };
       }
+      // 兜底：cny 缺失时，警示用户（避免显示美元或 0）
+      return null;
     } else {
       // 海外市场：读取 usd（美分）
       const price = cycleConfig?.usd;

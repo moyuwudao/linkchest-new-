@@ -114,17 +114,21 @@ export default function TierUpgradeScreen() {
     const monthlyConfig = p.monthly || {};
 
     if (isChina) {
-      // 国内市场：优先读取 cny，fallback 到 usd（兼容旧数据）
+      // 国内市场：读取 cny（人民币分），需要除以 100 转为元
       if (cycle === 'yearly') {
-        const price = yearlyConfig.cny ?? yearlyConfig.usd;
-        if (typeof price === 'number' && price > 0) {
-          return { amt: price.toFixed(0), symbol: '¥', per: t('tier.perYear') };
+        const cnyPrice = yearlyConfig.cny;
+        if (typeof cnyPrice === 'number' && cnyPrice > 0) {
+          const yuan = cnyPrice / 100;
+          return { amt: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', per: t('tier.perYear') };
         }
       }
-      const price = monthlyConfig.cny ?? monthlyConfig.usd;
-      if (typeof price === 'number' && price > 0) {
-        return { amt: price.toFixed(0), symbol: '¥', per: t('tier.perMonth') };
+      const cnyPrice = monthlyConfig.cny;
+      if (typeof cnyPrice === 'number' && cnyPrice > 0) {
+        const yuan = cnyPrice / 100;
+        return { amt: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', per: t('tier.perMonth') };
       }
+      // cny 缺失时不显示（避免显示美元或 0）
+      return null;
     } else {
       // 海外市场：读取 usd（美分）
       if (cycle === 'yearly' && yearlyConfig.usd) {

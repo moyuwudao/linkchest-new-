@@ -78,19 +78,46 @@ async function seedTierConfigs(): Promise<TierConfig[]> {
 /**
  * 初始化 tier 配置（仅在数据库为空时写入硬编码默认值）
  * 管理后台是配置唯一来源，此函数不会覆盖已有数据
+ *
+ * 例外：当已有记录的 pricingConfig 缺少 cny 字段时（历史遗留 bug），
+ *       自动用代码默认的 cny 价格补齐，确保国内市场显示正确的人民币价格
  */
-export async function syncTierConfigs(): Promise<{ updated: number; created: number }> {
+export async function syncTierConfigs(): Promise<{ updated: number; created: number; cnyBackfilled: number }> {
   const configs = buildFallbackConfigs()
   let updated = 0
   let created = 0
+  let cnyBackfilled = 0
 
   for (const c of configs) {
     try {
       const existing = await prisma.tierConfig.findUnique({ where: { key: c.key } })
       if (existing) {
-        // 管理后台是配置唯一来源：已有数据不做任何覆盖
-        // 如需重置为代码默认值，请通过管理后台手动编辑或重建数据库
-        continue
+        // 检查是否需要补充 cny 字段（不覆盖其他已有数据）
+        const existingPricing = (existing.pricingConfig as Record<string, any>) || {}
+        const needsCnyBackfill =
+          c.pricingConfig &&
+          existingPricing &&
+          (existingPricing.monthly?.cny == null || existingPricing.yearly?.cny == null)
+
+        if (needsCnyBackfill && c.pricingConfig) {
+          const mergedPricing = {
+            monthly: {
+              usd: existingPricing.monthly?.usd ?? c.pricingConfig.monthly.usd,
+              cny: existingPricing.monthly?.cny ?? c.pricingConfig.monthly.cny ?? 0,
+            },
+            yearly: {
+              usd: existingPricing.yearly?.usd ?? c.pricingConfig.yearly.usd,
+              cny: existingPricing.yearly?.cny ?? c.pricingConfig.yearly.cny ?? 0,
+            },
+          }
+          await prisma.tierConfig.update({
+            where: { id: existing.id },
+            data: { pricingConfig: mergedPricing as any },
+          })
+          cnyBackfilled++
+          logger.info({ key: c.key }, '已为历史 tier 配置补充 cny 价格字段（国内人民币）')
+        }
+        // 其他场景不覆盖管理后台数据
       } else {
         await prisma.tierConfig.create({
           data: {
@@ -112,11 +139,11 @@ export async function syncTierConfigs(): Promise<{ updated: number; created: num
     }
   }
 
-  if (created > 0) {
+  if (created > 0 || cnyBackfilled > 0) {
     clearTierConfigCache()
-    logger.info({ created }, 'tier configs seeded from hardcoded defaults')
+    logger.info({ created, cnyBackfilled }, 'tier configs synced')
   }
-  return { updated, created }
+  return { updated, created, cnyBackfilled }
 }
 
 function rowToTierConfig(row: {
