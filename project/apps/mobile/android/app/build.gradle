@@ -127,10 +127,9 @@ android {
         versionCode 1
         versionName "1.0.0"
         resValue "string", "app_name", "LinkChest"
+        // 默认市场标识（china/global 风味可覆盖）
+        buildConfigField "String", "MARKET", "\"default\""
     }
-
-    // 为不同市场生成不同 BuildConfig.MARKET（供 NativeModule 按风味编译）
-    buildConfigField "String", "MARKET", "\"default\""
 
     // 产品风味：区分国内版和海外版
     flavorDimensions += "market"
