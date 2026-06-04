@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Clock, Loader2, ChevronDown, Download, RefreshCw, CloudUpload, Archive } from 'lucide-react';
+import { Clock, Loader2, ChevronDown, Download, RefreshCw, UploadCloud, Archive, History } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
@@ -110,6 +110,37 @@ export default function AutoBackupSection({ userTier }: AutoBackupSectionProps) 
     }
   };
 
+  // 恢复备份（只增不删 — 现有数据保留）
+  const [restoringId, setRestoringId] = useState<string | null>(null);
+  const handleRestore = async (backupId: string, filename: string) => {
+    if (!confirm(t('settings.backupRestoreConfirmDesc'))) return;
+    setRestoringId(backupId);
+    try {
+      const r = await api.post(`/backups/${backupId}/restore`);
+      const s = r.data.data || {};
+      showToast(
+        `${t('settings.backupRestoreSuccess')} · ${t('settings.backupRestoredCollections')}: ${s.collectionsCreated || 0} · ${t('settings.backupSkippedCollections')}: ${s.collectionsSkipped || 0}`,
+        'success'
+      );
+      // 刷新可能受影响的查询
+      queryClient.invalidateQueries({ queryKey: ['collections'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.response?.data?.error || t('common.operationFailed');
+      if (status === 502) {
+        showAlert(msg || '云端存储暂不可用，恢复失败', 'error');
+      } else if (status === 404) {
+        showAlert(t('settings.backupNotFound'), 'error');
+      } else {
+        showAlert(msg, 'error');
+      }
+    } finally {
+      setRestoringId(null);
+    }
+  };
+
   return (
     <div className="card">
       <button
@@ -175,7 +206,7 @@ export default function AutoBackupSection({ userTier }: AutoBackupSectionProps) 
                   disabled={backingUp}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-chest-500 text-white rounded-lg hover:bg-chest-600 disabled:bg-taupe/20 text-sm transition-colors cursor-pointer"
                 >
-                  {backingUp ? <Loader2 size={16} className="animate-spin" /> : <CloudUpload size={16} />}
+                  {backingUp ? <Loader2 size={16} className="animate-spin" /> : <UploadCloud size={16} />}
                   {t('settings.backupExportNow')}
                 </button>
                 <button
@@ -229,7 +260,7 @@ export default function AutoBackupSection({ userTier }: AutoBackupSectionProps) 
                             </span>
                           ) : (
                             <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
-                              <CloudUpload size={14} />
+                              <UploadCloud size={14} />
                             </span>
                           )}
                         </div>
@@ -246,13 +277,29 @@ export default function AutoBackupSection({ userTier }: AutoBackupSectionProps) 
                             </span>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleDownload(bk.id)}
-                          className="flex-shrink-0 text-chest-500 dark:text-amber-400 hover:bg-chest-500/10 rounded p-1.5 transition-colors"
-                          aria-label="download"
-                        >
-                          <Download size={16} />
-                        </button>
+                        <div className="flex-shrink-0 flex items-center gap-1">
+                          <button
+                            onClick={() => handleRestore(bk.id, bk.filename)}
+                            disabled={restoringId === bk.id}
+                            className="text-chest-500 dark:text-amber-400 hover:bg-chest-500/10 disabled:opacity-50 rounded p-1.5 transition-colors"
+                            aria-label="restore"
+                            title={t('settings.backupActionRestore')}
+                          >
+                            {restoringId === bk.id ? (
+                              <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                              <History size={16} />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleDownload(bk.id)}
+                            className="text-chest-500 dark:text-amber-400 hover:bg-chest-500/10 rounded p-1.5 transition-colors"
+                            aria-label="download"
+                            title={t('settings.backupActionDownload')}
+                          >
+                            <Download size={16} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>

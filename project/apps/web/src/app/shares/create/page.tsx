@@ -198,19 +198,6 @@ export default function CreateSharePage() {
     }
   };
 
-  const getPlatformIcon = (platform: string) => {
-    const icons: Record<string, string> = {
-      douyin: '🎵',
-      bilibili: '📺',
-      xiaohongshu: '📕',
-      weibo: '🌐',
-      wechat: '💬',
-      toutiao: '📰',
-      youtube: '📺',
-    };
-    return icons[platform] || '🔗';
-  };
-
   return (
     <div className="min-h-screen bg-paper dark:bg-ink">
       <div className="max-w-3xl mx-auto py-8 px-4">
@@ -344,18 +331,15 @@ export default function CreateSharePage() {
                           {selectedCollections.includes(collection.id) && <Check size={14} className="text-white" />}
                         </div>
                         <div className="w-12 h-12 bg-parchment/10 dark:bg-charcoal/50 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                          {collection.coverImage ? (
-                            <LazyImage
-                              src={collection.coverImage}
-                              alt=""
-                              title={collection.title}
-                              platform={collection.platform}
-                              collectionId={collection.id}
-                              containerClassName="w-12 h-12 rounded-lg flex-shrink-0"
-                            />
-                          ) : (
-                            <span className="text-lg">{getPlatformIcon(collection.platform)}</span>
-                          )}
+                          {/* 与收藏页/分享页一致：coverImage 为空时让 LazyImage 走 brand fallback（保持品牌色一致） */}
+                          <LazyImage
+                            src={collection.coverImage}
+                            alt=""
+                            title={collection.title}
+                            platform={collection.platform}
+                            collectionId={collection.id}
+                            containerClassName="w-12 h-12 rounded-lg flex-shrink-0"
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-charcoal dark:text-parchment truncate">{collection.title}</p>

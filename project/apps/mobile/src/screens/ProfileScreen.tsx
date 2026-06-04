@@ -31,8 +31,8 @@ export default function ProfileScreen() {
     queryKey: ['stats'],
     queryFn: async () => {
       try {
-        // 使用后端专用统计端点
-        const overviewRes = await api.get('/stats/overview');
+        // 使用后端专用统计端点（后台轮询：失败不弹 server busy toast）
+        const overviewRes = await api.get('/stats/overview', { __silent: true } as any);
         const d = overviewRes.data.data;
         return {
           collections: d?.collectionCount || 0,
@@ -52,7 +52,8 @@ export default function ProfileScreen() {
   const { data: cachedMe } = useQuery({
     queryKey: ['auth-me'],
     queryFn: async () => {
-      const res = await api.get('/auth/me');
+      // 后台缓存用户信息：失败不弹 server busy toast
+      const res = await api.get('/auth/me', { __silent: true } as any);
       return res.data.data || res.data;
     },
     enabled: !!user,

@@ -615,8 +615,8 @@ function AppContent() {
       if (storedToken) {
         useAuthStore.setState({ token: storedToken });
         wasEverLoggedInRef.current = true;
-        // 异步验证用户，不阻塞 UI 渲染
-        api.get('/auth/me').then((response) => {
+        // 异步验证用户，不阻塞 UI 渲染（启动期请求：失败仅清理 token，不弹 server busy toast）
+        api.get('/auth/me', { __silent: true } as any).then((response) => {
           const userData = response.data.data || response.data;
           setUser(userData);
           // 登录成功后清空剪贴板缓存，允许重新检测
@@ -631,10 +631,10 @@ function AppContent() {
             });
             logEvent('login', { method: userData.authSource || 'email' });
           }
-          // 获取并上报 Push Token
+          // 获取并上报 Push Token（后台任务：失败不弹 server busy toast）
           getPushToken().then((pushToken) => {
             if (pushToken) {
-              api.patch('/users/profile', { pushToken }).catch(() => {});
+              api.patch('/users/profile', { pushToken }, { __silent: true } as any).catch(() => {});
             }
           }).catch(() => {});
         }).catch(() => {

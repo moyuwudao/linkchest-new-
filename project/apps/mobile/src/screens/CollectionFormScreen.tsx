@@ -298,15 +298,11 @@ export default function CollectionFormScreen() {
       }
       if (data.platform) setPlatform(data.platform);
 
-      if (data.url) {
-        try {
-          const classifyRes = await api.post('/collections/classify', { url: data.url, platform: data.platform });
-          const classifyData = classifyRes.data.data;
-          setSelectedPageType(classifyData.type || DEFAULT_PAGE_TYPE);
-        } catch {
-          setSelectedPageType(DEFAULT_PAGE_TYPE);
-        }
-      }
+      // ⚠️ 不再根据后端 classify 结果自动设置 pageType
+      // 后端 pageType 验证严格在 ['home','detail','list','search','navigation','document','download','other']
+      // 而 classify 返回的 type 是 'video','social','article','technical','webpage' 等不在该列表中
+      // 用户要求"选择哪个就是哪个，不选默认为详情页"
+      setSelectedPageType(DEFAULT_PAGE_TYPE);
 
       if (!isEdit && data.duplicate) {
         setDuplicateWarning(data.duplicateCollection || data.existingCollection);
@@ -656,7 +652,6 @@ export default function CollectionFormScreen() {
           <Text style={{ flex: 1, fontSize: 16, fontWeight: '500', color: platformColor }}>
             {getPlatformName(platform)}
           </Text>
-          <Text style={{ fontSize: 12, color: colors.textTertiary }}>{t('collection.autoDetected')}</Text>
         </View>
       </View>
 

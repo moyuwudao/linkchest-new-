@@ -134,7 +134,9 @@ android {
         }
         china {
             dimension "market"
-            applicationId 'cn.linkchest.app'
+            // 国内版包名统一为 com.linkchest.app（与软著登记一致）
+            // 通过其他维度（app_name / icon / API / features）区分国内/海外版本
+            applicationId 'com.linkchest.app'
             resValue "string", "app_name", "链藏"
             manifestPlaceholders = [
                 JPUSH_APPKEY: project.hasProperty('JPUSH_APPKEY') ? JPUSH_APPKEY : '',
@@ -242,11 +244,9 @@ if (rnVersion < versionToNumber(0, 75, 0)) {
 }
 
 // Google Services 插件：仅海外版需要
-// 国内版跳过，因为包名不同且国内无法访问Google服务
-if (!project.hasProperty("android.injected.invoked.from.ide") || android.defaultConfig.applicationId != "cn.linkchest.app") {
-    // 使用更可靠的方式判断：检查当前构建任务是否包含 "China"
-    def isChinaBuild = gradle.startParameter.taskNames.any { it.toLowerCase().contains('china') }
-    if (!isChinaBuild) {
-        apply plugin: 'com.google.gms.google-services'
-    }
+// 国内版跳过，因为国内无法访问Google服务
+// 通过构建任务名判断（国内任务名包含 "China"），不再依赖 applicationId
+def isChinaBuild = gradle.startParameter.taskNames.any { it.toLowerCase().contains('china') }
+if (!isChinaBuild) {
+    apply plugin: 'com.google.gms.google-services'
 }

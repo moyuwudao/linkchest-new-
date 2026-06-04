@@ -7,6 +7,7 @@ import {
   getBackupDownloadUrl,
   deleteBackup,
   executeBackup,
+  restoreBackup,
 } from '../services/backup'
 
 const router = Router()
@@ -91,6 +92,55 @@ router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res) => {
       '删除备份失败'
     )
     errorResponse(res, 500, CommonErrorCodes.SERVER_ERROR, '删除失败')
+  }
+})
+
+/**
+ * POST /api/backups/:id/restore
+ * 从指定备份恢复数据到当前账户（只增不删 — 不删除任何现有数据）
+ * - 标签/分组按 name 去重
+ * - 收藏按 url 去重
+ */
+router.post('/:id/restore', authenticate, async (req: AuthenticatedRequest, res) => {
+  const userId = req.user.id
+  const backupId = req.params.id
+
+  try {
+    const result = await restoreBackup(backupId, userId)
+    if (!result.ok) {
+      const reason = result.reason || 'INTERNAL_ERROR'
+      const statusMap: Record<string, number> = {
+        NOT_FOUND: 404,
+        UNSUPPORTED_FORMAT: 400,
+        COS_DOWNLOAD_FAILED: 502,
+        INVALID_JSON: 400,
+        INVALID_PAYLOAD: 400,
+      }
+      const codeMap: Record<string, string> = {
+        NOT_FOUND: 'BACKUP_NOT_FOUND',
+        UNSUPPORTED_FORMAT: 'UNSUPPORTED_FORMAT',
+        COS_DOWNLOAD_FAILED: 'STORAGE_UNAVAILABLE',
+        INVALID_JSON: 'INVALID_BACKUP_FILE',
+        INVALID_PAYLOAD: 'INVALID_BACKUP_FILE',
+      }
+      return errorResponse(
+        res,
+        statusMap[reason] || 500,
+        codeMap[reason] || CommonErrorCodes.SERVER_ERROR,
+        reason === 'NOT_FOUND'
+          ? '备份不存在'
+          : reason === 'COS_DOWNLOAD_FAILED'
+            ? '云端存储暂不可用，恢复失败'
+            : '备份文件无效或已损坏'
+      )
+    }
+    res.json({ data: { success: true, ...result.stats } })
+  } catch (error) {
+    logger.error(
+      { err: error instanceof Error ? error.message : String(error), userId, backupId },
+      '备份恢复失败'
+    )
+    errorResponse(res, 500, CommonErrorCodes.SERVER_ERROR, '恢复失败，请稍后重试')
   }
 })
 

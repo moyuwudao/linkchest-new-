@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "lastUpdated": "2026-05-26",
   "description": "LinkChest 国内外运营配置 - 唯一真相源",
-  "warning": "修改此文件后需同步更新 MARKET-OPS.md 文档，并重新构建APK才能生效",
+  "warning": "包名已统一为 com.linkchest.app（与软著登记一致），通过 app_name / icon / API / features 区分国内/海外版本",
   "markets": {
     "global": {
       "name": "海外版",
@@ -32,7 +32,7 @@
     },
     "china": {
       "name": "国内版",
-      "packageName": "cn.linkchest.app",
+      "packageName": "com.linkchest.app",
       "appName": "链藏",
       "login": {
         "android": ["email", "wechat"],

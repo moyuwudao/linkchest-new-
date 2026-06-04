@@ -37,7 +37,6 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="com.linkchest.app"/>
-        <data android:scheme="cn.linkchest.app"/>
       </intent-filter>
       <intent-filter data-generated="true">
         <action android:name="android.intent.action.SEND"/>

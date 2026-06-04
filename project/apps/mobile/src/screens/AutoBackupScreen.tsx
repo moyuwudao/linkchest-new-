@@ -89,6 +89,12 @@ export default function AutoBackupScreen() {
 
   const [backingUp, setBackingUp] = useState(false);
 
+  // React Query 客户端实例（用于在立即备份成功后刷新备份目录列表）
+  const queryClient = useQueryClient();
+
+  // 正在恢复的备份 ID（用于显示旋转图标）
+  const [restoringId, setRestoringId] = useState<string | null>(null);
+
   const handleImmediateBackup = async () => {
     setBackingUp(true);
     setBackupResult(null);
@@ -321,25 +327,76 @@ export default function AutoBackupScreen() {
                   { backgroundColor: colors.background, borderColor: colors.border },
                 ]}
                 activeOpacity={0.7}
-                onPress={async () => {
-                  try {
-                    const r = await api.get(`/backups/${bk.id}/download`);
-                    const data = r.data.data;
-                    if (data?.url) {
-                      // 移动端暂用系统浏览器打开（外链）
-                      const { Linking } = require('react-native');
-                      await Linking.openURL(data.url).catch(() => {});
-                    }
-                  } catch {
-                    // 下载失败由用户看到下次
-                  }
+                onPress={() => {
+                  // 弹出操作选择：恢复 / 下载
+                  Alert.alert(
+                    bk.filename,
+                    t('settings.backupActionsHint'),
+                    [
+                      {
+                        text: t('settings.backupActionRestore'),
+                        onPress: async () => {
+                          Alert.alert(
+                            t('settings.backupRestoreConfirmTitle'),
+                            t('settings.backupRestoreConfirmDesc'),
+                            [
+                              { text: t('common.cancel'), style: 'cancel' },
+                              {
+                                text: t('settings.backupActionRestore'),
+                                onPress: async () => {
+                                  try {
+                                    setRestoringId(bk.id);
+                                    const r = await api.post(`/backups/${bk.id}/restore`);
+                                    const s = r.data?.data || {};
+                                    Alert.alert(
+                                      t('settings.backupRestoreSuccess'),
+                                      `${t('settings.backupRestoredTags')}: ${s.tagsCreated || 0}\n${t('settings.backupRestoredLists')}: ${s.listsCreated || 0}\n${t('settings.backupRestoredCollections')}: ${s.collectionsCreated || 0}\n${t('settings.backupSkippedCollections')}: ${s.collectionsSkipped || 0}`
+                                    );
+                                    queryClient.invalidateQueries({ queryKey: ['backups'] });
+                                    queryClient.invalidateQueries({ queryKey: ['collections'] });
+                                    queryClient.invalidateQueries({ queryKey: ['tags'] });
+                                    queryClient.invalidateQueries({ queryKey: ['lists'] });
+                                  } catch (err: any) {
+                                    const msg =
+                                      err?.response?.data?.message ||
+                                      err?.response?.data?.error ||
+                                      err?.message ||
+                                      t('common.operationFailed');
+                                    Alert.alert(t('settings.backupRestoreFailed'), msg);
+                                  } finally {
+                                    setRestoringId(null);
+                                  }
+                                },
+                              },
+                            ]
+                          );
+                        },
+                      },
+                      {
+                        text: t('settings.backupActionDownload'),
+                        onPress: async () => {
+                          try {
+                            const r = await api.get(`/backups/${bk.id}/download`);
+                            const data = r.data.data;
+                            if (data?.url) {
+                              const { Linking } = require('react-native');
+                              await Linking.openURL(data.url).catch(() => {});
+                            }
+                          } catch {
+                            // 下载失败由用户看到下次
+                          }
+                        },
+                      },
+                      { text: t('common.cancel'), style: 'cancel' },
+                    ]
+                  );
                 }}
               >
                 <View style={styles.backupItemIcon}>
                   <Ionicons
-                    name={bk.source === 'auto' ? 'sync' : 'cloud-upload'}
+                    name={restoringId === bk.id ? 'sync' : bk.source === 'auto' ? 'sync' : 'cloud-upload'}
                     size={20}
-                    color={bk.source === 'auto' ? colors.primary : colors.success}
+                    color={restoringId === bk.id ? colors.primary : bk.source === 'auto' ? colors.primary : colors.success}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -355,7 +412,7 @@ export default function AutoBackupScreen() {
                     {t('settings.backupItems')}
                   </Text>
                 </View>
-                <Ionicons name="download-outline" size={18} color={colors.textTertiary} />
+                <Ionicons name="ellipsis-horizontal" size={18} color={colors.textTertiary} />
               </TouchableOpacity>
             ))}
           </View>

@@ -44,14 +44,13 @@ module.exports = {
     assetBundlePatterns: ['**/*'],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: marketValue === 'china'
-        ? 'cn.linkchest.app'
-        : 'com.linkchest.app',
+      // 国内外版统一 bundleId，与软著登记一致
+      bundleIdentifier: 'com.linkchest.app',
     },
     android: {
-      package: marketValue === 'china'
-        ? 'cn.linkchest.app'
-        : 'com.linkchest.app',
+      // 国内外版统一包名，与软著登记一致
+      // 通过 app_name / icon / API / features 区分国内/海外版本
+      package: 'com.linkchest.app',
       // 国内服务器已启用HTTPS，无需明文流量
       usesCleartextTraffic: false,
       permissions: [],

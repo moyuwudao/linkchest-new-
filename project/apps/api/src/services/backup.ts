@@ -1,5 +1,5 @@
 import prisma from '../lib/prisma'
-import { uploadToCos, isCosConfigured, getSignedUrl, deleteFromCos } from './cos'
+import { uploadToCos, isCosConfigured, getSignedUrl, deleteFromCos, downloadFromCos } from './cos'
 import { sendPushToUser } from './push'
 import logger from '../lib/logger'
 
@@ -337,6 +337,186 @@ export async function deleteBackup(backupId: string, userId: string): Promise<bo
   }
   await prisma.backup.delete({ where: { id: backup.id } })
   return true
+}
+
+/**
+ * 从备份恢复数据到当前账户
+ *
+ * 关键约束：只增不删 — 不删除任何现有数据
+ * - 标签（Tag）：按 name 去重，已存在则跳过
+ * - 分组（List）：按 name 去重，已存在则跳过
+ * - 收藏（Collection）：按 url 去重，已存在则跳过
+ *
+ * @returns 恢复统计：新增/跳过的数量
+ */
+export async function restoreBackup(backupId: string, userId: string): Promise<{
+  ok: boolean
+  reason?: string
+  stats?: {
+    tagsCreated: number
+    listsCreated: number
+    collectionsCreated: number
+    collectionsSkipped: number
+  }
+}> {
+  const backup = await prisma.backup.findFirst({
+    where: { id: backupId, userId },
+  })
+  if (!backup) return { ok: false, reason: 'NOT_FOUND' }
+
+  if (backup.format !== 'json') {
+    return { ok: false, reason: 'UNSUPPORTED_FORMAT' }
+  }
+
+  // 从 COS 下载
+  let buffer: Buffer
+  try {
+    buffer = await downloadFromCos(backup.cosKey)
+  } catch (err) {
+    logger.error(
+      { err: err instanceof Error ? err.message : String(err), backupId },
+      '❌ 备份恢复：COS 下载失败'
+    )
+    return { ok: false, reason: 'COS_DOWNLOAD_FAILED' }
+  }
+
+  // 解析 JSON
+  let payload: any
+  try {
+    payload = JSON.parse(buffer.toString('utf-8'))
+  } catch {
+    return { ok: false, reason: 'INVALID_JSON' }
+  }
+
+  if (!payload || !Array.isArray(payload.collections)) {
+    return { ok: false, reason: 'INVALID_PAYLOAD' }
+  }
+
+  // 在事务中恢复（一致性 + 失败回滚）
+  try {
+    const stats = await prisma.$transaction(async (tx) => {
+      let tagsCreated = 0
+      let listsCreated = 0
+      let collectionsCreated = 0
+      let collectionsSkipped = 0
+
+      // 1) 加载已有 tag/list（用于按 name 匹配）
+      const tagNameToId = new Map<string, string>()
+      const existingTags = await tx.tag.findMany({
+        where: { userId },
+        select: { id: true, name: true },
+      })
+      existingTags.forEach((t) => tagNameToId.set(t.name, t.id))
+
+      const listNameToId = new Map<string, string>()
+      const existingLists = await tx.list.findMany({
+        where: { userId },
+        select: { id: true, name: true },
+      })
+      existingLists.forEach((l) => listNameToId.set(l.name, l.id))
+
+      // 2) 恢复 tags（按 name 去重）
+      if (Array.isArray(payload.tags)) {
+        for (const t of payload.tags) {
+          if (!t || typeof t.name !== 'string' || !t.name.trim()) continue
+          const name = t.name.trim()
+          if (tagNameToId.has(name)) continue
+          const created = await tx.tag.create({
+            data: { userId, name },
+            select: { id: true, name: true },
+          })
+          tagNameToId.set(created.name, created.id)
+          tagsCreated++
+        }
+      }
+
+      // 3) 恢复 lists（按 name 去重）
+      if (Array.isArray(payload.lists)) {
+        for (const l of payload.lists) {
+          if (!l || typeof l.name !== 'string' || !l.name.trim()) continue
+          const name = l.name.trim()
+          if (listNameToId.has(name)) continue
+          const created = await tx.list.create({
+            data: {
+              userId,
+              name,
+              description: typeof l.description === 'string' ? l.description : null,
+            },
+            select: { id: true, name: true },
+          })
+          listNameToId.set(created.name, created.id)
+          listsCreated++
+        }
+      }
+
+      // 4) 恢复 collections（按 url 去重 + 关联已有 tag/list）
+      for (const c of payload.collections) {
+        if (!c || typeof c.url !== 'string' || !c.url.trim()) continue
+        const url = c.url.trim()
+
+        const existing = await tx.collection.findFirst({
+          where: { userId, url, deletedAt: null },
+          select: { id: true },
+        })
+        if (existing) {
+          collectionsSkipped++
+          continue
+        }
+
+        // 准备 tag 关联
+        const tagConnect: { id: string }[] = []
+        if (Array.isArray(c.tags)) {
+          for (const t of c.tags) {
+            if (!t || typeof t.name !== 'string') continue
+            const id = tagNameToId.get(t.name.trim())
+            if (id) tagConnect.push({ id })
+          }
+        }
+
+        // 准备 list 关联
+        const listConnect: { id: string }[] = []
+        if (Array.isArray(c.lists)) {
+          for (const l of c.lists) {
+            if (!l || typeof l.name !== 'string') continue
+            const id = listNameToId.get(l.name.trim())
+            if (id) listConnect.push({ id })
+          }
+        }
+
+        await tx.collection.create({
+          data: {
+            userId,
+            url,
+            title: typeof c.title === 'string' && c.title.trim() ? c.title.trim() : url,
+            description: typeof c.description === 'string' ? c.description : null,
+            platform: typeof c.platform === 'string' ? c.platform : null,
+            coverImage: typeof c.coverImage === 'string' ? c.coverImage : null,
+            coverStrategy:
+              typeof c.coverStrategy === 'string' ? c.coverStrategy : 'auto',
+            pageType: typeof c.pageType === 'string' ? c.pageType : 'detail',
+            note: typeof c.note === 'string' ? c.note : null,
+            tags: { connect: tagConnect },
+            lists: { connect: listConnect },
+          },
+        })
+        collectionsCreated++
+      }
+
+      return { tagsCreated, listsCreated, collectionsCreated, collectionsSkipped }
+    })
+
+    logger.info(
+      { userId, backupId, ...stats },
+      '✅ 备份恢复完成（只增不删）'
+    )
+    return { ok: true, stats }
+  } catch (err) {
+    logger.error(
+      { err: err instanceof Error ? err.message : String(err), userId, backupId },
+      '❌ 备份恢复失败'
+    )
+    return { ok: false, reason: 'INTERNAL_ERROR' }
+  }
 }
 
 // 保留兼容：旧接口 processPendingBackups 仍在使用

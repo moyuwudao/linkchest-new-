@@ -115,6 +115,27 @@ export async function getSignedUrl(key: string, expires = 3600): Promise<string>
 }
 
 /**
+ * 从 COS 下载对象到 Buffer（用于备份恢复等场景）
+ */
+export async function downloadFromCos(key: string): Promise<Buffer> {
+  const client = getCosClient()
+  return new Promise((resolve, reject) => {
+    client.getObject(
+      {
+        Bucket: COS_CONFIG.bucket,
+        Region: COS_CONFIG.region,
+        Key: key,
+      },
+      (err, data) => {
+        if (err) reject(new Error(`COS 下载失败: ${err.message}`))
+        else if (!data.Body) reject(new Error('COS 下载失败: Body 为空'))
+        else resolve(data.Body as Buffer)
+      }
+    )
+  })
+}
+
+/**
  * 批量删除 COS 对象
  */
 export async function batchDeleteFromCos(keys: string[]): Promise<void> {

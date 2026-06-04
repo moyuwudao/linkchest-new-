@@ -7,7 +7,6 @@ import StarRating from '@/components/StarRating';
 import { getToken } from '@/lib/auth';
 import { api, recordShareView, type ApiError } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
-import { generateDefaultCover } from '@/lib/platforms';
 import { PlatformBadge } from '@/components/PlatformBadge';
 import { useToast } from '@/components/Toast';
 import LazyImage from '@/components/LazyImage';
@@ -455,9 +454,9 @@ export default function SharePageClient({ initialData }: SharePageClientProps) {
               onClick={isLocked ? (e) => e.preventDefault() : undefined}
             >
               <div className={`relative ${isLocked ? 'opacity-30 blur-sm select-none' : ''}`}>
-                {/* Cover */}
+                {/* Cover - 与收藏页保持一致：coverImage 为空时让 LazyImage 走 brand fallback */}
                 <LazyImage
-                  src={item.coverImage || generateDefaultCover(item.platform, item.title)}
+                  src={item.coverImage}
                   alt={item.title}
                   title={item.title}
                   platform={item.platform}

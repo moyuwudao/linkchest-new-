@@ -160,12 +160,16 @@ api.interceptors.response.use(
         visibilityTime: 3000,
       });
     } else if (error.response.status >= 500) {
-      Toast.show({
-        type: 'error',
-        text1: t('common.serverBusy'),
-        text2: t('common.tryLater'),
-        visibilityTime: 3000,
-      });
+      // 静默标记：后台验证/轮询请求不弹 toast（仅 reject 给调用方处理）
+      const silent = (error.config as any)?.__silent === true
+      if (!silent) {
+        Toast.show({
+          type: 'error',
+          text1: t('common.serverBusy'),
+          text2: t('common.tryLater'),
+          visibilityTime: 3000,
+        });
+      }
     } else if (error.response.status === 403) {
       const errCode = error.response.data?.error || '';
       // 配额超限特殊提示

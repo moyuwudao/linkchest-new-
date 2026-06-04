@@ -10,7 +10,8 @@
 # 3. JS bundle 强制清理范围扩大，确保 Gradle 重新运行 Metro
 # 4. 结构化 JSON Lines 日志输出，支持自动化分析
 # ============================================================
-set -e
+# 调试：临时禁用 set -e 定位卡点（构建完成前不要 commit 这行）
+# set -e
 
 cd /mnt/d/trae_projects/linkchest/project/apps/mobile/android
 export ANDROID_HOME=/opt/android-sdk
@@ -142,9 +143,12 @@ log_json "INFO" "init" "flavor-detect" "Flavor and WSL instance detected" \
 # ============================================================
 log_json "INFO" "env-prep" "env-start" "Starting environment preparation"
 
-JAVA_VER=$(java -version 2>&1 | head -1 || echo "unknown")
+# 修复：java -version 输出含双引号 (如 openjdk version "17.0.19")，
+# 这些双引号会破坏 JSON 格式（与 set -e 配合让脚本静默退出）。
+# 用 tr 删除所有双引号即可
+JAVA_VER=$(java -version 2>&1 | head -1 | tr -d '"' || echo "unknown")
 NODE_VER=$(node --version 2>/dev/null || echo "unknown")
-GRADLE_VER=$(./gradlew --version 2>/dev/null | grep "Gradle" | head -1 || echo "unknown")
+GRADLE_VER=$(./gradlew --version 2>/dev/null | grep "Gradle" | head -1 | tr -d '"' || echo "unknown")
 DISK_FREE=$(df -BG /mnt/d | tail -1 | awk '{print $4}' | tr -d 'G' || echo "unknown")
 MEM_FREE=$(free -m | grep Mem | awk '{print $7}' || echo "unknown")
 
@@ -229,10 +233,7 @@ fi
 # 防止 WSL2 在 /mnt/d 上的 inode 缓存导致跨实例污染
 for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android \
                      /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android \
-                     /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android \
-                     /mnt/d/trae_projects/linkchest/project/node_modules/@react-navigation-*/lib/module/views/assets \
-                     /mnt/d/trae_projects/linkchest/project/node_modules/react-native-wechat-lib/android/build \
-                     /mnt/d/trae_projects/linkchest/project/node_modules/react-native-svg/android/build; do
+                     /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android; do
     if [ -d "$native_module/build" ]; then
         rm -rf "$native_module/build" 2>/dev/null || true
         CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
