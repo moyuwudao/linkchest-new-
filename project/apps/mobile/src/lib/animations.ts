@@ -208,3 +208,50 @@ export function createPulse() {
 
   return { pulseValue, start, stop };
 }
+
+/**
+ * 页面级转场（用于 React Navigation Stack.Screen options）
+ * 保持与现有 fadeInUp / scaleOnPress 一致的时序和缓动
+ */
+export const screenTransitions = {
+  slideFromRight: { animation: 'slide_from_right' as const, duration: 220 },
+  fade:           { animation: 'fade' as const,               duration: 180 },
+  modal:          { animation: 'slide_from_bottom' as const, duration: 260 },
+  none:           { animation: 'fade' as const,               duration: 0 },
+};
+
+/**
+ * 列表项入场 hook（按 index 错开）
+ * 解决：各屏幕列表"瞬间出现"无节奏感
+ * @param index 当前项索引
+ * @param staggerMs 每项间隔（默认 40ms，体感最佳）
+ * @param maxIndex 超过该索引的项不再延迟（防止长列表卡顿）
+ */
+export function useStaggerFadeIn(index: number, staggerMs: number = 40, maxIndex: number = 20) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(8)).current;
+  const refs = useRef({ started: false });
+
+  if (!refs.current.started) {
+    refs.current.started = true;
+    const delay = Math.min(index, maxIndex) * staggerMs;
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 280,
+        delay,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 280,
+        delay,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }
+
+  return { opacity, translateY };
+}
