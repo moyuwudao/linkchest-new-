@@ -174,14 +174,37 @@ async function pushToDLQ(item: MetadataQueueItem): Promise<void> {
  * 应在应用启动时调用，持续运行
  */
 export async function startMetadataQueueConsumer(): Promise<void> {
-  if (!isRedisAvailable()) {
+  const redis = getRedisClient()
+  if (!redis) {
     logger.info('[MetadataQueue] Redis 不可用，启动内存队列消费者')
     startMemoryConsumer()
     return
   }
 
-  const redis = getRedisClient()
-  if (!redis) {
+  // 等待 Redis 连接 ready（避免 BRPOP 在 ready 前被 reject）
+  if (redis.status !== 'ready') {
+    logger.info({ status: redis.status }, '[MetadataQueue] 等待 Redis 连接 ready...')
+    await new Promise<void>((resolve) => {
+      if (redis.status === 'ready') return resolve()
+      const onReady = () => {
+        redis.off('error', onError)
+        resolve()
+      }
+      const onError = () => {
+        // 连接错误时也要继续走（可能会重试）
+      }
+      redis.once('ready', onReady)
+      redis.once('error', onError)
+      // 最多等 10 秒
+      setTimeout(() => {
+        redis.off('ready', onReady)
+        resolve()
+      }, 10000)
+    })
+  }
+
+  if (!isRedisAvailable()) {
+    logger.info('[MetadataQueue] Redis 连接未就绪，启动内存队列消费者')
     startMemoryConsumer()
     return
   }
