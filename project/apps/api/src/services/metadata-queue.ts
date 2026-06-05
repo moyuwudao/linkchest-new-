@@ -3,17 +3,20 @@ import prisma from '../lib/prisma'
 import { Prisma } from '@prisma/client'
 import { fetchUrlMetadata } from './metadata'
 import { getRedisClient, isRedisAvailable, recordRedisFailure } from '../lib/redis'
+import { METADATA_MAX_CONCURRENT } from '../lib/constants'
 import logger from '../lib/logger'
 
-// 最大并发 3，防止元数据抓取压垮 2核2G 服务器
-const limit = pLimit(3)
+// 最大并发：国内 5，海外默认 3（可通过 env METADATA_MAX_CONCURRENT 调整）
+const limit = pLimit(METADATA_MAX_CONCURRENT)
 
 // Redis key 前缀
 const QUEUE_KEY = 'lc:metadata:queue'
+const RETRY_KEY = 'lc:metadata:retry'
 const PROCESSING_KEY = 'lc:metadata:processing'
 const DLQ_KEY = 'lc:metadata:dlq'
 const DEDUP_KEY = 'lc:metadata:dedup'
 const DEDUP_TTL_SECONDS = 300 // 5 分钟内相同 URL 去重
+const RETRY_DELAY_MS = 5 * 60 * 1000 // 失败后 5 分钟重试（反爬平台常先返回空再放行）
 const MAX_RETRIES = 3
 
 export interface MetadataQueueItem {

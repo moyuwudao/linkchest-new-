@@ -27,7 +27,7 @@ TARGET="${1:-global}"
 SERVICE="${2:-api}"
 LINES="${3:-20}"
 
-# 确定进程名和服务器IP
+# PM2 进程名：国内/海外统一为 linkchest-api / linkchest-web（去掉了 -global/-china 后缀）
 case "$TARGET" in
     global)
         SERVER_IP="$GLOBAL_IP"
@@ -46,36 +46,7 @@ case "$TARGET" in
         esac
         ;;
     *)
-        echo -e "${RED}❌ 未知目标: $TARGET (可用: global, china)${NC}"
+        echo -e "${RED}❌ 未知目标: $TARGET${NC} (可用: global, china)"
         exit 1
         ;;
 esac
-
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  LinkChest 日志查看${NC}"
-echo -e "${GREEN}========================================${NC}"
-echo -e "目标: ${YELLOW}${TARGET}${NC}  服务: ${YELLOW}${SERVICE}${NC}  行数: ${YELLOW}${LINES}${NC}"
-echo ""
-
-# 测试 SSH 连接
-echo -e "${BLUE}测试 SSH 连接...${NC}"
-if ! ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} "echo OK" 2>/dev/null | grep -q "OK"; then
-    echo -e "  ${RED}❌ SSH 连接失败: ubuntu@${SERVER_IP}${NC}"
-    exit 1
-fi
-echo -e "  ${GREEN}✓ SSH 连接正常${NC}"
-echo ""
-
-# 查看日志（使用 --nostream 避免阻塞）
-echo -e "${BLUE}--- ${PM2_NAME} 最近 ${LINES} 行日志 ---${NC}"
-ssh -o StrictHostKeyChecking=accept-new ubuntu@${SERVER_IP} "pm2 logs ${PM2_NAME} --lines ${LINES} --nostream"
-
-echo ""
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  日志查看完成${NC}"
-echo -e "${GREEN}========================================${NC}"
-echo ""
-echo -e "如需实时监听新日志，执行:"
-echo -e "  ${YELLOW}ssh ubuntu@${SERVER_IP} 'pm2 logs ${PM2_NAME}'${NC}"
-echo -e "  (按 Ctrl+C 退出实时监听)"
-echo ""
