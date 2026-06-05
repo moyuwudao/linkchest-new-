@@ -192,8 +192,8 @@ export async function startMetadataQueueConsumer(): Promise<void> {
   // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
-      // BRPOP 阻塞消费，超时 5 秒（避免永久阻塞导致无法优雅关闭）
-      const result = await redis.brpop(QUEUE_KEY, 5)
+      // BRPOP 阻塞消费，超时 1 秒（避免 commandTimeout 误杀）
+      const result = await redis.brpop(QUEUE_KEY, 1)
       if (!result) {
         consecutiveErrors = 0
         continue
