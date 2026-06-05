@@ -9,11 +9,42 @@ import { getPaymentDetails } from '../../services/payment'
 import logger from '../../lib/logger'
 import crypto from 'crypto'
 
-const ALIPAY_APP_ID = process.env.ALIPAY_APP_ID || ''
-const ALIPAY_PRIVATE_KEY = process.env.ALIPAY_PRIVATE_KEY || ''
-const ALIPAY_PUBLIC_KEY = process.env.ALIPAY_PUBLIC_KEY || ''
+// 支付宝配置（支持沙箱/正式环境切换）
+// 通过 ALIPAY_SANDBOX=true 切换到沙箱环境
+const ALIPAY_SANDBOX = process.env.ALIPAY_SANDBOX === 'true'
 
-const ALIPAY_BASE_URL = 'https://openapi.alipay.com/gateway.do'
+/**
+ * 解码 .env 中用 \\n 转义存储的 PEM 字符串
+ * dotenv 不会自动把 \\n 还原成真换行符，需手动处理
+ */
+function unescapePem(raw: string): string {
+  if (!raw) return ''
+  return raw.replace(/\\n/g, '\n').replace(/\\r/g, '\r')
+}
+
+// 沙箱环境配置（支付宝官方沙箱）
+const SANDBOX_CONFIG = {
+  appId: process.env.ALIPAY_SANDBOX_APP_ID || '',
+  privateKey: unescapePem(process.env.ALIPAY_SANDBOX_PRIVATE_KEY || process.env.ALIPAY_PRIVATE_KEY || ''),
+  publicKey: unescapePem(process.env.ALIPAY_SANDBOX_PUBLIC_KEY || process.env.ALIPAY_PUBLIC_KEY || ''),
+  gateway: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
+}
+
+// 正式环境配置
+const PROD_CONFIG = {
+  appId: process.env.ALIPAY_APP_ID || '',
+  privateKey: unescapePem(process.env.ALIPAY_PRIVATE_KEY || ''),
+  publicKey: unescapePem(process.env.ALIPAY_PUBLIC_KEY || ''),
+  gateway: 'https://openapi.alipay.com/gateway.do',
+}
+
+// 当前生效的配置（根据环境变量选择）
+const ALIPAY_CONFIG = ALIPAY_SANDBOX ? SANDBOX_CONFIG : PROD_CONFIG
+
+const ALIPAY_APP_ID = ALIPAY_CONFIG.appId
+const ALIPAY_PRIVATE_KEY = ALIPAY_CONFIG.privateKey
+const ALIPAY_PUBLIC_KEY = ALIPAY_CONFIG.publicKey
+const ALIPAY_BASE_URL = ALIPAY_CONFIG.gateway
 
 /**
  * 支付宝支付 Provider

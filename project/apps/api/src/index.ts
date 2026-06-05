@@ -313,10 +313,12 @@ syncTierConfigs().catch((err) => {
 
 // 启动元数据队列消费者（Redis 持久化队列，测试环境跳过避免阻塞进程）
 if (process.env.NODE_ENV !== 'test') {
-  import('./services/metadata-queue').then(({ startMetadataQueueConsumer }) => {
+  import('./services/metadata-queue').then(({ startMetadataQueueConsumer, startRetryQueueProcessor }) => {
     startMetadataQueueConsumer().catch((err) => {
       logger.error({ err: err instanceof Error ? err.message : String(err) }, '元数据队列消费者启动失败')
     })
+    // 启动 5 分钟重试队列扫描器（反爬平台先放空再放行场景）
+    startRetryQueueProcessor()
   })
 }
 

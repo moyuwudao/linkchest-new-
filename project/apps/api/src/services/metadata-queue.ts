@@ -87,9 +87,20 @@ async function processItem(item: MetadataQueueItem): Promise<void> {
     logger.debug({ url: item.url, retry: item.retryCount || 0 }, '[MetadataQueue] 开始抓取')
     const metadata = await fetchUrlMetadata(item.url)
 
-    // 无有效数据，跳过更新
+    // 无有效数据，加入"5 分钟重试队列"（反爬平台常先返回空再放行）
     if (!metadata.title && !metadata.coverImage) {
-      logger.debug({ url: item.url }, '[MetadataQueue] 无元数据')
+      if (isRedisAvailable()) {
+        const redis = getRedisClient()
+        if (redis) {
+          try {
+            const score = Date.now() + RETRY_DELAY_MS
+            await redis.zadd(RETRY_KEY, score, JSON.stringify(item))
+            logger.debug({ url: item.url, retryAt: new Date(score).toISOString() }, '[MetadataQueue] 5分钟后重试')
+          } catch (err) {
+            logger.warn({ err: err instanceof Error ? err.message : String(err) }, '[MetadataQueue] 重试队列写入失败')
+          }
+        }
+      }
       return
     }
 
@@ -243,6 +254,45 @@ function startMemoryConsumer(): void {
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * 处理"5 分钟重试队列"
+ * 定时从 Redis ZSET 中取出到期的任务重新入队
+ */
+async function processRetryQueue(): Promise<void> {
+  if (!isRedisAvailable()) return
+  const redis = getRedisClient()
+  if (!redis) return
+
+  try {
+    const now = Date.now()
+    const items = await redis.zrangebyscore(RETRY_KEY, 0, now, 'LIMIT', 0, 50)
+    if (items.length === 0) return
+
+    for (const rawItem of items) {
+      try {
+        const item: MetadataQueueItem = JSON.parse(rawItem)
+        // 重新入队（不走 enqueueMetadataFetch，避免触发 5min 去重）
+        await redis.lpush(QUEUE_KEY, JSON.stringify(item))
+        await redis.zrem(RETRY_KEY, rawItem)
+        logger.debug({ url: item.url }, '[MetadataQueue] 5分钟重试入队成功')
+      } catch (err) {
+        logger.warn({ err: err instanceof Error ? err.message : String(err) }, '[MetadataQueue] 重试任务处理失败')
+        await redis.zrem(RETRY_KEY, rawItem)
+      }
+    }
+  } catch (err) {
+    logger.error({ err: err instanceof Error ? err.message : String(err) }, '[MetadataQueue] 重试队列扫描失败')
+  }
+}
+
+// 启动 5 分钟重试队列扫描器
+let retryInterval: NodeJS.Timeout | null = null
+export function startRetryQueueProcessor(): void {
+  if (retryInterval) return
+  retryInterval = setInterval(processRetryQueue, 60 * 1000) // 每 60s 扫一次
+  logger.info('[MetadataQueue] 5分钟重试队列处理器已启动（每 60s 扫描）')
 }
 
 /**

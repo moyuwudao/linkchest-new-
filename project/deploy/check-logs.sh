@@ -32,7 +32,7 @@ case "$TARGET" in
     global)
         SERVER_IP="$GLOBAL_IP"
         case "$SERVICE" in
-            api) PM2_NAME="linkchest-api-global" ;;
+            api) PM2_NAME="linkchest-api" ;;
             web) PM2_NAME="linkchest-web" ;;
             *) echo -e "${RED}❌ 未知服务: $SERVICE (可用: api, web)${NC}"; exit 1 ;;
         esac
@@ -40,8 +40,8 @@ case "$TARGET" in
     china)
         SERVER_IP="$CHINA_IP"
         case "$SERVICE" in
-            api) PM2_NAME="linkchest-api-china" ;;
-            web) PM2_NAME="linkchest-web-china" ;;
+            api) PM2_NAME="linkchest-api" ;;
+            web) PM2_NAME="linkchest-web" ;;
             *) echo -e "${RED}❌ 未知服务: $SERVICE (可用: api, web)${NC}"; exit 1 ;;
         esac
         ;;
