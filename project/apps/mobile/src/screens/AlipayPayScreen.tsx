@@ -129,14 +129,15 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
       });
       const data = r.data?.data || r.data;
       const oId = data?.orderId;
-      const payUrl = data?.payUrl;
-      const orderString = data?.orderString;
+      // 后端返回 { orderId, extra: { orderString, payUrl } }，字段在 extra 下
+      const payUrl = data?.extra?.payUrl;
+      const orderString = data?.extra?.orderString;
 
       if (!oId) throw new Error('orderId missing');
       setOrderId(String(oId));
 
       if (!payUrl && !orderString) {
-        throw new Error('payUrl/orderString missing');
+        throw new Error('PAYURL/ORDERSTRING MISSING');
       }
 
       // 2. 安卓优先：调起支付宝 APP 完成支付（Native SDK 已在 china flavor 集成）

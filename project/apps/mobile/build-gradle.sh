@@ -231,11 +231,16 @@ fi
 
 # 关键：清理所有 expo-* / react-native-* 原生模块的构建产物
 # 防止 WSL2 在 /mnt/d 上的 inode 缓存导致跨实例污染
+# 注意：也要清理 .cxx/ 目录，CMake 缓存的绝对路径可能指向旧 GRADLE_USER_HOME（如 /root/.gradle）
 for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android \
                      /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android \
                      /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android; do
     if [ -d "$native_module/build" ]; then
         rm -rf "$native_module/build" 2>/dev/null || true
+        CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
+    fi
+    if [ -d "$native_module/.cxx" ]; then
+        rm -rf "$native_module/.cxx" 2>/dev/null || true
         CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
     fi
 done
@@ -248,7 +253,10 @@ fi
 
 # 清理 Gradle 全局缓存中可能被污染的 task 输出
 # （按 WSL 实例独立目录，避免误清其它实例缓存）
-GRADLE_USER_HOME="${GRADLE_USER_HOME:-/root/.gradle}"
+# 修复：默认回退到当前用户的 $HOME/.gradle，避免使用 /root/.gradle（root 拥有的目录，mayn 无法读取）
+# 背景：之前以 root 身份构建过，导致 /root/.gradle/caches/8.8/transforms/ 是 root 拥有
+# 必须 export，否则 ./gradlew 子进程读不到
+export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$HOME/.gradle}"
 if [ -d "$GRADLE_USER_HOME/caches" ]; then
     find "$GRADLE_USER_HOME/caches" -path "*/transforms*" -name "*.bin" -newer "$BUILD_DIR" -delete 2>/dev/null || true
     CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
