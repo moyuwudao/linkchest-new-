@@ -61,6 +61,10 @@ export function getRedisClient(): Redis | null {
 /** 检查 Redis 当前是否可用（含健康检查，连续超时自动降级） */
 export function isRedisAvailable(): boolean {
   if (!_available) return false
+  // 检查连接实际状态（避免 'ready' 之前调用 BRPOP 等阻塞命令被 reject）
+  if (_client && _client.status !== 'ready') {
+    return false
+  }
   // 如果最近连续失败超过阈值，临时降级为不可用，避免超时风暴
   if (_consecutiveFailures >= FAILURE_THRESHOLD && Date.now() - _lastFailureTime < FAILURE_WINDOW_MS) {
     return false
