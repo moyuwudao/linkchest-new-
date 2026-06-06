@@ -62,26 +62,29 @@ cd "$API_DIR"
 if [ -f ".env.china" ] && [ -f ".env" ]; then
   # 备份当前 .env
   cp .env ".env.bak.$(date +%Y%m%d-%H%M%S)" 2>/dev/null
+
   # 同步 DATABASE_URL（取 .env.china 的最新值覆盖 .env）
-  CHINA_DB_URL=$(grep '^DATABASE_URL=' ".env.china" 2>/dev/null | head -1)
+  # 注意：URL 含 & 字符，sed 必须用 | 分隔 + 转义 & 避免被解释为"匹配内容"
+  # 否则会出现"publicDATABASE_URL=..."的拼接污染（已发生 1 次）
+  CHINA_DB_URL=$(grep '^DATABASE_URL=' ".env.china" 2>/dev/null | head -1 | sed 's/&/\\&/g')
   if [ -n "$CHINA_DB_URL" ]; then
     if grep -q '^DATABASE_URL=' ".env"; then
       # 替换现有 DATABASE_URL
       sed -i "s|^DATABASE_URL=.*|${CHINA_DB_URL}|" ".env"
       echo "  ✅ DATABASE_URL 已同步到 .env"
     else
-      # 追加到 .env
-      echo "$CHINA_DB_URL" >> ".env"
+      # 追加到 .env（写入时去掉转义符）
+      echo "${CHINA_DB_URL}" | sed 's/\\&/\&/g' >> ".env"
       echo "  ✅ DATABASE_URL 已追加到 .env"
     fi
   fi
   # 同步 METADATA_MAX_CONCURRENT
-  CHINA_META_CONC=$(grep '^METADATA_MAX_CONCURRENT=' ".env.china" 2>/dev/null | head -1)
+  CHINA_META_CONC=$(grep '^METADATA_MAX_CONCURRENT=' ".env.china" 2>/dev/null | head -1 | sed 's/&/\\&/g')
   if [ -n "$CHINA_META_CONC" ]; then
     if grep -q '^METADATA_MAX_CONCURRENT=' ".env"; then
       sed -i "s|^METADATA_MAX_CONCURRENT=.*|${CHINA_META_CONC}|" ".env"
     else
-      echo "$CHINA_META_CONC" >> ".env"
+      echo "${CHINA_META_CONC}" | sed 's/\\&/\&/g' >> ".env"
     fi
   fi
 else

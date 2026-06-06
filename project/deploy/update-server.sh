@@ -85,19 +85,25 @@ if [ ! -f ".env" ] || grep -q "file:" ".env" 2>/dev/null; then
 else
   echo "  .env 已存在，同步关键配置..."
   # 同步 DATABASE_URL（关键：取 .env.global 最新值覆盖 .env）
-  GLOBAL_DB_URL=$(grep '^DATABASE_URL=' "$BASE_DIR/apps/api/.env.global" 2>/dev/null | head -1)
+  # 注意：URL 含 & 字符，sed 必须转义 & 避免被解释为"匹配内容"
+  # 否则会出现"publicDATABASE_URL=..."的拼接污染
+  GLOBAL_DB_URL=$(grep '^DATABASE_URL=' "$BASE_DIR/apps/api/.env.global" 2>/dev/null | head -1 | sed 's/&/\\&/g')
   if [ -n "$GLOBAL_DB_URL" ]; then
     cp .env ".env.bak.$(date +%Y%m%d-%H%M%S)" 2>/dev/null
     if grep -q '^DATABASE_URL=' ".env"; then
       sed -i "s|^DATABASE_URL=.*|${GLOBAL_DB_URL}|" ".env"
       echo "  ✅ DATABASE_URL 已同步"
+    else
+      echo "${GLOBAL_DB_URL}" | sed 's/\\&/\&/g' >> ".env"
     fi
   fi
   # 同步 METADATA_MAX_CONCURRENT
-  GLOBAL_META_CONC=$(grep '^METADATA_MAX_CONCURRENT=' "$BASE_DIR/apps/api/.env.global" 2>/dev/null | head -1)
+  GLOBAL_META_CONC=$(grep '^METADATA_MAX_CONCURRENT=' "$BASE_DIR/apps/api/.env.global" 2>/dev/null | head -1 | sed 's/&/\\&/g')
   if [ -n "$GLOBAL_META_CONC" ]; then
     if grep -q '^METADATA_MAX_CONCURRENT=' ".env"; then
       sed -i "s|^METADATA_MAX_CONCURRENT=.*|${GLOBAL_META_CONC}|" ".env"
+    else
+      echo "${GLOBAL_META_CONC}" | sed 's/\\&/\&/g' >> ".env"
     fi
   fi
 fi
