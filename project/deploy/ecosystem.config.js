@@ -6,8 +6,9 @@
 //                                  → API 阈值 1G / Web 阈值 800M
 //                                  → 单实例 fork 模式（资源紧张）
 // 国内应用层 (43.136.82.88):         4核7.6G → API heap 1024MB / Web heap 512MB
-//                                  → API 阈值 1.5G / Web 阈值 1G
+//                                  → API 阈值 1536M / Web 阈值 1024M
 //                                  → 2 实例 cluster 模式（充分利用多核）
+// PM2 max_memory_restart 不支持小数（1.5G），必须用整数 MB/KB/GB
 
 const market = process.env.MARKET || 'china'
 const isCN = market === 'china'
@@ -15,8 +16,8 @@ const isCN = market === 'china'
 // 海外应用层内存受限 (2核2G)，需严格控制 Node 堆内存 + 单实例 fork
 // 国内应用层资源充裕 (4核7.6G)，可开更大的堆内存 + 2 实例 cluster 充分利用多核
 const cfg = isCN
-  ? { apiMem: '1.5G', webMem: '1G', apiHeap: 1024, webHeap: 512, apiInstances: 2, apiExecMode: 'cluster' }
-  : { apiMem: '1G', webMem: '800M', apiHeap: 512, webHeap: 384, apiInstances: 1, apiExecMode: 'fork' }
+  ? { apiMem: '1536M', webMem: '1024M', apiHeap: 1024, webHeap: 512, apiInstances: 2, apiExecMode: 'cluster' }
+  : { apiMem: '1024M', webMem: '800M', apiHeap: 512, webHeap: 384, apiInstances: 1, apiExecMode: 'fork' }
 
 const apiApp = {
   name: 'linkchest-api',

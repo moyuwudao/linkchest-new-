@@ -99,7 +99,12 @@ export class AlipayProvider implements PaymentProvider {
       format: 'json',
       charset: 'utf-8',
       sign_type: 'RSA2',
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      // 支付宝要求格式：yyyy-MM-dd HH:mm:ss
+      timestamp: (() => {
+        const d = new Date()
+        const pad = (n: number) => String(n).padStart(2, '0')
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+      })(),
       version: '1.0',
       notify_url: `${process.env.WEB_BASE_URL || ''}/api/payments/alipay/notify`,
     }
@@ -132,8 +137,9 @@ export class AlipayProvider implements PaymentProvider {
 
     const sign = this.sign(requestParams)
 
-    // 移动 APP 支付：返回 orderString（待签名字符串），不需拼成 URL
-    // 客户端 SDK 拿到 orderString 后直接调起支付宝 APP 完成支付
+    // 移动 APP 支付：返回 orderString
+    // 官方文档要求：先拼接未签名原始字符串 → 签名 → 再对所有一级 value URL encode
+    // biz_content 作为一级 value，整体 URL encode（不拆开 JSON 内部）
     const orderStringParts: string[] = []
     Object.entries(requestParams).forEach(([k, v]) => {
       orderStringParts.push(`${k}=${encodeURIComponent(String(v))}`)
