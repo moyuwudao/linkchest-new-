@@ -94,6 +94,9 @@ export class AlipayProvider implements PaymentProvider {
     return {
       app_id: ALIPAY_APP_ID,
       method,
+      // 支付宝 App 支付官方文档要求所有请求必须带 format=json
+      // 缺失会导致支付宝按 form 解析失败，提示"商家订单参数异常"
+      format: 'json',
       charset: 'utf-8',
       sign_type: 'RSA2',
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
