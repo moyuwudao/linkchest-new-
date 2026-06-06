@@ -1,6 +1,5 @@
 package com.linkchest.app.alipay
 
-import com.alipay.sdk.app.EnvUtils
 import com.alipay.sdk.app.PayTask
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -41,10 +40,6 @@ class AlipayPayModule(reactContext: ReactApplicationContext) :
         promise.reject("NO_ACTIVITY", "Current activity is null")
         return
       }
-
-      // 沙箱环境切换：支付宝 SDK 默认走生产环境，必须显式设置沙箱
-      // 生产环境上线时必须移除此行或改为 EnvEnum.ONLINE
-      EnvUtils.setEnv(EnvUtils.EnvEnum.SANDBOX)
 
       val payTask = PayTask(activity)
       // 同步调用（PayTask.payV2 内部已经异步处理 UI 线程）
