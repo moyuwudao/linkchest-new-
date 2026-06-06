@@ -55,6 +55,39 @@ echo "[2/8] 拉取最新代码..."
 cd "$BASE_DIR"
 git pull origin main || git pull origin master
 
+# ===== 2.5 同步 .env.china → .env（关键配置同步，如 DATABASE_URL 连接池）=====
+echo ""
+echo "[2.5/8] 同步 .env.china → .env..."
+cd "$API_DIR"
+if [ -f ".env.china" ] && [ -f ".env" ]; then
+  # 备份当前 .env
+  cp .env ".env.bak.$(date +%Y%m%d-%H%M%S)" 2>/dev/null
+  # 同步 DATABASE_URL（取 .env.china 的最新值覆盖 .env）
+  CHINA_DB_URL=$(grep '^DATABASE_URL=' ".env.china" 2>/dev/null | head -1)
+  if [ -n "$CHINA_DB_URL" ]; then
+    if grep -q '^DATABASE_URL=' ".env"; then
+      # 替换现有 DATABASE_URL
+      sed -i "s|^DATABASE_URL=.*|${CHINA_DB_URL}|" ".env"
+      echo "  ✅ DATABASE_URL 已同步到 .env"
+    else
+      # 追加到 .env
+      echo "$CHINA_DB_URL" >> ".env"
+      echo "  ✅ DATABASE_URL 已追加到 .env"
+    fi
+  fi
+  # 同步 METADATA_MAX_CONCURRENT
+  CHINA_META_CONC=$(grep '^METADATA_MAX_CONCURRENT=' ".env.china" 2>/dev/null | head -1)
+  if [ -n "$CHINA_META_CONC" ]; then
+    if grep -q '^METADATA_MAX_CONCURRENT=' ".env"; then
+      sed -i "s|^METADATA_MAX_CONCURRENT=.*|${CHINA_META_CONC}|" ".env"
+    else
+      echo "$CHINA_META_CONC" >> ".env"
+    fi
+  fi
+else
+  echo "  ⚠️ .env.china 或 .env 不存在，跳过同步"
+fi
+
 # ===== 3. 安装 API 依赖 + Prisma Generate =====
 echo ""
 echo "[3/8] 安装 API 依赖..."
@@ -92,9 +125,51 @@ DATABASE_URL="$DATABASE_URL" npx prisma migrate deploy 2>/dev/null || {
 }
 echo "数据库迁移完成 ✓"
 
-# ===== 4.5 MARKET 环境变量验证 =====
+# ===== 4.5 PostgreSQL 性能调优（国内版，通过 DATABASE_URL 直连数据层）=====
 echo ""
-echo "[4.5/8] MARKET 环境变量验证..."
+echo "[4.5/8] PostgreSQL 性能调优 (国内版)..."
+TUNE_SQL="$BASE_DIR/project/deploy/tune-pg.china.sql"
+if [ -f "$TUNE_SQL" ]; then
+  # 去掉 schema 参数（psql 14 不支持）
+  TUNE_DB_URL=$(echo "$DATABASE_URL" | sed 's/?schema=public//')
+  if psql "$TUNE_DB_URL" -f "$TUNE_SQL" 2>&1 | grep -E "ALTER SYSTEM|SELECT|SHOW|---|work_mem|cache_size|random_page" | head -20; then
+    echo "  ✅ PG 调优完成（ALTER SYSTEM + pg_reload_conf）"
+  else
+    echo "  ⚠️ PG 调优输出异常，继续部署（不阻塞）"
+  fi
+else
+  echo "  ⚠️ 未找到 $TUNE_SQL，跳过"
+fi
+
+# ===== 4.6 Redis 内存限制（国内版，应用层 Redis）=====
+echo ""
+echo "[4.6/8] Redis 内存限制配置..."
+# 国内应用层 4G 内存，Redis 限制 256MB（约 6%）
+# 避免 Redis 占用过多内存导致 API OOM
+if command -v redis-cli &>/dev/null; then
+  CURRENT_MAXMEM=$(redis-cli config get maxmemory 2>/dev/null | tail -1)
+  if [ "$CURRENT_MAXMEM" = "0" ] || [ "$CURRENT_MAXMEM" = "" ]; then
+    echo "  当前 Redis maxmemory=0（无限制），设置 256MB..."
+    # 优先用 config set 立即生效，config rewrite 持久化（需 redis 用户写权限）
+    redis-cli config set maxmemory 256mb 2>/dev/null || {
+      echo "  redis-cli config set 失败，尝试修改配置文件..."
+      sudo sed -i 's/^# maxmemory <bytes>$/maxmemory 268435456/' /etc/redis/redis.conf
+      sudo sed -i 's/^# maxmemory-policy noeviction$/maxmemory-policy allkeys-lru/' /etc/redis/redis.conf
+      sudo systemctl restart redis-server 2>/dev/null || sudo systemctl restart redis 2>/dev/null
+    }
+    redis-cli config set maxmemory-policy allkeys-lru 2>/dev/null || true
+    NEW_MAXMEM=$(redis-cli config get maxmemory 2>/dev/null | tail -1)
+    echo "  ✅ Redis maxmemory: $NEW_MAXMEM bytes"
+  else
+    echo "  Redis maxmemory 已配置为 $CURRENT_MAXMEM bytes，跳过"
+  fi
+else
+  echo "  ⚠️ redis-cli 未安装，跳过"
+fi
+
+# ===== 4.7 MARKET 环境变量验证 =====
+echo ""
+echo "[4.7/8] MARKET 环境变量验证..."
 if [ -z "$MARKET" ]; then
   echo "  ⚠️ MARKET 未设置，自动设置为 china"
   export MARKET=china

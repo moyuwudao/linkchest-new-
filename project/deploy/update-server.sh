@@ -62,6 +62,19 @@ if ! psql "$DB_URL_CLEAN" -c "SELECT 1" > /dev/null 2>&1; then
 fi
 echo "  数据层连接正常 ✓"
 
+# ===== 2.5 PostgreSQL 性能调优（海外版）=====
+echo ""
+echo "[2.5/7] PostgreSQL 性能调优 (海外版)..."
+if [ -f "$BASE_DIR/deploy/tune-pg.global.sql" ]; then
+  if psql "$DB_URL_CLEAN" -f "$BASE_DIR/deploy/tune-pg.global.sql" 2>&1 | grep -E "ALTER SYSTEM|SELECT|SHOW|---|work_mem|cache_size|random_page" | head -20; then
+    echo "  ✅ PG 调优完成（ALTER SYSTEM + pg_reload_conf）"
+  else
+    echo "  ⚠️ PG 调优输出异常，继续部署（不阻塞）"
+  fi
+else
+  echo "  ⚠️ 未找到 tune-pg.global.sql，跳过"
+fi
+
 # ===== 3. 配置 API 环境变量 =====
 echo ""
 echo "[3/7] 配置 API 环境变量..."
@@ -70,7 +83,23 @@ if [ ! -f ".env" ] || grep -q "file:" ".env" 2>/dev/null; then
   cp "$BASE_DIR/apps/api/.env.global" "$API_DIR/.env"
   echo "  .env 已配置为 .env.global"
 else
-  echo "  .env 已存在"
+  echo "  .env 已存在，同步关键配置..."
+  # 同步 DATABASE_URL（关键：取 .env.global 最新值覆盖 .env）
+  GLOBAL_DB_URL=$(grep '^DATABASE_URL=' "$BASE_DIR/apps/api/.env.global" 2>/dev/null | head -1)
+  if [ -n "$GLOBAL_DB_URL" ]; then
+    cp .env ".env.bak.$(date +%Y%m%d-%H%M%S)" 2>/dev/null
+    if grep -q '^DATABASE_URL=' ".env"; then
+      sed -i "s|^DATABASE_URL=.*|${GLOBAL_DB_URL}|" ".env"
+      echo "  ✅ DATABASE_URL 已同步"
+    fi
+  fi
+  # 同步 METADATA_MAX_CONCURRENT
+  GLOBAL_META_CONC=$(grep '^METADATA_MAX_CONCURRENT=' "$BASE_DIR/apps/api/.env.global" 2>/dev/null | head -1)
+  if [ -n "$GLOBAL_META_CONC" ]; then
+    if grep -q '^METADATA_MAX_CONCURRENT=' ".env"; then
+      sed -i "s|^METADATA_MAX_CONCURRENT=.*|${GLOBAL_META_CONC}|" ".env"
+    fi
+  fi
 fi
 
 # ===== 4. 数据库迁移 =====

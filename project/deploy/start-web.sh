@@ -22,6 +22,10 @@ if [ ! -d "./node_modules/next" ] && [ ! -d "../../../node_modules/next" ]; then
 fi
 
 echo "[Web] .next directory exists, starting server..."
+# 打印 Node 堆内存配置（来自 ecosystem.config.js 的 NODE_OPTIONS）
+echo "[Web] NODE_OPTIONS=$NODE_OPTIONS"
+echo "[Web] MARKET=$MARKET"
+
 # 优先使用本地 node_modules 的 next，如果不存在则回退到根目录
 if [ -f "./node_modules/.bin/next" ]; then
     exec ./node_modules/.bin/next start -p 3003 -H 0.0.0.0

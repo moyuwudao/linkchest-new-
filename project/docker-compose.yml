@@ -1,5 +1,10 @@
 version: '3.8'
 
+# 海外运营方案：雅加达应用层 (43.157.240.68) + 新加坡数据层 (43.133.44.232)
+# 应用层运行: API + Web + Redis + Nginx
+# 数据层运行: PostgreSQL（通过 autossh 隧道 5433 访问）
+# 更新时间: 2026-06-05
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -11,7 +16,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-linkchest}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       POSTGRES_DB: ${POSTGRES_DB:-linkchest}
-    command: postgres -c listen_addresses='*'
+    # 海外数据层 1.9G 内存：shared_buffers 占 20% = 384MB
+    # 注意：修改此参数需要 docker stop + docker rm + docker run（新容器）
+    command: postgres -c listen_addresses='*' -c shared_buffers=384MB
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -28,6 +35,15 @@ services:
     image: redis:7-alpine
     container_name: linkchest-redis
     restart: unless-stopped
+    # 海外应用层 2G 内存：Redis 限制 128MB（约 6%）
+    # maxmemory-policy allkeys-lru: 内存满时淘汰最久未使用的 key
+    # 避免 Redis 占用过多内存导致 API OOM
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
     ports:
       - "127.0.0.1:6379:6379"
     volumes:

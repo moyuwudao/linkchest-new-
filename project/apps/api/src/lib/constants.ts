@@ -34,3 +34,48 @@ export const METADATA_MAX_CONCURRENT = Number(process.env.METADATA_MAX_CONCURREN
 export const METADATA_FETCH_TIMEOUT_MS = 4000
 export const METADATA_TOTAL_TIMEOUT_MS = 8000
 export const METADATA_LRU_CACHE_MAX_SIZE = 500
+
+// ===== 配额配置 =====
+export const QUOTA_FUNCTIONAL_UNLIMITED = 999_999
+export const QUOTA_DAILY_COUNTER_TTL_SECONDS = 24 * 3600 // 24小时
+
+// ===== 列表/分组配置 =====
+export const MAX_LIST_DEPTH = 2
+
+// ===== 邀请码配置 =====
+export const REFERRAL_CODE_LENGTH = 6
+export const REFERRAL_CODE_MAX_ATTEMPTS = 10
+export const REFERRAL_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+// ===== 告警配置 =====
+export const ALERT_SCAN_INTERVAL_MS = 15 * 60 * 1000 // 15分钟
+export const ALERT_DEFAULT_COOLDOWN_MINUTES = 30
+export const ALERT_HEALTH_CHECK_MAX_FAILURES = 3
+
+// ===== 分享配置 =====
+export const SHARE_PASSWORD_MIN_LENGTH = 4
+export const SHARE_PASSWORD_MAX_LENGTH = 20
+export const SHARE_TITLE_MAX_LENGTH = 100
+export const SHARE_DESCRIPTION_MAX_LENGTH = 1000
+
+// ===== 上传配置 =====
+export const AVATAR_MAX_SIZE = 5 * 1024 * 1024 // 5MB
+export const AVATAR_DIMENSION = 200
+export const COVER_MAX_SIZE = 5 * 1024 * 1024 // 5MB
+export const COVER_TARGET_SIZE = 80 * 1024 // 80KB
+export const COVER_MAX_DIMENSION = 800
+
+// ===== 导入配置 =====
+export const IMPORT_BATCH_SIZE = 100
+
+// ===== 账号安全配置 =====
+export const MAX_LOGIN_ATTEMPTS = 5
+export const ACCOUNT_LOCK_DURATION_MINUTES = 15
+export const VERIFY_CODE_MAX_ATTEMPTS = 5
+export const VERIFY_CODE_SEND_COOLDOWN_MS = 60 * 1000 // 1分钟
+export const VERIFY_CODE_LENGTH = 6
+
+// ===== 通用配置 =====
+export const DEFAULT_LANGUAGE = 'zh'
+export const JWT_TOKEN_PREFIX = 'Bearer '
+export const JSON_BODY_LIMIT = '10mb'
