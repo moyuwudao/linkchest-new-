@@ -3,6 +3,7 @@ import { NavigationContainer, DefaultTheme, DarkTheme, createNavigationContainer
 import { createStackNavigator } from '@react-navigation/stack';
 import { QueryClient, QueryClientProvider } from './src/lib/react-query';
 import Toast, { BaseToast, ErrorToast, InfoToast, ToastConfig, BaseToastProps } from 'react-native-toast-message';
+import { flushMetaOnBackground } from './src/lib/coverCache';
 import { StatusBar } from 'expo-status-bar';
 import { registerRootComponent } from 'expo';
 import { useColorScheme, View, Text, TouchableOpacity, Linking, AppState, Alert, ScrollView } from 'react-native';
@@ -586,6 +587,9 @@ function AppContent() {
       if (nextAppState === 'active') {
         console.log('[Clipboard] AppState active, trigger check');
         setTimeout(() => checkClipboard(), 500);
+      } else if (nextAppState === 'background') {
+        // 应用切到后台时立即刷盘封面缓存元数据
+        flushMetaOnBackground();
       }
     });
 

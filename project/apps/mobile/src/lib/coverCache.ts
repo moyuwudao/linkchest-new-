@@ -15,6 +15,38 @@ interface CacheMeta {
 
 let metaCache: CacheMeta | null = null;
 
+// 批量延迟写入：避免每次访问 lastAccessed 都写文件
+let metaDirty = false;
+let metaFlushTimer: ReturnType<typeof setTimeout> | null = null;
+const META_FLUSH_INTERVAL = 30_000; // 30 秒批量写一次
+
+async function flushMetaIfNeeded() {
+  if (!metaDirty || !metaCache) return;
+  metaDirty = false;
+  try {
+    await FileSystem.writeAsStringAsync(META_FILE, JSON.stringify(metaCache));
+  } catch {
+    console.error('Failed to flush cover cache meta');
+  }
+}
+
+function scheduleMetaFlush() {
+  if (metaFlushTimer) return;
+  metaFlushTimer = setTimeout(async () => {
+    metaFlushTimer = null;
+    await flushMetaIfNeeded();
+  }, META_FLUSH_INTERVAL);
+}
+
+// 应用切到后台时立即刷盘
+export async function flushMetaOnBackground() {
+  if (metaFlushTimer) {
+    clearTimeout(metaFlushTimer);
+    metaFlushTimer = null;
+  }
+  await flushMetaIfNeeded();
+}
+
 // 下载失败记录（内存中），避免频繁重试过期 URL
 const failureLog: Map<string, number> = new Map();
 
@@ -50,12 +82,15 @@ async function loadMeta(): Promise<CacheMeta> {
   return metaCache || {};
 }
 
-async function saveMeta(meta: CacheMeta) {
+async function saveMeta(meta: CacheMeta, immediate = false) {
   metaCache = meta;
-  try {
-    await FileSystem.writeAsStringAsync(META_FILE, JSON.stringify(meta));
-  } catch {
-    console.error('Failed to save cover cache meta');
+  metaDirty = true;
+  if (immediate) {
+    // 立即写盘（用于新增/删除等关键操作）
+    await flushMetaIfNeeded();
+  } else {
+    // 延迟批量写入（用于 lastAccessed 更新等非关键操作）
+    scheduleMetaFlush();
   }
 }
 
@@ -82,11 +117,11 @@ export async function getCachedCoverPath(url: string): Promise<string | null> {
   if (!info.exists) {
     // File missing, clean up meta
     delete meta[url];
-    await saveMeta(meta);
+    await saveMeta(meta, true);
     return null;
   }
 
-  // Update last accessed
+  // Update last accessed（延迟批量写入，不阻塞渲染）
   entry.lastAccessed = Date.now();
   await saveMeta(meta);
   return filePath;
@@ -139,7 +174,7 @@ export async function cacheCover(url: string): Promise<string | null> {
       lastAccessed: Date.now(),
     };
 
-    await saveMeta(meta);
+    await saveMeta(meta, true);
     await evictIfNeeded();
     clearFailure(url);
     return filePath;
@@ -170,7 +205,7 @@ export async function cacheCoverFromUri(sourceUri: string, url: string): Promise
       lastAccessed: Date.now(),
     };
 
-    await saveMeta(meta);
+    await saveMeta(meta, true);
     await evictIfNeeded();
     return filePath;
   } catch {
@@ -199,7 +234,7 @@ async function evictIfNeeded() {
     currentSize -= entry.size;
   }
 
-  await saveMeta(newMeta);
+  await saveMeta(newMeta, true);
 }
 
 export async function clearCache() {

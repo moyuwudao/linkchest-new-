@@ -101,6 +101,7 @@
       "purgeSuccess": "{count} Lesezeichen endgültig gelöscht",
       "deletedAt": "Gelöscht am {date}",
       "autoDeleteHint": "Automatisch nach 30 Tagen gelöscht",
+      "autoDeleteHintDays": "Automatisch nach {days} Tagen gelöscht",
       "selected": "{count} ausgewählt"
     },
     "loadFailed": "Laden fehlgeschlagen, bitte zurückgehen",

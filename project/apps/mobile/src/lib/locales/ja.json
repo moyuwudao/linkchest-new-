@@ -101,6 +101,7 @@
       "purgeSuccess": "{count} 件のブックマークを完全に削除しました",
       "deletedAt": "{date} に削除",
       "autoDeleteHint": "30日後に自動削除",
+      "autoDeleteHintDays": "{days}日後に自動削除",
       "selected": "{count} 件選択中"
     },
     "loadFailed": "読み込みに失敗しました。戻って再試行してください",

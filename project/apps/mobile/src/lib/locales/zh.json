@@ -101,6 +101,7 @@
       "purgeSuccess": "已彻底删除 {count} 个收藏",
       "deletedAt": "删除于 {date}",
       "autoDeleteHint": "30 天后自动清理",
+      "autoDeleteHintDays": "{days} 天后自动清理",
       "selected": "已选 {count} 项"
     },
     "loadFailed": "加载失败，请返回重试",

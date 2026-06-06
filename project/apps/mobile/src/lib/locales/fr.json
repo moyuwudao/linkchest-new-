@@ -101,6 +101,7 @@
       "purgeSuccess": "{count} favori(s) supprimé(s) définitivement",
       "deletedAt": "Supprimé le {date}",
       "autoDeleteHint": "Suppression automatique après 30 jours",
+      "autoDeleteHintDays": "Suppression automatique après {days} jours",
       "selected": "{count} sélectionné(s)"
     },
     "loadFailed": "Échec du chargement, revenez en arrière",

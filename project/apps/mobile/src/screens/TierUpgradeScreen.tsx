@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '../lib/react-query';
 import { api, getBaseDomain } from '../lib/api';
 import { isChinaMarket } from '../lib/market';
 import { useThemeStore } from '../store/theme';
@@ -93,17 +94,19 @@ const hiddenBenefitKeys = ['batchops', 'exportpdf', 'sharestats', 'earlyaccess',
 export default function TierUpgradeScreen({ navigation }: { navigation?: any }) {
   const { colors } = useThemeStore();
   const { t, locale } = useI18n();
-  const [data, setData] = useState<TierData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [cycle, setCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [paying, setPaying] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
-
-  async function loadData() {
-    try { setLoading(true); const r = await api.get('/tiers/me'); setData(r.data?.data || r.data); }
-    catch { /* ignore */ } finally { setLoading(false); }
-  }
+  // 共享 tier-me 缓存（与 AccountSettingsScreen 共用，5 分钟内复用）
+  const { data, isLoading: loading, refetch } = useQuery({
+    queryKey: ['tier-me'],
+    queryFn: async () => {
+      const r = await api.get('/tiers/me');
+      return r.data?.data || r.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
   const tierColor = (k: string) => ({ medium: '#E5E7EB', heavy: '#1B2A4A', super: '#C8956C' }[k] || colors.primary);
 
@@ -186,7 +189,7 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
   if (!data) return (
     <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
       <Text style={{ color: colors.textTertiary }}>{t('common.noData')}</Text>
-      <TouchableOpacity onPress={loadData} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: colors.primaryBg, borderRadius: 8 }}>
+      <TouchableOpacity onPress={() => refetch()} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: colors.primaryBg, borderRadius: 8 }}>
         <Text style={{ color: colors.primary, fontWeight: '600' }}>{t('common.retry')}</Text>
       </TouchableOpacity>
     </View>

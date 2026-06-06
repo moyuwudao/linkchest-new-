@@ -8,7 +8,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import { useInfiniteQuery, useMutation, useQueryClient } from '../lib/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '../lib/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeStore } from '../store/theme';
 import { useI18n } from '../lib/i18n';
@@ -30,6 +30,18 @@ export default function TrashScreen() {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // 从套餐缓存读取回收站保留天数（与 AccountSettingsScreen 共享 tier-me 缓存）
+  const { data: tierData } = useQuery({
+    queryKey: ['tier-me'],
+    queryFn: async () => {
+      const res = await api.get('/tiers/me');
+      return res.data?.data || res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+  const trashRetentionDays = (tierData?.limits?.trashRetentionDays as number) || 7;
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } = useInfiniteQuery({
     queryKey: ['trash'],
@@ -140,7 +152,7 @@ export default function TrashScreen() {
       {items.length > 0 && (
         <View style={[styles.actionBar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
           <Text style={[styles.actionText, { color: colors.textTertiary }]}>
-            {t('collection.trash.autoDeleteHint')}
+            {t('collection.trash.autoDeleteHintDays', { days: trashRetentionDays })}
           </Text>
           <View style={styles.actionButtons}>
             {selectedIds.size > 0 && (

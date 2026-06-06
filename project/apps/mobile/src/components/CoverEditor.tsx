@@ -22,7 +22,10 @@ interface CoverEditorProps {
   collectionId?: string;
 }
 
-/** 根据 coverImage 值推断用户上次选择的 mode */
+/** 根据 coverImage 值推断用户上次选择的 mode
+ *  注意：无法区分 AI 封面和 library 封面（都是 COS URL），
+ *  统一推断为 library（上传封面），AI 模式由用户手动切换或 initialCheck 修正
+ */
 function inferModeFromValue(val: string): CoverMode {
   if (!val) return 'gradient';
   if (val.startsWith('data:image/') || val.includes('cos.') || val.includes('myqcloud.com')) return 'library';
@@ -56,24 +59,26 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
   const internalChangeRef = useRef(false);
   const initialCheckDoneRef = useRef(false);
 
-  // 封面库查询
+  // 封面库查询（library 模式或初始值可能是 COS URL 时加载）
   const { data: coverLibraryData, refetch: refetchCovers } = useQuery({
     queryKey: ['coverLibrary'],
     queryFn: async () => {
       const response = await api.get('/upload/covers?limit=50');
       return response.data;
     },
-    enabled: true,
+    enabled: mode === 'library' || (mode === 'ai' && !initialCheckDoneRef.current),
+    staleTime: 5 * 60 * 1000,
   });
 
-  // 系统封面库查询
+  // 系统封面库查询（ai 模式或初始值可能是系统封面时加载）
   const { data: systemCoversData, refetch: refetchSystemCovers } = useQuery({
     queryKey: ['systemCovers'],
     queryFn: async () => {
       const response = await api.get('/upload/system-covers');
       return response.data;
     },
-    enabled: true,
+    enabled: mode === 'ai' || (mode === 'library' && !initialCheckDoneRef.current),
+    staleTime: 5 * 60 * 1000,
   });
 
   const systemCovers = useMemo(() => {

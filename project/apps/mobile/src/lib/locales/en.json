@@ -101,6 +101,7 @@
       "purgeSuccess": "Permanently deleted {count} bookmark(s)",
       "deletedAt": "Deleted {date}",
       "autoDeleteHint": "Auto-deleted after 30 days",
+      "autoDeleteHintDays": "Auto-deleted after {days} days",
       "selected": "{count} selected"
     },
     "loadFailed": "Load failed, please go back and retry",

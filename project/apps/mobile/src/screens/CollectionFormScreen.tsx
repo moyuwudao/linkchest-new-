@@ -159,23 +159,28 @@ export default function CollectionFormScreen() {
     }
   }, [isEdit, collection]);
 
-  // 快捷添加/新增模式：读取用户设置
+  // 快捷添加/新增模式：读取用户设置（5 分钟缓存，避免每次进入都请求）
+  const { data: userSettingsData } = useQuery({
+    queryKey: ['user-settings'],
+    queryFn: async () => {
+      const res = await api.get('/users/settings');
+      return res.data?.data;
+    },
+    enabled: !isEdit,
+    staleTime: 5 * 60 * 1000,
+  });
+
   useEffect(() => {
-    if (!isEdit) {
-      api.get('/users/settings').then(res => {
-        const settings = res.data?.data;
-        if (settings) {
-          setUserSettings(settings);
-          if (settings.defaultListId && !preListId) {
-            setSelectedList(settings.defaultListId);
-          }
-          if (settings.defaultTagIds?.length && !preTagId) {
-            setSelectedTags(settings.defaultTagIds);
-          }
-        }
-      }).catch(() => {});
+    if (!isEdit && userSettingsData) {
+      setUserSettings(userSettingsData);
+      if (userSettingsData.defaultListId && !preListId) {
+        setSelectedList(userSettingsData.defaultListId);
+      }
+      if (userSettingsData.defaultTagIds?.length && !preTagId) {
+        setSelectedTags(userSettingsData.defaultTagIds);
+      }
     }
-  }, [isEdit]);
+  }, [isEdit, userSettingsData]);
 
   // 配额检查（快捷添加/新增模式）
   const { data: quotaData } = useQuery({
@@ -277,7 +282,7 @@ export default function CollectionFormScreen() {
     setParsePhase(t('common.loading'));
 
     try {
-      const response = await api.post('/collections/smart-parse', { input: inputStr.trim() }, { timeout: 25000 });
+      const response = await api.post('/collections/smart-parse', { input: inputStr.trim() }, { timeout: 12000 });
       const data = response.data.data;
 
       if (!data) {

@@ -101,6 +101,7 @@
       "purgeSuccess": "{count}개 북마크를 영구 삭제했습니다",
       "deletedAt": "{date}에 삭제됨",
       "autoDeleteHint": "30일 후 자동 삭제",
+      "autoDeleteHintDays": "{days}일 후 자동 삭제",
       "selected": "{count}개 선택됨"
     },
     "loadFailed": "로드에 실패했습니다. 뒤로 가서 다시 시도해 주세요.",

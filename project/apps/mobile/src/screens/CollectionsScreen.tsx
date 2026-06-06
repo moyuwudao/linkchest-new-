@@ -406,8 +406,8 @@ export default function CollectionsScreen() {
       const response = await api.get(`/collections?${params.toString()}`);
       return response.data;
     },
-    staleTime: 5000,
-    cacheTime: 60000,
+    staleTime: 30000,
+    cacheTime: 120000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     retry: 2,
@@ -582,7 +582,8 @@ export default function CollectionsScreen() {
   });
 
   useFocusEffect(useCallback(() => {
-    queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'collections' });
+    // 仅在数据过期时才刷新（staleTime 30 秒内不会重新请求）
+    queryClient.invalidateQueries({ queryKey: ['collections'], refetchType: 'active' });
     if (scrollPositionRef.current.y > 0 && flatListRef.current) {
       requestAnimationFrame(() => {
         flatListRef.current?.scrollToOffset({

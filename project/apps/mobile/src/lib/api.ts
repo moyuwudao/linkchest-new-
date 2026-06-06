@@ -112,11 +112,22 @@ export function getPublicBaseUrl(): string {
   return currentBaseUrl.replace('/api', '');
 }
 
+// Token 内存缓存，避免每次请求都读 SecureStore
+let cachedToken: string | null = null;
+
+/** 更新 token 缓存（登录/刷新 token 时调用） */
+export function setCachedToken(token: string | null) {
+  cachedToken = token;
+}
+
 api.interceptors.request.use(
   async (config) => {
-    const token = await SecureStore.getItemAsync('linkchest_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // 优先使用内存缓存，未命中时从 SecureStore 读取
+    if (!cachedToken) {
+      cachedToken = await SecureStore.getItemAsync('linkchest_token');
+    }
+    if (cachedToken) {
+      config.headers.Authorization = `Bearer ${cachedToken}`;
     }
     return config;
   },
@@ -126,6 +137,11 @@ api.interceptors.request.use(
 );
 
 // 响应拦截器 - 统一错误处理
+// 防抖：短时间内只弹一次 server busy / network error toast
+let lastServerBusyToastTime = 0;
+let lastNetworkErrorToastTime = 0;
+const TOAST_DEBOUNCE_MS = 5000; // 5 秒内不重复弹同类 toast
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -151,18 +167,24 @@ api.interceptors.response.use(
       const { useAuthStore } = require('../store/auth');
       useAuthStore.setState({ token: null, user: null });
     } else if (!error.response) {
-      // 网络断开/超时
-      const isTimeout = error.code === 'ECONNABORTED';
-      Toast.show({
-        type: 'error',
-        text1: isTimeout ? t('common.requestTimeout') : t('common.networkError'),
-        text2: isTimeout ? t('common.tryLater') : t('common.checkNetwork'),
-        visibilityTime: 3000,
-      });
+      // 网络断开/超时（防抖：5 秒内不重复弹）
+      const now = Date.now();
+      if (now - lastNetworkErrorToastTime > TOAST_DEBOUNCE_MS) {
+        lastNetworkErrorToastTime = now;
+        const isTimeout = error.code === 'ECONNABORTED';
+        Toast.show({
+          type: 'error',
+          text1: isTimeout ? t('common.requestTimeout') : t('common.networkError'),
+          text2: isTimeout ? t('common.tryLater') : t('common.checkNetwork'),
+          visibilityTime: 3000,
+        });
+      }
     } else if (error.response.status >= 500) {
       // 静默标记：后台验证/轮询请求不弹 toast（仅 reject 给调用方处理）
       const silent = (error.config as any)?.__silent === true
-      if (!silent) {
+      const now = Date.now();
+      if (!silent && now - lastServerBusyToastTime > TOAST_DEBOUNCE_MS) {
+        lastServerBusyToastTime = now;
         Toast.show({
           type: 'error',
           text1: t('common.serverBusy'),

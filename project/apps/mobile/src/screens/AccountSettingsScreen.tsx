@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -53,16 +53,49 @@ export default function AccountSettingsScreen() {
   const [currentServer, setCurrentServer] = useState('');
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
-  const [tierData, setTierData] = useState<any>(null);
-  const [tierLoading, setTierLoading] = useState(true);
+  // 套餐信息缓存（5 分钟内复用，避免每次进入页面重新请求）
+  const { data: tierData, isLoading: tierLoading, refetch: refetchTier } = useQuery({
+    queryKey: ['tier-me'],
+    queryFn: async () => {
+      const res = await api.get('/tiers/me');
+      return res.data?.data || res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-  const [referralCode, setReferralCode] = useState<string | null>(null);
-  const [referralStats, setReferralStats] = useState<any>(null);
-  const [referralLoading, setReferralLoading] = useState(false);
-  const [referralError, setReferralError] = useState(false);
+  // 邀请码信息缓存（5 分钟内复用）
+  const { data: referralData, isLoading: referralLoading, refetch: refetchReferral } = useQuery({
+    queryKey: ['referral'],
+    queryFn: async () => {
+      const [codeRes, statsRes] = await Promise.all([
+        api.post('/referrals/code'),
+        api.get('/referrals/stats'),
+      ]);
+      return {
+        code: codeRes.data?.data?.code || null,
+        stats: statsRes.data?.data || null,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+
+  const referralCode = referralData?.code ?? null;
+  const referralStats = referralData?.stats ?? null;
+  const referralError = !referralLoading && !referralData;
+
+  // 页面获得焦点时刷新套餐信息（支付成功返回后会自动刷新）
+  useFocusEffect(
+    React.useCallback(() => {
+      refetchTier();
+      // 延迟 1.5 秒再刷新一次，确保支付回调已处理完毕
+      const timer = setTimeout(() => { refetchTier(); }, 1500);
+      return () => clearTimeout(timer);
+    }, [refetchTier])
+  );
 
   // 统一刷新当前用户信息（通过 react-query 缓存，避免短时间内多次打 /auth/me）
-  // 触发时机：修改资料、改密码、上传头像等动作成功后
   const refreshUserMe = React.useCallback(async () => {
     try {
       const res = await api.get('/auth/me');
@@ -72,47 +105,6 @@ export default function AccountSettingsScreen() {
       // 静默失败，不影响用户操作
     }
   }, [queryClient, setUser]);
-
-  // 页面获得焦点时重新加载套餐信息（支付成功返回后会自动刷新）
-  useFocusEffect(
-    React.useCallback(() => {
-      loadTier();
-      // 延迟 1.5 秒再刷新一次，确保支付回调已处理完毕
-      const timer = setTimeout(() => { loadTier(); }, 1500);
-      return () => clearTimeout(timer);
-    }, [])
-  );
-
-  useEffect(() => {
-    loadReferralData();
-  }, []);
-
-  async function loadTier() {
-    try {
-      setTierLoading(true);
-      const res = await api.get('/tiers/me');
-      setTierData(res.data?.data || res.data);
-    } catch {
-      // ignore
-    } finally {
-      setTierLoading(false);
-    }
-  }
-
-  async function loadReferralData() {
-    try {
-      setReferralLoading(true);
-      setReferralError(false);
-      const codeRes = await api.post('/referrals/code');
-      setReferralCode(codeRes.data?.data?.code || null);
-      const statsRes = await api.get('/referrals/stats');
-      setReferralStats(statsRes.data?.data || null);
-    } catch {
-      setReferralError(true);
-    } finally {
-      setReferralLoading(false);
-    }
-  }
 
   function formatPrice(pricing: any): string {
     if (!pricing || typeof pricing !== 'object') return t('tier.free');
@@ -606,7 +598,7 @@ export default function AccountSettingsScreen() {
           ) : referralError ? (
             <View style={{ paddingVertical: 16, alignItems: 'center' }}>
               <Text style={{ fontSize: 14, color: colors.textTertiary }}>{t('common.networkError')}</Text>
-              <TouchableOpacity onPress={loadReferralData} style={{ marginTop: 8, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: colors.primaryBg }}>
+              <TouchableOpacity onPress={() => refetchReferral()} style={{ marginTop: 8, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: colors.primaryBg }}>
                 <Text style={{ fontSize: 14, color: colors.primary }}>{t('common.retry')}</Text>
               </TouchableOpacity>
             </View>
