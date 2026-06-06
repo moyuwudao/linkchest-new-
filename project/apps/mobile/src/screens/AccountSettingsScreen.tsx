@@ -77,6 +77,9 @@ export default function AccountSettingsScreen() {
   useFocusEffect(
     React.useCallback(() => {
       loadTier();
+      // 延迟 1.5 秒再刷新一次，确保支付回调已处理完毕
+      const timer = setTimeout(() => { loadTier(); }, 1500);
+      return () => clearTimeout(timer);
     }, [])
   );
 

@@ -115,16 +115,26 @@ export async function giveReferralReward(
   const field = tier === 'heavy' ? 'heavyExpiresAt' : 'superExpiresAt'
   const currentExpiry = tier === 'heavy' ? referrer.heavyExpiresAt : referrer.superExpiresAt
 
-  const newExpiry = currentExpiry && currentExpiry > now
-    ? new Date(currentExpiry.getTime() + rewardMs)
-    : new Date(now.getTime() + rewardMs)
+  // 核心规则与 payment.ts 一致：旗舰版优先消耗，专业版在旗舰版之后顺延
+  let newExpiry: Date
+  if (tier === 'heavy' && referrer.superExpiresAt && referrer.superExpiresAt > now) {
+    // super 仍有效，heavy 从 super 到期后开始计算
+    const heavyCurrentValid = currentExpiry && currentExpiry > referrer.superExpiresAt ? currentExpiry : referrer.superExpiresAt
+    newExpiry = new Date(heavyCurrentValid.getTime() + rewardMs)
+  } else {
+    // 普通叠加逻辑：未过期则叠加，已过期则从现在开始
+    newExpiry = currentExpiry && currentExpiry > now
+      ? new Date(currentExpiry.getTime() + rewardMs)
+      : new Date(now.getTime() + rewardMs)
+  }
 
-  // 构造更新数据：super 奖励需同时顺延 heavy 剩余时间
+  // 构造更新数据
   const data: Record<string, unknown> = {
     [field]: newExpiry,
     userTier: await computeUserTier(referrerId),
   }
 
+  // super 奖励需同时顺延 heavy 剩余时间
   if (tier === 'super' && referrer.heavyExpiresAt && referrer.heavyExpiresAt > now) {
     const heavyRemainingMs = referrer.heavyExpiresAt.getTime() - now.getTime()
     data.heavyExpiresAt = new Date(newExpiry.getTime() + heavyRemainingMs)
