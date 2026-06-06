@@ -368,6 +368,7 @@ model Subscription {
   tier                String   // heavy | super
   billingCycle        String   // monthly | yearly
   status              String   // active | expired | cancelled
+  autoRenew           Boolean  @default(false) // 是否自动续费
   priceCny            Int      // 价格（分），¥10=1000, ¥96=9600
   priceUsd            Int      // 价格（美分），$2.99=299, $28.71=2871
   source              String   // paypal | google_pay | wechat_pay | alipay | apple_iap | google_play_billing | admin

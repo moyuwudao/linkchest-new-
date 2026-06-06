@@ -2,6 +2,7 @@ import cron from 'node-cron'
 import prisma from '../lib/prisma'
 import { cleanupOrphanedCovers } from './cover'
 import { expireSubscriptions } from './subscription'
+import { sendSubscriptionReminder } from './push'
 import { processPendingBackups } from './backup'
 import logger from '../lib/logger'
 import { withDistributedLock } from '../lib/redlock'
@@ -213,6 +214,51 @@ export function initScheduler(): void {
       logger.warn({ err: (e as Error).message }, '⚠️ 远程指标同步异常')
     }
   })
+
+  // 每日上午 9:00 检查即将到期的订阅，发送推送提醒（北京时间）
+  // 未开启自动续费的用户：提前 7 天和 1 天各提醒一次
+  cron.schedule('0 9 * * *', async () => {
+    await withDistributedLock('subscription-reminder', 300_000, async () => {
+      try {
+        const now = new Date()
+        // 提前 7 天提醒
+        const day7 = new Date(now)
+        day7.setDate(day7.getDate() + 7)
+        const subs7 = await prisma.subscription.findMany({
+          where: {
+            status: 'active',
+            autoRenew: false,
+            expiresAt: { gte: new Date(day7.getFullYear(), day7.getMonth(), day7.getDate()), lt: new Date(day7.getFullYear(), day7.getMonth(), day7.getDate() + 1) },
+          },
+          select: { userId: true, tier: true },
+        })
+        for (const sub of subs7) {
+          const tierName = sub.tier === 'super' ? '旗舰版' : '专业版'
+          await sendSubscriptionReminder(sub.userId, 7, tierName)
+        }
+        if (subs7.length > 0) logger.info({ count: subs7.length }, '📧 7天到期提醒已发送')
+
+        // 提前 1 天提醒
+        const day1 = new Date(now)
+        day1.setDate(day1.getDate() + 1)
+        const subs1 = await prisma.subscription.findMany({
+          where: {
+            status: 'active',
+            autoRenew: false,
+            expiresAt: { gte: new Date(day1.getFullYear(), day1.getMonth(), day1.getDate()), lt: new Date(day1.getFullYear(), day1.getMonth(), day1.getDate() + 1) },
+          },
+          select: { userId: true, tier: true },
+        })
+        for (const sub of subs1) {
+          const tierName = sub.tier === 'super' ? '旗舰版' : '专业版'
+          await sendSubscriptionReminder(sub.userId, 1, tierName)
+        }
+        if (subs1.length > 0) logger.info({ count: subs1.length }, '📧 1天到期提醒已发送')
+      } catch (err) {
+        logger.error({ err: err instanceof Error ? err.message : String(err) }, '❌ 订阅到期提醒任务失败')
+      }
+    })
+  }, { timezone: 'Asia/Shanghai' })
 
   console.log('✅ 定时任务已注册')
 }

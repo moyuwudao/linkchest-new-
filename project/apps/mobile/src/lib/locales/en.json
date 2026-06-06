@@ -793,7 +793,9 @@
     "copy": "Copy",
     "copied": "Copied",
     "copyFailed": "Copy failed",
-    "noData": "No data"
+    "noData": "No data",
+    "back": "Back",
+    "contact": "Contact Support"
   },
   "payment": {
     "success": "Payment successful! Plan upgraded.",
@@ -816,7 +818,9 @@
     "completeDesc": "Please complete the payment in the browser, return to update the order status.",
     "paid": "I have paid",
     "contactSupport": "Contact Support",
-    "contactSupportDesc": "Please contact us at support@linkchest.net if you have any payment issues"
+    "contactSupportDesc": "Please contact us if you have any payment issues",
+    "autoRenew": "Auto Renew",
+    "autoRenewDesc": "Renew automatically before expiry. If disabled, you'll be reminded 7 and 1 day before expiry"
   },
   "tier": {
     "title": "Plan & Tier",

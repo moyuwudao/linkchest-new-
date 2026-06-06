@@ -122,7 +122,7 @@ export class AlipayProvider implements PaymentProvider {
     const bizContent = {
       out_trade_no: outTradeNo,
       total_amount: (amountCny / 100).toFixed(2),
-      subject: `LinkChest ${tier} (${billingCycle})`,
+      subject: `LinkChest ${tier} ${billingCycle}`,
       // APP 支付 product_code 必须为 QUICK_MSECURITY_PAY
       product_code: 'QUICK_MSECURITY_PAY',
       body: JSON.stringify({ userId, tier, billingCycle }),
@@ -140,9 +140,11 @@ export class AlipayProvider implements PaymentProvider {
     // 移动 APP 支付：返回 orderString
     // 官方文档要求：先拼接未签名原始字符串 → 签名 → 再对所有一级 value URL encode
     // biz_content 作为一级 value，整体 URL encode（不拆开 JSON 内部）
+    // 参数必须按字母排序，与签名时一致
+    const sortedKeys = Object.keys(requestParams).sort()
     const orderStringParts: string[] = []
-    Object.entries(requestParams).forEach(([k, v]) => {
-      orderStringParts.push(`${k}=${encodeURIComponent(String(v))}`)
+    sortedKeys.forEach((k) => {
+      orderStringParts.push(`${k}=${encodeURIComponent(String(requestParams[k]))}`)
     })
     orderStringParts.push(`sign=${encodeURIComponent(sign)}`)
     const orderString = orderStringParts.join('&')

@@ -38,6 +38,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useThemeStore } from '../store/theme';
 import { useI18n } from '../lib/i18n';
 import { api } from '../lib/api';
+import { getSupportEmail } from '../lib/api';
 import { spacing, radius, shadow } from '../theme/tokens';
 import { LocalizedText } from '../components/LocalizedText';
 import { LinkText } from '../components/LinkText';
@@ -95,6 +96,7 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
   const [phase, setPhase] = useState<PayPhase>('idle');
   const [orderId, setOrderId] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [autoRenew, setAutoRenew] = useState(true);
   const appStateRef = useRef(AppState.currentState);
 
   // 列表入场动画
@@ -154,10 +156,15 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
                 orderId: oId,
                 tier,
                 billingCycle,
+                autoRenew,
               });
             } catch (captureErr) {
               console.warn('capture after pay failed:', captureErr);
             }
+            // 刷新套餐信息，确保返回后其他页面能看到最新状态
+            try {
+              await api.get('/tiers/me');
+            } catch { /* 静默 */ }
             setPhase('success');
             return;
           }
@@ -204,7 +211,10 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
                     orderId: oId,
                     tier,
                     billingCycle,
+                    autoRenew,
                   });
+                  // 刷新套餐信息
+                  try { await api.get('/tiers/me'); } catch { /* 静默 */ }
                   setPhase('success');
                 } catch (e: any) {
                   setPhase('failed');
@@ -335,6 +345,31 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
         </Animated.View>
       )}
 
+      {/* 自动续费开关 */}
+      <Animated.View style={[{ opacity: anim3.opacity, transform: [{ translateY: anim3.translateY }] }]}>
+        <View style={[styles.card, { backgroundColor: colors.card }, shadow.card]}>
+          <TouchableOpacity
+            onPress={() => setAutoRenew(!autoRenew)}
+            activeOpacity={0.7}
+            style={styles.autoRenewRow}
+          >
+            <Ionicons
+              name={autoRenew ? 'checkmark-circle' : 'ellipse-outline'}
+              size={22}
+              color={autoRenew ? colors.primary : colors.textTertiary}
+            />
+            <View style={styles.autoRenewTextWrap}>
+              <LocalizedText text={t('payment.autoRenew')} variant="body" />
+              <LocalizedText
+                text={t('payment.autoRenewDesc')}
+                variant="caption"
+                color="textTertiary"
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+
       {/* 操作按钮 */}
       <Animated.View style={[{ opacity: anim3.opacity, transform: [{ translateY: anim3.translateY }] }]}>
         <TouchableOpacity
@@ -362,7 +397,7 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
         <View style={styles.linkRow}>
           <LinkText
             text={t('payment.contactSupport')}
-            onPress={() => Alert.alert(t('common.contact'), t('payment.contactSupportDesc'))}
+            onPress={() => Alert.alert(t('common.contact'), `${t('payment.contactSupportDesc')}\n${getSupportEmail()}`)}
             variant="caption"
             color="textTertiary"
             align="center"
@@ -448,5 +483,14 @@ const styles = StyleSheet.create({
   linkRow: {
     alignItems: 'center',
     marginTop: spacing.md,
+  },
+  autoRenewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  autoRenewTextWrap: {
+    flex: 1,
+    gap: 2,
   },
 });

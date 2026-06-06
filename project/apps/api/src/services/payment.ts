@@ -21,8 +21,9 @@ export async function processPaymentSuccess(params: {
   priceCny: number
   priceUsd: number
   expiresAt: Date
+  autoRenew?: boolean
 }) {
-  const { userId, tier, billingCycle, source, sourceTransactionId, priceCny, priceUsd, expiresAt } = params
+  const { userId, tier, billingCycle, source, sourceTransactionId, priceCny, priceUsd, expiresAt, autoRenew } = params
   const now = new Date()
 
   await prisma.$transaction(async (tx) => {
@@ -33,6 +34,7 @@ export async function processPaymentSuccess(params: {
         tier,
         billingCycle,
         status: 'active',
+        autoRenew: autoRenew ?? false,
         priceCny,
         priceUsd,
         source,

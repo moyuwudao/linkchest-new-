@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -73,9 +73,12 @@ export default function AccountSettingsScreen() {
     }
   }, [queryClient, setUser]);
 
-  useEffect(() => {
-    loadTier();
-  }, []);
+  // 页面获得焦点时重新加载套餐信息（支付成功返回后会自动刷新）
+  useFocusEffect(
+    React.useCallback(() => {
+      loadTier();
+    }, [])
+  );
 
   useEffect(() => {
     loadReferralData();

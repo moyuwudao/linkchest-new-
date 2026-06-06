@@ -796,7 +796,9 @@
     "copy": "复制",
     "copied": "已复制",
     "copyFailed": "复制失败",
-    "noData": "暂无数据"
+    "noData": "暂无数据",
+    "back": "返回",
+    "contact": "联系客服"
   },
   "tier": {
     "title": "等级与套餐",
@@ -867,7 +869,9 @@
     "completeDesc": "请在浏览器中完成支付，返回后将更新订单状态。",
     "paid": "已完成支付",
     "contactSupport": "联系客服",
-    "contactSupportDesc": "如遇支付问题，请联系 support@linkchest.net"
+    "contactSupportDesc": "如遇支付问题，请联系",
+    "autoRenew": "自动续费",
+    "autoRenewDesc": "到期前自动续费，关闭后将在到期前7天和1天提醒您"
   },
   "error": {
     "unknown": "发生了未知错误",

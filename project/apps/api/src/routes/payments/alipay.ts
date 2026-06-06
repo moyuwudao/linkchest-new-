@@ -47,7 +47,7 @@ router.post('/create-order', authenticate, async (req: AuthenticatedRequest, res
  */
 router.post('/capture', authenticate, async (req: AuthenticatedRequest, res) => {
   try {
-    const { orderId, tier, billingCycle } = req.body
+    const { orderId, tier, billingCycle, autoRenew } = req.body
     const userId = req.user.id
 
     if (!orderId || !tier || !billingCycle) {
@@ -76,6 +76,7 @@ router.post('/capture', authenticate, async (req: AuthenticatedRequest, res) => 
       priceCny: details.priceCny,
       priceUsd: details.priceUsd,
       expiresAt: details.expiresAt,
+      autoRenew: autoRenew === true,
     })
 
     recordPaymentSuccess('alipay', tier, details.priceUsd)
