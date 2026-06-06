@@ -45,7 +45,9 @@ export async function processPaymentSuccess(params: {
     })
 
     // 2. 根据 tier 延长对应的到期时间（additive：未过期则叠加，已过期则重新计算）
-    //    购买 super 时，若 heavy 仍有效，heavy 剩余时间需顺延至 super 到期之后
+    //    核心规则：旗舰版优先消耗，专业版在旗舰版之后顺延
+    //    - 购买 super 时：heavy 剩余时间顺延至 super 到期之后
+    //    - 购买 heavy 时：若 super 仍有效，heavy 从 super 到期后开始计算
     const user = await tx.user.findUnique({
       where: { id: userId },
       select: { heavyExpiresAt: true, superExpiresAt: true },
@@ -55,9 +57,18 @@ export async function processPaymentSuccess(params: {
     const currentExpiry = tier === 'heavy' ? user?.heavyExpiresAt : user?.superExpiresAt
     const purchaseDurationMs = expiresAt.getTime() - now.getTime()
 
-    const newExpiry = currentExpiry && currentExpiry > now
-      ? new Date(currentExpiry.getTime() + purchaseDurationMs)
-      : expiresAt
+    // 购买 heavy 时：若 super 仍有效，heavy 应从 super 到期后开始
+    let newExpiry: Date
+    if (tier === 'heavy' && user?.superExpiresAt && user.superExpiresAt > now) {
+      // super 仍有效，heavy 从 super 到期后开始计算
+      const heavyCurrentValid = currentExpiry && currentExpiry > user.superExpiresAt ? currentExpiry : user.superExpiresAt
+      newExpiry = new Date(heavyCurrentValid.getTime() + purchaseDurationMs)
+    } else {
+      // 普通叠加逻辑：未过期则叠加，已过期则重新计算
+      newExpiry = currentExpiry && currentExpiry > now
+        ? new Date(currentExpiry.getTime() + purchaseDurationMs)
+        : expiresAt
+    }
 
     // 计算各 tier 的新到期时间
     let updatedHeavy = tier === 'heavy' ? newExpiry : user?.heavyExpiresAt

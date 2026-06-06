@@ -211,7 +211,8 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
       {sorted.map(tier => {
         const isCurrent = tier.key === data.tier;
         const price = fmtPrice(tier);
-        const canUpgrade = tier.key !== 'medium' && !isCurrent;
+        // 允许续费/升级周期：非 medium 套餐都可操作（已拥有则续费延长）
+        const canUpgrade = tier.key !== 'medium';
         const expiresAt = isCurrent ? getCurrentTierExpiresAt() : null;
         return (
           <View key={tier.key} style={{ margin: 12, marginTop: 0, padding: 16, borderRadius: 12, backgroundColor: colors.card, borderWidth: isCurrent ? 2 : 1, borderColor: isCurrent ? colors.warning : colors.border }}>
@@ -294,17 +295,13 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
               </View>
             )}
 
-            {isCurrent ? (
-              <View style={{ paddingVertical: 12, borderRadius: 10, backgroundColor: colors.secondaryBg, alignItems: 'center' }}>
-                <Text style={{ color: colors.textTertiary, fontWeight: '600' }}>{t('tier.current')}</Text>
-              </View>
-            ) : canUpgrade ? (
+            {canUpgrade ? (
               <TouchableOpacity
                 onPress={() => handleUpgrade(tier.key)}
                 disabled={paying}
                 style={{ paddingVertical: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, opacity: paying ? 0.6 : 1 }}>
-                <Ionicons name="flash" size={16} color={colors.headerText} />
-                <Text style={{ color: colors.headerText, fontWeight: '600' }}>{paying ? t('payment.processing') : t('tier.upgrade')}</Text>
+                <Ionicons name={isCurrent ? 'refresh' : 'flash'} size={16} color={colors.headerText} />
+                <Text style={{ color: colors.headerText, fontWeight: '600' }}>{paying ? t('payment.processing') : isCurrent ? t('tier.renew') : t('tier.upgrade')}</Text>
               </TouchableOpacity>
             ) : (
               <View style={{ paddingVertical: 12, borderRadius: 10, backgroundColor: colors.secondaryBg, alignItems: 'center' }}>
