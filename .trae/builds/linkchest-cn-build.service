@@ -1,0 +1,19 @@
+[Unit]
+Description=LinkChest China APK Build
+After=multi-user.target
+
+[Service]
+Type=oneshot
+User=mayn
+WorkingDirectory=/mnt/d/trae_projects/linkchest/project/apps/mobile/android
+Environment=MARKET=china
+Environment=WSL_DISTRO_NAME=linkchest-cn
+Environment=BUILD_DIR_NAME=build-china
+Environment=GRADLE_OPTS=-Xmx4g
+ExecStart=/mnt/d/trae_projects/linkchest/project/apps/mobile/android/gradlew :app:assembleChinaRelease --no-daemon
+StandardOutput=append:/tmp/systemd-cn-build.log
+StandardError=append:/tmp/systemd-cn-build.log
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

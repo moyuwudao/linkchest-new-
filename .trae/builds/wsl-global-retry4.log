@@ -1,0 +1,18 @@
+
+==========================================
+=== 运营文档校验 (MARKET-OPS.md) ===
+==========================================
+✅ Google Services 配置正确: 1:76720591248:android:987978ad236e33ee7de315
+✅ MARKET-OPS.md 文档存在
+   海外版登录配置要求: Google + Apple (Facebook已禁用)
+   协议地址: https://linkchest.net/terms | https://linkchest.net/privacy
+==========================================
+
+==========================================
+=== WSL Instance: linkchest-global
+=== Building GLOBAL flavor (MARKET=global) ===
+==========================================
+=== Written .env.market: global ===
+=== Written .env.market.global: global ===
+=== Written isolated .env.market.linkchest-global: global ===
+=== Metro cache dir: /tmp/metro-cache-linkchest-global ===

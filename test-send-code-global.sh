@@ -1,0 +1,1 @@
+curl -s -X POST http://43.157.240.68:3001/auth/send-code -H "Content-Type: application/json" -d '{"email":"test_verify@linkchest.net","lang":"zh"}' -w "\nSTATUS: %{http_code}\n"

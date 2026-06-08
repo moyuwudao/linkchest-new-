@@ -32,9 +32,11 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 
 | 项目 | 值 |
 |------|-----|
-| Keystore文件 | `debug.keystore`（项目内 `android/app/debug.keystore`，密码 `android`） |
-| 签名算法 | V1 + V2 |
+| Keystore文件 | `linkchest-release.keystore`（项目内 `android/app/linkchest-release.keystore`，密码 `LCHu192619!`，keyAlias `linkchest`） |
+| 签名算法 | V1 + V2 + V3 |
 | OPPO应用签名SHA1 | ⚠️ 待填写（OPPO后台需绑定） |
+
+> **说明**：与小米应用商店共用同一 keystore。`linkchest-release.keystore` 已检入 Git 仓库，国内外版统一。
 
 ### 2.3 构建产物验证
 
@@ -137,7 +139,8 @@ wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/
 |------|----------|--------|
 | 2026-05-29 | 创建OPPO软件商店上架指南 | - |
 | 2026-06-03 | 包名从 cn.linkchest.app 统一为 com.linkchest.app（与软著登记一致），修正 Keystore 文件名 | - |
+| 2026-06-07 | 修正：Keystore 统一为 `linkchest-release.keystore`（密码 `LCHu192619!`，keyAlias `linkchest`），签名算法升级 V1+V2+V3 | - |
 
 ---
 
-*最后更新：2026-05-29*
+*最后更新：2026-06-07*

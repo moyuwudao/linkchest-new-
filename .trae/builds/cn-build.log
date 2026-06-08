@@ -1,0 +1,9 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.8/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :react-settings-plugin:checkKotlinGradlePluginConfigurationErrors
+> Task :react-settings-plugin:compileKotlin UP-TO-DATE
+> Task :react-settings-plugin:compileJava NO-SOURCE
+> Task :react-settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :react-settings-plugin:processResources UP-TO-DATE
+> Task :react-settings-plugin:classes UP-TO-DATE
+> Task :react-settings-plugin:jar UP-TO-DATE

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import { setCachedToken } from '../lib/api';
 
 interface User {
   id: string;
@@ -30,6 +31,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setToken: async (token: string) => {
     await SecureStore.setItemAsync('linkchest_token', token);
+    setCachedToken(token);
     set({ token });
   },
 
@@ -45,6 +47,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await SecureStore.deleteItemAsync('linkchest_token');
+    setCachedToken(null);
     // 国内版：清除极光推送别名
     import('../lib/jpush').then(({ deleteJPushAlias }) => {
       deleteJPushAlias().catch(() => {});
@@ -55,6 +58,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   loadToken: async () => {
     const token = await SecureStore.getItemAsync('linkchest_token');
     if (token) {
+      setCachedToken(token);
       set({ token });
     }
   },

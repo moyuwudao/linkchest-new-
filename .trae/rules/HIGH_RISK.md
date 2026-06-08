@@ -171,6 +171,10 @@ ssh ubuntu@43.136.82.88 "cd /opt/linkchest/api && git pull && bash deploy/update
 | **使用 `Partitioned` Cookie** | HTTP 环境下不兼容 | 登录循环 |
 | **.env.china 中缺少 COS 配置** | 封面/头像上传依赖 COS | 上传 503 错误 |
 | **.env 文件未同步 `.env.china` 配置** | `start-api.sh` 只加载 `.env` | 上传提示"配置未完成" |
+| **支付宝配置部署到海外服务器** | 支付宝仅支持国内版 | 海外服务器报错/配置冲突 |
+| **支付宝 APPID 使用 PID** | APPID 和 PID 是不同的 | 支付宝提示"商家订单参数异常" |
+| **支付宝密钥不匹配** | 商户私钥和上传到平台的公钥必须配对 | 支付宝验签失败，提示"商家订单参数异常" |
+| **支付宝 SDK 未切换为正式环境** | 沙箱需 `EnvUtils.setEnv(SANDBOX)`，正式版必须移除 | 支付宝走错环境 |
 
 ### 2.3 海外专属禁止行为
 
@@ -248,6 +252,12 @@ COS_REGION="ap-singapore"  # 海外 | ap-nanjing / ap-guangzhou 国内
 TENCENTCLOUD_SECRET_ID="..."
 TENCENTCLOUD_SECRET_KEY="..."
 SES_FROM_EMAIL="noreply@linkchest.net"
+
+# 支付宝支付（仅国内版必需）
+ALIPAY_APP_ID="2021006160619404"  # 正式版 APPID
+ALIPAY_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"  # 商户 RSA2 私钥（PKCS#8）
+ALIPAY_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"  # 支付宝公钥（验签回调用）
+ALIPAY_NOTIFY_URL="https://linkchest.cn/api/payments/alipay/notify"  # 异步通知地址
 ```
 
 **`.env` 文件同步要求（🔴 关键）：**
@@ -274,6 +284,9 @@ ssh ubuntu@43.136.82.88 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_RE
 # 验证 .env 中有配置（启动脚本实际加载的文件）
 ssh ubuntu@43.157.240.68 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_REGION' /opt/linkchest/api/project/apps/api/.env"
 ssh ubuntu@43.136.82.88 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_REGION' /opt/linkchest/api/project/apps/api/.env"
+
+# 验证支付宝配置（仅国内版）
+ssh ubuntu@43.136.82.88 "grep -E 'ALIPAY_APP_ID|ALIPAY_PRIVATE_KEY|ALIPAY_PUBLIC_KEY' /opt/linkchest/api/project/apps/api/.env"
 ```
 
 **如果以上任何一项返回空，说明环境变量缺失，部署后对应功能将不可用。**

@@ -1,0 +1,17 @@
+
+==========================================
+=== 运营文档校验 (MARKET-OPS.md) ===
+==========================================
+✅ MARKET-OPS.md 文档存在
+   国内版登录配置要求: 微信 (支付宝已禁用)
+   协议地址: https://linkchest.cn/terms | https://linkchest.cn/privacy
+==========================================
+
+==========================================
+=== WSL Instance: linkchest-cn
+=== Building CHINA flavor (MARKET=china) ===
+==========================================
+=== Written .env.market: china ===
+=== Written .env.market.china: china ===
+=== Written isolated .env.market.linkchest-cn: china ===
+=== Metro cache dir: /tmp/metro-cache-linkchest-cn ===

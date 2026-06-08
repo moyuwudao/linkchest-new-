@@ -1,0 +1,15 @@
+const k = process.env.ALIPAY_SANDBOX_PUBLIC_KEY
+const priv = process.env.ALIPAY_SANDBOX_PRIVATE_KEY
+console.log('PUB first 100:', JSON.stringify(k.substring(0, 100)))
+console.log('PUB last 60:', JSON.stringify(k.substring(k.length - 60)))
+console.log('PUB total length:', k.length)
+console.log('PUB \\\\n count:', (k.match(/\\n/g) || []).length)
+console.log('PUB \\\\r count:', (k.match(/\\r/g) || []).length)
+console.log('PUB has BEGIN:', k.includes('BEGIN PUBLIC KEY'))
+console.log('PUB has END:', k.includes('END PUBLIC KEY'))
+console.log()
+console.log('PRIV first 100:', JSON.stringify(priv.substring(0, 100)))
+console.log('PRIV total length:', priv.length)
+console.log('PRIV \\\\n count:', (priv.match(/\\n/g) || []).length)
+console.log('PRIV has BEGIN:', priv.includes('BEGIN PRIVATE KEY'))
+console.log('PRIV has END:', priv.includes('END PRIVATE KEY'))

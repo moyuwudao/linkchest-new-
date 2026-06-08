@@ -13,27 +13,40 @@
 | 平台地址 | https://play.google.com/console |
 | 应用名称 | LinkChest |
 | 包名 | com.linkchest.app |
-| 构建方式 | Expo + EAS Build |
+| 构建方式 | WSL 本地 Gradle 构建（linkchest-global 实例） |
+| 产物格式 | AAB（Android App Bundle） |
 | 开发者账号 | ✅ 已申请（$25已付） |
 
 ---
 
-## 二、构建AAB
+## 二、构建 AAB
 
 ### 2.1 构建命令
 
-海外版使用 EAS Build 构建 AAB 文件（Google Play 要求 AAB 格式）：
+在 WSL 环境中执行（与国内版共用同一脚本，海外版用 `global` 参数）：
 
 ```bash
-eas build --profile production-global --platform android
+wsl -d linkchest-global -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh global
 ```
 
 > **注意：**
+> - 必须使用 `linkchest-global` WSL 实例
+> - 禁止使用 `--clean` 参数
 > - Google Play 不接受 APK，必须使用 AAB（Android App Bundle）
 > - 确保 `MARKET=global` 环境变量正确设置
-> - EAS Build 云端构建，自动签名
+> - 禁止使用 EAS Build（项目已切换为本地 Gradle）
 
-### 2.2 构建产物验证
+### 2.2 签名配置
+
+| 项目 | 值 |
+|------|-----|
+| Keystore文件 | `linkchest-release.keystore`（与国内版共用，密码 `LCHu192619!`，keyAlias `linkchest`） |
+| 签名算法 | V1 + V2 + V3 |
+| 应用签名SHA1 | ⚠️ 待填写（Google Play 自动管理应用签名密钥，仅需上传密钥指纹参考） |
+
+> **说明**：项目采用统一 release keystore（已检入 Git 仓库 `android/app/linkchest-release.keystore`），国内外版共用。Google Play 上传 AAB 时建议开启 Play App Signing（推荐），由 Google 管理应用签名密钥。
+
+### 2.3 构建产物验证
 
 ```bash
 # 检查包名
@@ -49,12 +62,12 @@ grep "linkchest.net" bundle.js 2>/dev/null
 # 期望: 有匹配
 ```
 
-### 2.3 Google Play App Signing
+### 2.4 Google Play App Signing（推荐开启）
 
-Google Play 会自动管理 AAB 签名：
-1. 首次上传 AAB 时，Google 会生成上传密钥
-2. 后续上传需使用同一上传密钥
-3. 在 Play Console →「设置」→「应用完整性」中管理
+1. 首次上传 AAB 时，启用 Play App Signing
+2. Google 会生成并保管应用签名密钥
+3. 后续上传使用「上传密钥」（即 `linkchest-release.keystore`）签名
+4. 在 Play Console →「设置」→「应用完整性」中管理
 
 ---
 
@@ -95,7 +108,7 @@ Google Play 会自动管理 AAB 签名：
 | 特色图片(Feature Graphic) | 1024x500 PNG/JPEG | 1张 |
 | 手机截图 | 16:9 或 9:16 PNG/JPEG，≤8MB/张 | 2-8张 |
 
-### 3.5 上传AAB
+### 3.5 上传 AAB
 
 1. 进入「发布」→「Production」
 2. 点击「Create new release」
@@ -180,7 +193,7 @@ Google Play 会自动管理 AAB 签名：
 
 ### 6.3 版本更新
 
-1. 构建新版本AAB（增加 versionCode）
+1. 构建新版本 AAB（增加 versionCode）
 2. 登录 Google Play Console
 3. 进入 Production → Create new release
 4. 上传新 AAB
@@ -203,7 +216,8 @@ Google Play 会自动管理 AAB 签名：
 | 时间 | 更新内容 | 操作人 |
 |------|----------|--------|
 | 2026-05-29 | 创建Google Play Store上架指南 | - |
+| 2026-06-07 | 修正：移除 Expo + EAS Build，构建方式统一改为 WSL 本地 Gradle，keystore 说明统一为 linkchest-release.keystore | - |
 
 ---
 
-*最后更新：2026-05-29*
+*最后更新：2026-06-07*
