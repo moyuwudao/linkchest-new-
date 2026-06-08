@@ -351,45 +351,22 @@ export async function moderateCollectionNote(note: string, collectionId?: string
 /**
  * 审核收藏 URL（链接本身,检查是否含恶意域或违规内容）
  *
- * 优化点：
- * 1. 优先调用 isMaliciousUrl 精准匹配 URL 黑名单（casino、bet365 等域）
- * 2. 跳过通用本地敏感词库（避免对长 URL 的短词误判，如 sm/bet/cam）
- * 3. URL 长度>500 时仅本地放行（不送审 TMS，节省费用）
+ * 当前策略：仅做格式校验（必填、是URL），不做内容审核
+ * - 格式校验由 routes 层 body('url').custom() 处理（必填、是合法URL）
+ * - 不调用 isMaliciousUrl（避免误判,降低成本）
+ * - 不送审腾讯云 TMS（节省费用）
+ * - 不查 Redis 缓存
+ *
+ * 关闭时间：2026-06-08
+ * 关闭原因：
+ * 1. 通用敏感词库对长 URL 短词误判严重（sm/bet/cam 等）
+ * 2. 腾讯云 TMS 对 URL 审核准确率有限
+ * 3. 实际恶意 URL 由浏览器/用户自行甄别
+ *
+ * 如需恢复，参考 git history 中 98b43b7 之前的实现
  */
 export async function moderateCollectionUrl(url: string, collectionId?: string) {
-  // 1. URL 黑名单专项检查（精准,无误判）
-  const malicious = isMaliciousUrl(url)
-  if (malicious.malicious) {
-    logger.info(
-      { url, reason: malicious.reason, collectionId },
-      '[TMS-URL] URL 黑名单命中拦截'
-    )
-    recordContentModeration({
-      safe: false,
-      label: 'UrlMalicious',
-      durationMs: 0,
-      bizType: 'collection_url',
-    })
-    return {
-      safe: false,
-      label: 'UrlMalicious',
-      reason: `malicious_url:${malicious.reason}`,
-      keywords: [malicious.reason || 'malicious'],
-    }
-  }
-
-  // 2. URL 长度>500 跳过 TMS（节省费用,长 URL 由人工复审更合适）
-  if (!url || url.length > MAX_LENGTH_FOR_TMS) {
-    return { safe: true, reason: 'url_too_long_skip_tms' }
-  }
-
-  // 3. 跳过通用词库(skipLocalCheck=true),避免误判,直接走缓存+TMS
-  return moderateText(
-    url,
-    collectionId ? `collection_url_${collectionId}` : undefined,
-    undefined,
-    { skipLocalCheck: true }
-  )
+  return { safe: true, reason: 'url_check_disabled' }
 }
 
 /**
