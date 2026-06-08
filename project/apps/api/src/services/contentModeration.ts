@@ -154,13 +154,18 @@ async function cacheSet(key: string, result: ModerationResult): Promise<void> {
   }
 }
 
+export interface ModerationOptions {
+  /** 跳过本地敏感词匹配（URL 等长文本使用,避免误判） */
+  skipLocalCheck?: boolean
+}
+
 /**
  * 文本内容审核
  *
  * 优化流程（避免不必要的 TMS 调用）：
  * 1. shouldModerate() = false → 直接放行（海外/未配置密钥）
  * 2. preScreen() → 长度/格式预筛（命中率 ~10%）
- * 3. localCheck() → 本地词库命中直接拦截（命中率 ~70%）
+ * 3. localCheck() → 本地词库命中直接拦截（命中率 ~70%，URL 跳过）
  * 4. cacheGet() → Redis 缓存命中直接复用（命中率 ~30%）
  * 5. tmsClient.TextModeration() → 真正送审
  * 6. cacheSet() → 缓存结果
@@ -168,12 +173,14 @@ async function cacheSet(key: string, result: ModerationResult): Promise<void> {
  * @param content 待审核文本
  * @param dataId 数据标识（可选）
  * @param bizType 策略BizType（可选，用于区分审核场景）
+ * @param options 审核选项（URL 审核时 skipLocalCheck=true）
  * @returns 审核结果
  */
 export async function moderateText(
   content: string,
   dataId?: string,
-  bizType?: string
+  bizType?: string,
+  options?: ModerationOptions
 ): Promise<ModerationResult> {
   // ===== 步骤 0: 客户端可用性 =====
   const tmsClient = getClient()
@@ -187,24 +194,26 @@ export async function moderateText(
     return { safe: pre.safe, reason: pre.reason }
   }
 
-  // ===== 步骤 2: 本地词库匹配 (A) =====
-  const bannedWord = localCheck(content)
-  if (bannedWord) {
-    logger.info(
-      { word: bannedWord.word, category: bannedWord.category, severity: bannedWord.severity, dataId, bizType },
-      '[TMS-Local] 本地词库命中拦截'
-    )
-    recordContentModeration({
-      safe: false,
-      label: bannedWord.category,
-      durationMs: 0,
-      bizType: bizType || 'default',
-    })
-    return {
-      safe: false,
-      label: bannedWord.category,
-      reason: `local_banned_word:${bannedWord.word}`,
-      keywords: [bannedWord.word],
+  // ===== 步骤 2: 本地词库匹配 (A) - URL 等长文本可跳过 =====
+  if (!options?.skipLocalCheck) {
+    const bannedWord = localCheck(content)
+    if (bannedWord) {
+      logger.info(
+        { word: bannedWord.word, category: bannedWord.category, severity: bannedWord.severity, dataId, bizType },
+        '[TMS-Local] 本地词库命中拦截'
+      )
+      recordContentModeration({
+        safe: false,
+        label: bannedWord.category,
+        durationMs: 0,
+        bizType: bizType || 'default',
+      })
+      return {
+        safe: false,
+        label: bannedWord.category,
+        reason: `local_banned_word:${bannedWord.word}`,
+        keywords: [bannedWord.word],
+      }
     }
   }
 
@@ -341,9 +350,46 @@ export async function moderateCollectionNote(note: string, collectionId?: string
 
 /**
  * 审核收藏 URL（链接本身,检查是否含恶意域或违规内容）
+ *
+ * 优化点：
+ * 1. 优先调用 isMaliciousUrl 精准匹配 URL 黑名单（casino、bet365 等域）
+ * 2. 跳过通用本地敏感词库（避免对长 URL 的短词误判，如 sm/bet/cam）
+ * 3. URL 长度>500 时仅本地放行（不送审 TMS，节省费用）
  */
 export async function moderateCollectionUrl(url: string, collectionId?: string) {
-  return moderateText(url, collectionId ? `collection_url_${collectionId}` : undefined)
+  // 1. URL 黑名单专项检查（精准,无误判）
+  const malicious = isMaliciousUrl(url)
+  if (malicious.malicious) {
+    logger.info(
+      { url, reason: malicious.reason, collectionId },
+      '[TMS-URL] URL 黑名单命中拦截'
+    )
+    recordContentModeration({
+      safe: false,
+      label: 'UrlMalicious',
+      durationMs: 0,
+      bizType: 'collection_url',
+    })
+    return {
+      safe: false,
+      label: 'UrlMalicious',
+      reason: `malicious_url:${malicious.reason}`,
+      keywords: [malicious.reason || 'malicious'],
+    }
+  }
+
+  // 2. URL 长度>500 跳过 TMS（节省费用,长 URL 由人工复审更合适）
+  if (!url || url.length > MAX_LENGTH_FOR_TMS) {
+    return { safe: true, reason: 'url_too_long_skip_tms' }
+  }
+
+  // 3. 跳过通用词库(skipLocalCheck=true),避免误判,直接走缓存+TMS
+  return moderateText(
+    url,
+    collectionId ? `collection_url_${collectionId}` : undefined,
+    undefined,
+    { skipLocalCheck: true }
+  )
 }
 
 /**
