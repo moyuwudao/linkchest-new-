@@ -1669,7 +1669,53 @@ router.put('/:id', authenticate, [
     if (rating !== undefined) {
       updateData.rating = rating === null ? null : new Prisma.Decimal(rating)
     }
-    
+
+    // ===== 内容安全审核（国内版）- 仅审核值实际发生变化的字段 =====
+    // 优化点：值未变则跳过（节省 TMS 调用）
+    if (title !== undefined && title !== existing.title) {
+      const titleCheck = await moderateCollectionTitle(title, id)
+      if (!titleCheck.safe) {
+        return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '标题包含违规内容')
+      }
+    }
+    if (note !== undefined && note !== existing.note) {
+      const noteCheck = await moderateCollectionNote(note, id)
+      if (!noteCheck.safe) {
+        return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '备注包含违规内容')
+      }
+    }
+    if (url !== undefined && url !== existing.url) {
+      const urlCheck = await moderateCollectionUrl(url, id)
+      if (!urlCheck.safe) {
+        return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '链接包含违规内容')
+      }
+    }
+    // 标签集合是否变化（仅在变化时审核新标签）
+    if (Array.isArray(tagIds) && tagIds.length > 0) {
+      // 取新旧标签 ID 集合
+      const existingTagRecords = await prisma.tag.findMany({
+        where: { userId, collections: { some: { id } } },
+        select: { id: true },
+      })
+      const existingTagIdSet = new Set(existingTagRecords.map((t) => t.id))
+      const newTagIdSet = new Set<string>(tagIds)
+      // 仅审核"新增的"标签（值未变跳过）
+      const addedTagIds = [...newTagIdSet].filter((tid) => !existingTagIdSet.has(tid))
+      if (addedTagIds.length > 0) {
+        const newTagRecords = await prisma.tag.findMany({
+          where: { id: { in: addedTagIds }, userId },
+          select: { id: true, name: true },
+        })
+        for (const tag of newTagRecords) {
+          const tagCheck = await moderateCollectionTag(tag.name, tag.id)
+          if (!tagCheck.safe) {
+            return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED,
+              `标签 "${tag.name}" 包含违规内容`)
+          }
+        }
+      }
+    }
+
     // 更新关联
     if (tagIds !== undefined) {
       updateData.tags = { set: tagIds.map((id: string) => ({ id })) }
