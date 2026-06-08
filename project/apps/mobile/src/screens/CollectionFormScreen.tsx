@@ -21,6 +21,7 @@ import { logEvent } from '../lib/analytics';
 import CoverEditor from '../components/CoverEditor';
 import StarRating from '../components/StarRating';
 import { PAGE_TYPES, DEFAULT_PAGE_TYPE, getPageTypeConfig } from '../lib/pageTypes';
+import { moderateCollectionLocal } from '../lib/contentModeration';
 
 type CollectionFormMode = 'quickAdd' | 'add' | 'edit';
 
@@ -471,6 +472,21 @@ export default function CollectionFormScreen() {
     if (coverImage && coverImage.trim()) data.coverImage = coverImage.trim();
     if (note && note.trim()) data.note = note.trim();
     if (isEdit && rating !== null && rating !== undefined) data.rating = rating;
+
+    // 客户端内容安全预过滤（仅国内市场）
+    const moderationCheck = moderateCollectionLocal({
+      title: data.title,
+      note: data.note,
+      url: data.url,
+    });
+    if (!moderationCheck.safe) {
+      Alert.alert(
+        t('common.hint'),
+        `${t('contentModeration.blocked')}\n${moderationCheck.reason || ''}`.trim(),
+        [{ text: t('common.confirm') }]
+      );
+      return;
+    }
 
     if (isEdit) {
       updateMutation.mutate(data);

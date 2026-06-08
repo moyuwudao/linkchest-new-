@@ -798,6 +798,13 @@
     "back": "Back",
     "contact": "Contact Support"
   },
+  "contentModeration": {
+    "blocked": "Content contains prohibited information, please modify and try again",
+    "nicknameBlocked": "Nickname contains prohibited information, please modify and try again",
+    "titleBlocked": "Title contains prohibited information, please modify and try again",
+    "noteBlocked": "Note contains prohibited information, please modify and try again",
+    "urlBlocked": "URL contains prohibited information, please modify and try again"
+  },
   "payment": {
     "success": "Payment successful! Plan upgraded.",
     "canceled": "Payment canceled",

@@ -139,6 +139,16 @@ export const SES_CONFIG = {
   fromEmail: process.env.SES_FROM_EMAIL || 'noreply@linkchest.net',
 }
 
+// ===== TMS 腾讯云内容安全配置 =====
+export const TMS_CONFIG = {
+  secretId: process.env.TENCENTCLOUD_SECRET_ID || '',
+  secretKey: process.env.TENCENTCLOUD_SECRET_KEY || '',
+  // 与 SES/COS-国内版保持一致,内网互通 + 低延迟
+  region: process.env.TMS_REGION || 'ap-guangzhou',
+  // 是否启用(国内版且密钥已配置时为 true)
+  enabled: !!(process.env.TENCENTCLOUD_SECRET_ID && process.env.TENCENTCLOUD_SECRET_KEY),
+}
+
 // ===== Google OAuth 配置 =====
 export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 

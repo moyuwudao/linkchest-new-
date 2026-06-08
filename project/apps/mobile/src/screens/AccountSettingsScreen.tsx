@@ -25,6 +25,7 @@ import { api, setApiUrl, resetApiUrl, getApiUrl, getBaseDomain } from '../lib/ap
 import { useThemeStore } from '../store/theme';
 import { useI18n } from '../lib/i18n';
 import { ErrorCodeToI18nKey } from '../lib/errorCodes';
+import { moderateNicknameLocal } from '../lib/contentModeration';
 
 export default function AccountSettingsScreen() {
   const navigation = useNavigation();
@@ -186,6 +187,16 @@ export default function AccountSettingsScreen() {
   const handleSaveUsername = () => {
     if (!usernameValue.trim()) {
       Alert.alert(t('common.hint'), t('account.enterUsername'));
+      return;
+    }
+    // 客户端内容安全预过滤（仅国内市场）
+    const nicknameCheck = moderateNicknameLocal(usernameValue.trim());
+    if (!nicknameCheck.safe) {
+      Alert.alert(
+        t('common.hint'),
+        `${t('contentModeration.nicknameBlocked')}\n${nicknameCheck.reason || ''}`.trim(),
+        [{ text: t('common.confirm') }]
+      );
       return;
     }
     profileMutation.mutate({ username: usernameValue.trim(), nickname: usernameValue.trim() }, {

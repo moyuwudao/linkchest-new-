@@ -12,7 +12,7 @@ import { checkQuota, checkQuotaBatch, invalidateQuotaCache } from '../services/q
 import { enqueueMetadataFetch } from '../services/metadata-queue'
 import { recordCollectionCreated } from '../services/prom-metrics'
 import { emitEvent } from '../lib/eventBus'
-import { moderateCollectionTitle, moderateCollectionNote } from '../services/contentModeration'
+import { moderateCollectionTitle, moderateCollectionNote, moderateCollectionUrl, moderateCollectionTag } from '../services/contentModeration'
 
 import fetch from 'node-fetch'
 import { CollectionErrorCodes, ListErrorCodes, CommonErrorCodes, UploadErrorCodes, QuotaErrorCodes, errorResponse } from '../lib/errorCodes'
@@ -414,6 +414,25 @@ router.post('/', authenticate, [
       const noteCheck = await moderateCollectionNote(note)
       if (!noteCheck.safe) {
         return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '备注包含违规内容')
+      }
+    }
+    // 审核 URL 本身(检查是否含恶意域/违规内容)
+    const urlCheck = await moderateCollectionUrl(url)
+    if (!urlCheck.safe) {
+      return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '链接包含违规内容')
+    }
+    // 审核 tagIds 关联的 tag 名称
+    if (Array.isArray(tagIds) && tagIds.length > 0) {
+      const tagRecords = await prisma.tag.findMany({
+        where: { id: { in: tagIds }, userId },
+        select: { id: true, name: true },
+      })
+      for (const tag of tagRecords) {
+        const tagCheck = await moderateCollectionTag(tag.name, tag.id)
+        if (!tagCheck.safe) {
+          return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED,
+            `标签 "${tag.name}" 包含违规内容`)
+        }
       }
     }
 

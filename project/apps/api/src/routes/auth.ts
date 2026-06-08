@@ -22,6 +22,7 @@ import { authenticate, AuthenticatedRequest } from '../middleware/auth'
 import { sendTemplateEmail, sendVerificationCode } from '../services/ses'
 import { recordUserRegistered } from '../services/prom-metrics'
 import { useReferralCode } from './referrals'
+import { moderateNickname, moderateText } from '../services/contentModeration'
 import logger from '../lib/logger'
 
 const router = Router()
@@ -639,6 +640,20 @@ router.patch('/profile', authenticate, [
     // 用户名违禁词检查
     if (username && containsBannedWord(username)) {
       return errorResponse(res, 400, AuthErrorCodes.USERNAME_CONTAINS_BANNED_WORDS)
+    }
+
+    // 内容审核（仅国内市场,审核昵称/用户名）
+    if (nickname !== undefined && nickname !== currentUser.nickname) {
+      const nicknameCheck = await moderateNickname(nickname, userId)
+      if (!nicknameCheck.safe) {
+        return errorResponse(res, 400, AuthErrorCodes.USERNAME_CONTAINS_BANNED_WORDS)
+      }
+    }
+    if (username !== undefined && username !== currentUser.username) {
+      const usernameCheck = await moderateText(username, `username_${userId}`)
+      if (!usernameCheck.safe) {
+        return errorResponse(res, 400, AuthErrorCodes.USERNAME_CONTAINS_BANNED_WORDS)
+      }
     }
 
     // 检查用户名唯一性

@@ -156,6 +156,45 @@ export const metadataQueuePending = promAvailable
     })
   : noopGauge()
 
+// ===== TMS 内容审核指标 =====
+
+/** TMS 审核调用总数（按 bizType / label / safe 标签） */
+export const tmsModerationTotal = promAvailable
+  ? new client.Counter({
+      name: 'lc_tms_moderation_total',
+      help: 'Total number of TMS moderation calls',
+      labelNames: ['bizType', 'label', 'safe'],
+    })
+  : noopCounter()
+
+/** TMS 审核拒绝次数（safe=false） */
+export const tmsModerationBlockedTotal = promAvailable
+  ? new client.Counter({
+      name: 'lc_tms_moderation_blocked_total',
+      help: 'Total number of TMS moderation blocks',
+      labelNames: ['bizType', 'label'],
+    })
+  : noopCounter()
+
+/** TMS 审核耗时（毫秒） */
+export const tmsModerationDurationMs = promAvailable
+  ? new client.Histogram({
+      name: 'lc_tms_moderation_duration_ms',
+      help: 'TMS moderation call duration in milliseconds',
+      labelNames: ['bizType', 'success'],
+      buckets: [10, 50, 100, 200, 500, 1000, 2000, 5000],
+    })
+  : noopCounter()
+
+/** TMS 审核失败次数（API 调用错误） */
+export const tmsModerationErrorTotal = promAvailable
+  ? new client.Counter({
+      name: 'lc_tms_moderation_error_total',
+      help: 'Total number of TMS moderation API errors',
+      labelNames: ['bizType'],
+    })
+  : noopCounter()
+
 // ===== 便捷埋点函数 =====
 
 /** 记录收藏创建 */
@@ -185,6 +224,27 @@ export function recordUserRegistered(source: string = 'direct'): void {
   if (promAvailable) {
     userRegisteredTotal.inc({ source })
   }
+}
+
+/** 记录内容审核调用 */
+export function recordContentModeration(params: {
+  safe: boolean
+  label: string
+  durationMs: number
+  bizType: string
+  error?: boolean
+}): void {
+  if (!promAvailable) return
+  const { safe, label, durationMs, bizType, error } = params
+  const success = !error
+  tmsModerationTotal.inc({ bizType, label, safe: String(safe) })
+  if (!safe) {
+    tmsModerationBlockedTotal.inc({ bizType, label })
+  }
+  if (error) {
+    tmsModerationErrorTotal.inc({ bizType })
+  }
+  tmsModerationDurationMs.observe({ bizType, success: String(success) }, durationMs)
 }
 
 /** 记录 API 请求 */

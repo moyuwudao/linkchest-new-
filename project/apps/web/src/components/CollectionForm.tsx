@@ -11,6 +11,7 @@ import { isValidUrl, parseShareText, parseUrlPlatform } from '@/lib/utils'
 import CoverEditor from '@/components/CoverEditor'
 import StarRating from '@/components/StarRating'
 import { PAGE_TYPES, DEFAULT_PAGE_TYPE, getPageTypeConfig, PageTypeIcon } from '@/lib/pageTypes'
+import { moderateCollectionLocal } from '@/lib/contentModeration'
 
 type CollectionFormMode = 'add' | 'edit'
 
@@ -449,6 +450,18 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
     // 只发送有效的 pageType
     if (selectedPageType && selectedPageType.trim() !== '') {
       data.pageType = selectedPageType
+    }
+
+    // 客户端内容安全预过滤（仅国内市场）
+    const moderationCheck = moderateCollectionLocal({
+      title: data.title,
+      note: data.note,
+      url: data.url,
+    })
+    if (!moderationCheck.safe) {
+      const blockedMsg = t('contentModeration.blocked') || '内容包含违规信息,请修改后重试'
+      alert(`${blockedMsg}\n${moderationCheck.reason || ''}`.trim())
+      return
     }
 
     if (isAdd) {

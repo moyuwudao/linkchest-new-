@@ -1,48 +1,26 @@
 /**
  * 内容审核中间件（国内市场专用）
- * 基于腾讯云内容安全 API
+ * 基于腾讯云内容安全 (TMS) API
  * 对用户生成的内容（收藏标题、笔记、标签、分享描述等）进行审核
+ *
+ * ⚠️ 此中间件已废弃 (2026-06-07)
+ * 实际调用统一在 services/contentModeration.ts 中完成
+ * 此处仅保留中间件 API 用于向后兼容,内部已重定向到 services
+ * 路由层应直接 import { moderateCollectionTitle, ... } from '../services/contentModeration'
  *
  * 仅在 MARKET=china 时启用
  */
 
 import type { Request, Response, NextFunction } from 'express'
 import { isChinaMarket } from '../lib/market'
-import logger from '../lib/logger'
-
-// 腾讯云内容安全配置
-const TENCENTCLOUD_SECRET_ID = process.env.TENCENTCLOUD_SECRET_ID || ''
-const TENCENTCLOUD_SECRET_KEY = process.env.TENCENTCLOUD_SECRET_KEY || ''
-const TMS_REGION = process.env.TMS_REGION || 'ap-beijing'
-
-interface ModerationResult {
-  safe: boolean
-  label?: string
-  suggestion?: string
-  confidence?: number
-}
+import { moderateText, type ModerationResult } from '../services/contentModeration'
 
 /**
  * 调用腾讯云内容安全 API 进行文本审核
+ * @deprecated 请直接使用 services/contentModeration 中的 moderateText
  */
-export async function moderateText(text: string): Promise<ModerationResult> {
-  if (!TENCENTCLOUD_SECRET_ID || !TENCENTCLOUD_SECRET_KEY) {
-    logger.warn('Tencent Cloud TMS not configured, skipping moderation')
-    return { safe: true }
-  }
-
-  try {
-    // TODO: 接入腾讯云内容安全（TMS）API
-    // 参考文档: https://cloud.tencent.com/document/product/1124
-    // 使用 tencentcloud-sdk-nodejs 调用 TextModeration 接口
-
-    // 占位实现：直接通过
-    return { safe: true }
-  } catch (error) {
-    logger.error({ error, text: text.slice(0, 100) }, 'Content moderation failed')
-    // 审核失败时默认放行（避免阻塞正常业务），但记录日志告警
-    return { safe: true }
-  }
+export async function moderateTextMiddleware(text: string): Promise<ModerationResult> {
+  return moderateText(text)
 }
 
 /**
@@ -54,7 +32,7 @@ export async function moderateText(text: string): Promise<ModerationResult> {
  */
 export function contentModeration(fields: string[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    // 仅在海外市场启用
+    // 仅在国内市场启用
     if (!isChinaMarket()) {
       return next()
     }
@@ -63,7 +41,7 @@ export function contentModeration(fields: string[]) {
       for (const field of fields) {
         const value = req.body[field]
         if (typeof value === 'string' && value.trim()) {
-          const result = await moderateText(value)
+          const result = await moderateText(value, `middleware_${field}_${req.userId || 'anon'}`)
           if (!result.safe) {
             return res.status(400).json({
               success: false,
@@ -79,8 +57,7 @@ export function contentModeration(fields: string[]) {
       }
       next()
     } catch (error) {
-      logger.error({ error, fields }, 'Content moderation middleware error')
-      // 中间件异常时放行，避免阻塞正常业务
+      // 中间件异常时放行,避免阻塞正常业务
       next()
     }
   }
@@ -88,7 +65,11 @@ export function contentModeration(fields: string[]) {
 
 /**
  * 批量内容审核（用于分享广场等场景）
+ * @deprecated 请直接使用 services/contentModeration 中的 moderateTextBatch
  */
 export async function moderateBatch(texts: string[]): Promise<ModerationResult[]> {
-  return Promise.all(texts.map((text) => moderateText(text)))
+  const results = await Promise.all(
+    texts.map((text, i) => moderateText(text, `batch_${i}`))
+  )
+  return results
 }
