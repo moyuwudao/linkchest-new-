@@ -46,6 +46,8 @@ export default {
   ERR_COLLECTION_INVALID_IMPORT_DATA: "Ungültige Importdaten",
   ERR_COLLECTION_IMPORT_TOO_MANY: "Maximal 2000 Elemente pro Import",
   ERR_COLLECTION_UNAUTHORIZED_TAG: "Enthält Tags, die nicht dem aktuellen Benutzer gehören",
+  ERR_COLLECTION_INVALID_TAG_ID: "Enthält nicht existierende Tags (automatisch ignoriert)",
+  ERR_COLLECTION_INVALID_LIST_ID: "Standardliste existiert nicht, bitte erneut auswählen",
   ERR_COLLECTION_TRASH_FETCH_FAILED: "Papierkorb konnte nicht geladen werden",
   ERR_COLLECTION_TRASH_RESTORE_FAILED: "Lesezeichen konnte nicht wiederhergestellt werden",
   ERR_COLLECTION_TRASH_PURGE_FAILED: "Endgültiges Löschen fehlgeschlagen",

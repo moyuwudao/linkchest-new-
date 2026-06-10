@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   DEFAULT_LIST_ID: 'linkchest_default_list_id',
   DEFAULT_TAG_IDS: 'linkchest_default_tag_ids',
   DEFAULT_NOTE: 'linkchest_default_note',
+  DEFAULT_PAGE_TYPE: 'linkchest_default_page_type',
 } as const;
 
 // 预设服务器配置
@@ -186,4 +187,13 @@ export async function getDefaultNote(): Promise<string> {
 
 export async function setDefaultNote(note: string): Promise<void> {
   await chrome.storage.local.set({ [STORAGE_KEYS.DEFAULT_NOTE]: note });
+}
+
+export async function getDefaultPageType(): Promise<string> {
+  const result = await chrome.storage.local.get(STORAGE_KEYS.DEFAULT_PAGE_TYPE);
+  return result[STORAGE_KEYS.DEFAULT_PAGE_TYPE] || '';
+}
+
+export async function setDefaultPageType(v: string): Promise<void> {
+  await chrome.storage.local.set({ [STORAGE_KEYS.DEFAULT_PAGE_TYPE]: v || '' });
 }

@@ -269,7 +269,8 @@ export default function TagsSection() {
                   <button onClick={() => openEditModal(tag)} className="p-2 text-taupe/60 hover:text-chest-500 hover:bg-chest-500/5 dark:hover:bg-amber-400/10 rounded-colors">
                     <Edit2 size={16} />
                   </button>
-                  <button onClick={() => deleteMutation.mutate(tag.id)} className="p-2 text-taupe/60 hover:text-rust hover:bg-rust/5 dark:hover:bg-rust/10 rounded-lg transition-colors">
+                  <button onClick={() => { if (confirm(t('tag.deleteConfirm'))) deleteMutation.mutate(tag.id); }}
+                    className="p-2 text-taupe/60 hover:text-rust hover:bg-rust/5 dark:hover:bg-rust/10 rounded-lg transition-colors">
                     <Trash2 size={16} />
                   </button>
                 </div>

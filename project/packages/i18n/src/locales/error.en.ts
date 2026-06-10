@@ -47,6 +47,8 @@ export default {
   ERR_COLLECTION_INVALID_IMPORT_DATA: "Invalid import data",
   ERR_COLLECTION_IMPORT_TOO_MANY: "Maximum 2000 items per import",
   ERR_COLLECTION_UNAUTHORIZED_TAG: "Contains tags not belonging to the current user",
+  ERR_COLLECTION_INVALID_TAG_ID: "Contains non-existent tags (auto-ignored)",
+  ERR_COLLECTION_INVALID_LIST_ID: "Default list does not exist, please re-select",
   ERR_COLLECTION_TRASH_FETCH_FAILED: "Failed to fetch trash",
   ERR_COLLECTION_TRASH_RESTORE_FAILED: "Failed to restore collection",
   ERR_COLLECTION_TRASH_PURGE_FAILED: "Failed to permanently delete",

@@ -5,6 +5,7 @@ import {
   getDefaultListId,
   getDefaultTagIds,
   getDefaultNote,
+  getDefaultPageType,
   getLanguage,
 } from '../lib/storage';
 import { createCollection, getUserSettings } from '../lib/api';
@@ -93,11 +94,12 @@ async function silentSave(url: string, title: string) {
 
   try {
     // 优先使用本地快捷保存设置， fallback 到服务器用户设置
-    const [localOrder, localListId, localTagIds, localNote, settings] = await Promise.all([
+    const [localOrder, localListId, localTagIds, localNote, localPageType, settings] = await Promise.all([
       getCoverStrategyOrder(),
       getDefaultListId(),
       getDefaultTagIds(),
       getDefaultNote(),
+      getDefaultPageType(),
       getUserSettings(),
     ]);
 
@@ -105,15 +107,17 @@ async function silentSave(url: string, title: string) {
     const listId = localListId || settings?.defaultListId || null;
     const tagIds = localTagIds?.length ? localTagIds : (settings?.defaultTagIds || []);
     const note = localNote || undefined;
+    const pageType = localPageType || '';
 
     const payload: Record<string, unknown> = {
       url,
       title,
-      platform: coverStrategy,
+      coverStrategy,
     };
     if (listId) payload.listIds = [listId];
     if (tagIds.length) payload.tagIds = tagIds;
     if (note) payload.note = note;
+    if (pageType) payload.pageType = pageType;
 
     await createCollection(payload as Parameters<typeof createCollection>[0]);
 

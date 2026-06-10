@@ -466,6 +466,37 @@ router.post('/', authenticate, [
       defaultListIds = [defaultList.id]
     }
 
+    // ★ 校验 tagIds 全部属于当前用户且存在；过滤无效的 ID
+    let validTagIds: string[] = []
+    let invalidTagCount = 0
+    if (tagIds.length > 0) {
+      const existingTags = await prisma.tag.findMany({
+        where: { id: { in: tagIds }, userId },
+        select: { id: true },
+      })
+      const existingIdSet = new Set(existingTags.map((t) => t.id))
+      validTagIds = tagIds.filter((id: string) => existingIdSet.has(id))
+      invalidTagCount = tagIds.length - validTagIds.length
+    }
+
+    // ★ 校验 listIds 全部属于当前用户且存在
+    const existingLists = await prisma.list.findMany({
+      where: { id: { in: defaultListIds }, userId },
+      select: { id: true },
+    })
+    if (existingLists.length !== defaultListIds.length) {
+      // listId 失效（分组被删除），用默认分组兜底
+      logger.warn({ userId, defaultListIds }, 'listId 不存在或不属于当前用户，回退到默认分组')
+      const fallbackList = await prisma.list.findFirst({
+        where: { userId, name: DEFAULT_LIST_KEY },
+      })
+      if (fallbackList) {
+        defaultListIds = [fallbackList.id]
+      } else {
+        return errorResponse(res, 400, CollectionErrorCodes.COLLECTION_INVALID_LIST_ID)
+      }
+    }
+
     const collection = await prisma.collection.create({
       data: {
         userId,
@@ -477,7 +508,7 @@ router.post('/', authenticate, [
         pageType,
         note,
         rating: rating !== undefined && rating !== null ? new Prisma.Decimal(rating) : null,
-        tags: tagIds.length > 0 ? { connect: tagIds.map((id: string) => ({ id })) } : undefined,
+        tags: validTagIds.length > 0 ? { connect: validTagIds.map((id: string) => ({ id })) } : undefined,
         lists: { connect: defaultListIds.map((id: string) => ({ id })) },
       },
       include: {
@@ -485,6 +516,11 @@ router.post('/', authenticate, [
         lists: { select: { id: true, name: true } },
       },
     })
+
+    // 如果有无效 tag，记录到 console 方便排查
+    if (invalidTagCount > 0) {
+      logger.info({ userId, total: tagIds.length, valid: validTagIds.length, invalid: invalidTagCount }, '部分 tagId 无效已自动过滤')
+    }
 
     // 根据封面策略决定是否触发元数据抓取
     const shouldFetchMetadata = (() => {

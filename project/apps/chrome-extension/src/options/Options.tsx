@@ -18,6 +18,8 @@ import {
   setDefaultTagIds,
   getDefaultNote,
   setDefaultNote,
+  getDefaultPageType,
+  setDefaultPageType,
   getCurrentServer,
   setServerConfig,
   PRESET_SERVERS,
@@ -93,6 +95,7 @@ export default function Options() {
   const [defaultListId, setDefaultListIdState] = useState<string>('');
   const [defaultTagIds, setDefaultTagIdsState] = useState<string[]>([]);
   const [defaultNote, setDefaultNoteState] = useState('');
+  const [defaultPageType, setDefaultPageTypeState] = useState<string>('');  // '' = 自动识别
   const [currentServer, setCurrentServer] = useState<ServerConfig>(PRESET_SERVERS[0]);
 
   const tabs: { key: TabKey; label: string }[] = [
@@ -103,7 +106,7 @@ export default function Options() {
 
   useEffect(() => {
     async function init() {
-      const [li, mode, order, lng, defListId, defTagIds, defNote, server] = await Promise.all([
+      const [li, mode, order, lng, defListId, defTagIds, defNote, defPageType, server] = await Promise.all([
         isLoggedIn(),
         getQuickSaveMode(),
         getCoverStrategyOrder(),
@@ -111,6 +114,7 @@ export default function Options() {
         getDefaultListId(),
         getDefaultTagIds(),
         getDefaultNote(),
+        getDefaultPageType(),
         getCurrentServer(),
       ]);
       setLoggedIn(li);
@@ -126,6 +130,7 @@ export default function Options() {
       setDefaultListIdState(defListId || '');
       setDefaultTagIdsState(defTagIds || []);
       setDefaultNoteState(defNote || '');
+      setDefaultPageTypeState(defPageType || '');
       setCurrentServer(server);
     }
     init();
@@ -175,6 +180,7 @@ export default function Options() {
     await setDefaultListId(defaultListId || null);
     await setDefaultTagIds(defaultTagIds);
     await setDefaultNote(defaultNote);
+    await setDefaultPageType(defaultPageType);
     showMessage(t('defaultsSaved', lang), 'success');
   }
 
@@ -388,6 +394,26 @@ export default function Options() {
                       placeholder={t('optional', lang)}
                       rows={2}
                     />
+                  </div>
+                </div>
+
+                <div className="section-card">
+                  <div className="section-title">{t('defaultPageType', lang)}</div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <select
+                      value={defaultPageType}
+                      onChange={(e) => setDefaultPageTypeState(e.target.value)}
+                    >
+                      <option value="">{t('autoDetect', lang)}</option>
+                      <option value="home">{t('pageTypeHome', lang)}</option>
+                      <option value="detail">{t('pageTypeDetail', lang)}</option>
+                      <option value="list">{t('pageTypeList', lang)}</option>
+                      <option value="search">{t('pageTypeSearch', lang)}</option>
+                      <option value="navigation">{t('pageTypeNavigation', lang)}</option>
+                      <option value="document">{t('pageTypeDocument', lang)}</option>
+                      <option value="download">{t('pageTypeDownload', lang)}</option>
+                      <option value="other">{t('pageTypeOther', lang)}</option>
+                    </select>
                   </div>
                 </div>
 

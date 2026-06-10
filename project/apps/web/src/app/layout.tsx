@@ -74,7 +74,10 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <Providers>{children}</Providers>
         <PwaInstallBanner />
-      </body>
+      {/* impeccable-live-start */}
+<script src="http://localhost:8400/live.js"></script>
+{/* impeccable-live-end */}
+</body>
     </html>
   );
 }
