@@ -405,36 +405,14 @@ router.post('/', authenticate, [
   const platform = detectPlatform(url)
 
   try {
-    // 内容安全审核（国内版）
-    const titleCheck = await moderateCollectionTitle(title)
-    if (!titleCheck.safe) {
-      return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '标题包含违规内容')
-    }
-    if (note) {
-      const noteCheck = await moderateCollectionNote(note)
-      if (!noteCheck.safe) {
-        return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '备注包含违规内容')
-      }
-    }
-    // 审核 URL 本身(检查是否含恶意域/违规内容)
-    const urlCheck = await moderateCollectionUrl(url)
-    if (!urlCheck.safe) {
-      return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '链接包含违规内容')
-    }
-    // 审核 tagIds 关联的 tag 名称
-    if (Array.isArray(tagIds) && tagIds.length > 0) {
-      const tagRecords = await prisma.tag.findMany({
-        where: { id: { in: tagIds }, userId },
-        select: { id: true, name: true },
-      })
-      for (const tag of tagRecords) {
-        const tagCheck = await moderateCollectionTag(tag.name, tag.id)
-        if (!tagCheck.safe) {
-          return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED,
-            `标签 "${tag.name}" 包含违规内容`)
-        }
-      }
-    }
+    // 2026-06-10：用户私有保存不再审核
+    // 原因：用户自己看的内容（标题/备注/标签）触发 TMS 审核导致保存慢、体验差
+    // 审核范围收窄到分享场景（routes/shares.ts 的 moderateShareTitle/Description）
+    // 如需恢复，取消以下注释即可：
+    // const titleCheck = await moderateCollectionTitle(title)
+    // if (!titleCheck.safe) { ... }
+    // if (note) { const noteCheck = await moderateCollectionNote(note) ... }
+    // if (Array.isArray(tagIds) && tagIds.length > 0) { ... }
 
     // 配额检查
     const quotaError = await checkQuota(userId, 'collections')
@@ -1706,51 +1684,13 @@ router.put('/:id', authenticate, [
       updateData.rating = rating === null ? null : new Prisma.Decimal(rating)
     }
 
-    // ===== 内容安全审核（国内版）- 仅审核值实际发生变化的字段 =====
-    // 优化点：值未变则跳过（节省 TMS 调用）
-    if (title !== undefined && title !== existing.title) {
-      const titleCheck = await moderateCollectionTitle(title, id)
-      if (!titleCheck.safe) {
-        return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '标题包含违规内容')
-      }
-    }
-    if (note !== undefined && note !== existing.note) {
-      const noteCheck = await moderateCollectionNote(note, id)
-      if (!noteCheck.safe) {
-        return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '备注包含违规内容')
-      }
-    }
-    if (url !== undefined && url !== existing.url) {
-      const urlCheck = await moderateCollectionUrl(url, id)
-      if (!urlCheck.safe) {
-        return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, '链接包含违规内容')
-      }
-    }
-    // 标签集合是否变化（仅在变化时审核新标签）
-    if (Array.isArray(tagIds) && tagIds.length > 0) {
-      // 取新旧标签 ID 集合
-      const existingTagRecords = await prisma.tag.findMany({
-        where: { userId, collections: { some: { id } } },
-        select: { id: true },
-      })
-      const existingTagIdSet = new Set(existingTagRecords.map((t) => t.id))
-      const newTagIdSet = new Set<string>(tagIds)
-      // 仅审核"新增的"标签（值未变跳过）
-      const addedTagIds = [...newTagIdSet].filter((tid) => !existingTagIdSet.has(tid))
-      if (addedTagIds.length > 0) {
-        const newTagRecords = await prisma.tag.findMany({
-          where: { id: { in: addedTagIds }, userId },
-          select: { id: true, name: true },
-        })
-        for (const tag of newTagRecords) {
-          const tagCheck = await moderateCollectionTag(tag.name, tag.id)
-          if (!tagCheck.safe) {
-            return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED,
-              `标签 "${tag.name}" 包含违规内容`)
-          }
-        }
-      }
-    }
+    // 2026-06-10：用户私有编辑不再审核（与 POST 保持一致）
+    // 原因：用户自己看的内容触发 TMS 审核导致保存慢、体验差
+    // 审核范围收窄到分享场景（routes/shares.ts）
+    // 如需恢复，取消以下注释即可：
+    // if (title !== undefined && title !== existing.title) { ... }
+    // if (note !== undefined && note !== existing.note) { ... }
+    // if (Array.isArray(tagIds) && tagIds.length > 0) { ... }
 
     // 更新关联
     if (tagIds !== undefined) {

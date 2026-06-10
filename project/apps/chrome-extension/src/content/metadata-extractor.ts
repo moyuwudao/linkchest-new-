@@ -535,14 +535,56 @@ const platformCoverExtractors: Record<string, () => Promise<CoverExtractorResult
 
 // ========== 通用Meta提取 ==========
 
-function extractGeneralMetadata(): CoverExtractorResult {
+/**
+ * 等待 og:image 出现（SPA 页面渲染比 Popup 弹窗慢）
+ * - 立即检查一次（已注入就直接返回）
+ * - 启动 MutationObserver 监听 head，最长等 maxMs 毫秒
+ * - 找到或超时都会清理 observer
+ */
+function waitForOgImage(maxMs: number = 1500): Promise<string | null> {
+  // ★ 2026-06-10 修复：WEB 端收藏空封面问题
+  // 根因：SPA 页面 og:image 在 React/Vue 注入 head 之前就被点 Popup
+  // 现在等 og:image 出现后再返回，最长 1.5 秒（用户感知不到）
+  const existing = getOpenGraph('image')
+  if (existing && isValidImageUrl(existing)) return Promise.resolve(existing)
+
+  return new Promise((resolve) => {
+    const target = document.head || document.documentElement
+    if (!target) {
+      resolve(null)
+      return
+    }
+    const timeoutId = window.setTimeout(() => {
+      observer.disconnect()
+      resolve(null)
+    }, maxMs)
+    const observer = new MutationObserver(() => {
+      const image = getOpenGraph('image')
+      if (image && isValidImageUrl(image)) {
+        clearTimeout(timeoutId)
+        observer.disconnect()
+        resolve(image)
+      }
+    })
+    observer.observe(target, { childList: true, subtree: true })
+  })
+}
+
+async function extractGeneralMetadata(): Promise<CoverExtractorResult> {
   // 优先级：og:image → twitter:image → link[rel="image_src"] → 页面第一个大图
+  // 1) og:image 立即尝试
   const ogImage = getOpenGraph('image')
   if (isValidImageUrl(ogImage)) return { coverImage: ogImage }
 
+  // 2) SPA 页面：等 og:image 注入（最多 1.5 秒）
+  const waited = await waitForOgImage(1500)
+  if (isValidImageUrl(waited)) return { coverImage: waited }
+
+  // 3) twitter:image
   const twImage = getTwitterCard('image')
   if (isValidImageUrl(twImage)) return { coverImage: twImage }
 
+  // 4) link[rel="image_src"]
   const imageSrc = document.querySelector('link[rel="image_src"]')?.getAttribute('href') || null
   if (isValidImageUrl(imageSrc)) return { coverImage: imageSrc }
 
@@ -585,7 +627,7 @@ async function extractMetadata(): Promise<ExtractedMetadata> {
     title = coverResult.title || ''
   } else {
     // 通用提取：先尝试 og:image 等meta标签
-    coverResult = extractGeneralMetadata()
+    coverResult = await extractGeneralMetadata()
   }
 
   // 如果平台提取器没返回标题，从DOM获取

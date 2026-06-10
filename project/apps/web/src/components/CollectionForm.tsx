@@ -11,7 +11,7 @@ import { isValidUrl, parseShareText, parseUrlPlatform } from '@/lib/utils'
 import CoverEditor from '@/components/CoverEditor'
 import StarRating from '@/components/StarRating'
 import { PAGE_TYPES, DEFAULT_PAGE_TYPE, getPageTypeConfig, PageTypeIcon } from '@/lib/pageTypes'
-import { moderateCollectionLocal } from '@/lib/contentModeration'
+// import { moderateCollectionLocal } from '@/lib/contentModeration' // 2026-06-10: 取消预过滤
 
 type CollectionFormMode = 'add' | 'edit'
 
@@ -452,17 +452,12 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       data.pageType = selectedPageType
     }
 
-    // 客户端内容安全预过滤（仅国内市场）
-    const moderationCheck = moderateCollectionLocal({
-      title: data.title,
-      note: data.note,
-      url: data.url,
-    })
-    if (!moderationCheck.safe) {
-      const blockedMsg = t('contentModeration.blocked') || '内容包含违规信息,请修改后重试'
-      alert(`${blockedMsg}\n${moderationCheck.reason || ''}`.trim())
-      return
-    }
+    // 2026-06-10：取消客户端预过滤（与 API 端保持一致）
+    // 原因：用户自己看的内容不审核，审核范围收窄到分享场景
+    // 避免 BANNED_WORDS 误判导致保存被拦
+    // 如需恢复，恢复以下代码 + 顶部 import 即可：
+    // const moderationCheck = moderateCollectionLocal({ title: data.title, note: data.note, url: data.url })
+    // if (!moderationCheck.safe) { alert(...); return }
 
     if (isAdd) {
       createMutation.mutate(data)

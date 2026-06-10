@@ -250,6 +250,9 @@ export default function Popup() {
         title: safeTitle,
         coverStrategy: safeCoverStrategy,
       };
+      // ★ 把 content script 抓到的 og:image（被存到 faviconUrl 变量）作为 coverImage 发送
+      //   没有这一行，数据库里 coverImage 永远为 NULL，WEB/手机端只能用占位图
+      if (faviconUrl) payload.coverImage = faviconUrl;
       if (note) payload.note = note;
       if (selectedTagIds.length) payload.tagIds = selectedTagIds;
       // ★ 始终发送 listIds（即使为空也用 defaultListId 兜底）

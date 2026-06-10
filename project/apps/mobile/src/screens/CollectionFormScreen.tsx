@@ -21,7 +21,7 @@ import { logEvent } from '../lib/analytics';
 import CoverEditor from '../components/CoverEditor';
 import StarRating from '../components/StarRating';
 import { PAGE_TYPES, DEFAULT_PAGE_TYPE, getPageTypeConfig } from '../lib/pageTypes';
-import { moderateCollectionLocal } from '../lib/contentModeration';
+// import { moderateCollectionLocal } from '../lib/contentModeration'; // 2026-06-10: 取消预过滤
 
 type CollectionFormMode = 'quickAdd' | 'add' | 'edit';
 
@@ -473,20 +473,10 @@ export default function CollectionFormScreen() {
     if (note && note.trim()) data.note = note.trim();
     if (isEdit && rating !== null && rating !== undefined) data.rating = rating;
 
-    // 客户端内容安全预过滤（仅国内市场）
-    const moderationCheck = moderateCollectionLocal({
-      title: data.title,
-      note: data.note,
-      url: data.url,
-    });
-    if (!moderationCheck.safe) {
-      Alert.alert(
-        t('common.hint'),
-        `${t('contentModeration.blocked')}\n${moderationCheck.reason || ''}`.trim(),
-        [{ text: t('common.confirm') }]
-      );
-      return;
-    }
+    // 2026-06-10：取消客户端预过滤（与 API 端保持一致）
+    // 原因：用户自己看的内容不审核，审核范围收窄到分享场景
+    // 避免 BANNED_WORDS 误判导致保存被拦
+    // 如需恢复，恢复以下代码 + 顶部 import 即可：
 
     if (isEdit) {
       updateMutation.mutate(data);
