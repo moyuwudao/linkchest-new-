@@ -359,6 +359,12 @@ async function fetchWithPuppeteer(
     // 从渲染后的页面提取元数据
     const metadata = await extractMetadataFromPage(page, url, platformKey)
 
+    // 验证封面 URL 是否有效（排除空 CDN 地址等无效 URL）
+    if (metadata.coverImage && !isValidCoverUrl(metadata.coverImage)) {
+      logger.debug({ url, coverImage: metadata.coverImage }, '[metadata] 封面 URL 无效，走截图兜底')
+      metadata.coverImage = null
+    }
+
     // 如果没有封面图，尝试截图兜底
     if (!metadata.coverImage) {
       const screenshotUrl = await takeScreenshotAndUpload(page, url)
@@ -374,6 +380,14 @@ async function fetchWithPuppeteer(
       if (persistedUrl) {
         metadata.coverImage = persistedUrl
         metadataStats.cosPersisted++
+      } else {
+        // 持久化失败（下载失败），回退到截图兜底
+        logger.debug({ url, coverImage: metadata.coverImage }, '[metadata] 封面持久化失败，回退截图兜底')
+        const screenshotUrl = await takeScreenshotAndUpload(page, url)
+        if (screenshotUrl) {
+          metadata.coverImage = screenshotUrl
+          metadataStats.screenshotUsed++
+        }
       }
     }
 
@@ -579,6 +593,43 @@ async function takeScreenshotAndUpload(page: Page, url: string): Promise<string 
   } catch (err) {
     logger.debug({ url, err: err instanceof Error ? err.message : String(err) }, '[metadata] 截图兜底失败')
     return null
+  }
+}
+
+// ===== 封面 URL 验证 =====
+
+/**
+ * 验证封面 URL 是否是有效的图片地址
+ * 排除以下无效情况：
+ * - 小红书空 CDN: ci.xiaohongshu.com/?imageMogr2/...（无源图路径）
+ * - 纯域名/根路径: https://example.com/ 或 https://example.com
+ * - 无图片扩展名且无图片处理参数的短路径
+ */
+function isValidCoverUrl(url: string): boolean {
+  if (!url || !url.startsWith('http')) return false
+
+  try {
+    const parsed = new URL(url)
+    const path = parsed.pathname
+
+    // 小红书空 CDN：ci.xiaohongshu.com/?imageMogr2/... 路径为空或只有 /
+    if (parsed.hostname.includes('xiaohongshu.com') && (!path || path === '/' || path === '')) {
+      return false
+    }
+
+    // 纯域名/根路径（无具体图片路径）
+    if (!path || path === '/' || path === '') {
+      return false
+    }
+
+    // 路径过短（正常图片路径至少包含文件名或 ID）
+    if (path.length < 5) {
+      return false
+    }
+
+    return true
+  } catch {
+    return false
   }
 }
 
