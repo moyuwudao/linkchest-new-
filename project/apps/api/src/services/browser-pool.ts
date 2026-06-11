@@ -45,6 +45,9 @@ const USER_AGENTS = [
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
 ]
 
+/** 系统 Chrome 可执行文件路径（优先使用系统安装的 Chrome） */
+const CHROME_EXECUTABLE_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+
 /** 默认导航超时（毫秒） */
 const DEFAULT_NAVIGATION_TIMEOUT = 15_000
 
@@ -150,8 +153,9 @@ class BrowserPool {
   private async launchBrowser(): Promise<BrowserInstance | null> {
     try {
       const browser = await puppeteer.launch({
-        headless: true as const,
+        headless: 'shell' as const,
         args: CHROME_ARGS,
+        executablePath: CHROME_EXECUTABLE_PATH,
       })
 
       const instance: BrowserInstance = {
