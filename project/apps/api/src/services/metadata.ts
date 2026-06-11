@@ -1,10 +1,25 @@
+/**
+ * 元数据抓取服务 v4.0 — Puppeteer 核心架构
+ *
+ * 抓取策略链：
+ * 1. LRU 内存缓存 → Redis 缓存（命中直接返回）
+ * 2. 快速 API 通道（B站 API / YouTube 缩略图 / OEmbed，< 1s）
+ * 3. Puppeteer 渲染（核心通道，3-8s，覆盖所有平台）
+ * 4. 截图兜底（Puppeteer 渲染后无 og:image 时截图）
+ * 5. 封面持久化到 COS（外部 URL 永不过期）
+ * 6. 平台品牌色降级（最后兜底）
+ */
 import fetch from 'node-fetch'
 import https from 'https'
 import ogs from 'open-graph-scraper'
 import { LRUCache } from 'lru-cache'
+import sharp from 'sharp'
 import { getRedisClient } from '../lib/redis'
-import { METADATA_CONFIG } from '../lib/config'
+import { METADATA_CONFIG, COS_CONFIG } from '../lib/config'
 import logger from '../lib/logger'
+import { getBrowserPool } from './browser-pool'
+import { uploadToCos, getSignedUrl } from './cos'
+import type { Page } from 'puppeteer'
 
 // ===== 监控统计 =====
 const metadataStats = {
@@ -13,22 +28,20 @@ const metadataStats = {
   redisHit: 0,
   success: 0,
   failed: 0,
+  puppeteerUsed: 0,
+  screenshotUsed: 0,
+  cosPersisted: 0,
 }
 
 export function getMetadataStats() {
-  const { total, lruHit, redisHit, success, failed } = metadataStats
+  const { total, lruHit, redisHit, success, failed, puppeteerUsed, screenshotUsed, cosPersisted } = metadataStats
   const cacheHits = lruHit + redisHit
   const cacheHitRate = total > 0 ? ((cacheHits / total) * 100).toFixed(1) : '0.0'
   const successRate = total > 0 ? ((success / total) * 100).toFixed(1) : '0.0'
   return {
-    total,
-    lruHit,
-    redisHit,
-    cacheHitRate,
-    cacheHits,
-    success,
-    failed,
-    successRate,
+    total, lruHit, redisHit, cacheHitRate, cacheHits,
+    success, failed, successRate,
+    puppeteerUsed, screenshotUsed, cosPersisted,
   }
 }
 
@@ -40,12 +53,8 @@ export interface UrlMetadata {
 }
 
 const CLOUDFLARE_WORKER_URL = process.env.CLOUDFLARE_WORKER_URL || ''
-const WORKER_FALLBACK_PLATFORMS = [
-  'youtube','bilibili','douyin','xiaohongshu','zhihu','weibo','wechat',
-  'twitter','tiktok','instagram','facebook','twitch','kuaishou',
-  'tencent-video','iqiyi','youku','mgtv','dianping','xueqiu','36kr',
-  'toutiao','huxiu','thepaper','netease-news',
-]
+
+// ===== 平台检测辅助 =====
 
 function extractBV(url: string): string | null {
   const m = url.match(/BV[0-9A-Za-z]{10}/)
@@ -71,10 +80,11 @@ function extractYoutubeVideoId(url: string): string | null {
   return null
 }
 
-const DEFAULT_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1'
-const DESKTOP_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+// ===== 常量 =====
+
+const DESKTOP_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
 const FETCH_TIMEOUT_MS = METADATA_CONFIG.fetchTimeoutMs
-const TOTAL_TIMEOUT_MS = METADATA_CONFIG.totalTimeoutMs
+const TOTAL_TIMEOUT_MS = 15_000 // Puppeteer 需要更长的总超时
 const CACHE_TTL_SECONDS = METADATA_CONFIG.cacheTtlSeconds
 
 const httpsAgent = new https.Agent({
@@ -86,25 +96,7 @@ const lruCache = new LRUCache<string, UrlMetadata>({
   ttl: 1000 * 60 * 5,
 })
 
-function isAntiBotPage(html: string): boolean {
-  if (html.includes('_$jsvmprt')) return true
-  if (html.includes('<body></body>') && html.length < 80000) return true
-  // 抖音/小红书等 SPA 页面通常没有 og 标签和 h1，不能仅凭此判断为反爬
-  // 需要结合其他特征（如空 body、验证页面文字等）
-  const hasContent = html.includes('class="video-info"') ||
-    html.includes('class="content"') ||
-    html.includes('class="desc"') ||
-    html.includes('class="title"') ||
-    html.includes('class="note-content"') ||
-    html.includes('<script>window._SSR_HYDRATED_DATA') ||
-    html.includes('__INITIAL_STATE__') ||
-    html.includes('RENDER_DATA') ||
-    html.includes('SSR_HYDRATED_DATA') ||
-    html.includes('<div id="root">') ||
-    html.includes('<div id="app">')
-  if (!html.includes('<meta property="og:') && !html.includes('<h1') && html.length < 50000 && !hasContent) return true
-  return false
-}
+// ===== OEmbed 配置（快速通道） =====
 
 interface OEmbedConfig { endpoint: (url: string) => string }
 
@@ -117,20 +109,70 @@ const OEMBED_PROVIDERS: Record<string, OEmbedConfig> = {
   vimeo:      { endpoint: (url) => `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}` },
   soundcloud: { endpoint: (url) => `https://soundcloud.com/oembed?url=${encodeURIComponent(url)}&format=json` },
   flickr:     { endpoint: (url) => `https://www.flickr.com/services/oembed/?url=${encodeURIComponent(url)}&format=json` },
-  instagram:  { endpoint: (url) => `https://graph.facebook.com/v12.0/instagram_oembed?url=${encodeURIComponent(url)}` },
   bilibili:   { endpoint: (url) => { const bv = extractBV(url); return bv ? `https://api.bilibili.com/x/web-interface/view?bvid=${bv}&jsonp=jsonp` : `https://www.bilibili.com/oembed?url=${encodeURIComponent(url)}` } },
   reddit:     { endpoint: (url) => `https://www.reddit.com/oembed?url=${encodeURIComponent(url)}` },
   pinterest:  { endpoint: (url) => `https://www.pinterest.com/oembed.json?url=${encodeURIComponent(url)}` },
 }
 
-const PLATFORM_UA_MAP: Record<string, string> = {
-  xiaohongshu: DESKTOP_USER_AGENT, douyin: DEFAULT_USER_AGENT,
-  bilibili: DESKTOP_USER_AGENT, zhihu: DESKTOP_USER_AGENT,
-  weibo: DESKTOP_USER_AGENT, 'tencent-video': DESKTOP_USER_AGENT,
-  iqiyi: DESKTOP_USER_AGENT, youku: DESKTOP_USER_AGENT,
-  mgtv: DESKTOP_USER_AGENT, kuaishou: DESKTOP_USER_AGENT,
-  dianping: DESKTOP_USER_AGENT,
+// ===== 平台专用 Puppeteer 等待策略 =====
+
+interface PlatformWaitStrategy {
+  /** 等待选择器（优先） */
+  waitForSelector?: string
+  /** 等待函数（更灵活） */
+  waitForFunction?: string
+  /** 额外等待时间（ms），确保 SPA 渲染完成 */
+  extraWaitMs?: number
+  /** 是否使用移动端 UA */
+  mobileUA?: boolean
+  /** 超时时间（ms） */
+  timeout?: number
 }
+
+const PLATFORM_WAIT_STRATEGIES: Record<string, PlatformWaitStrategy> = {
+  douyin: {
+    waitForSelector: 'video, [data-e2e="video-desc"], meta[property="og:image"]',
+    extraWaitMs: 2000,
+    mobileUA: true,
+    timeout: 10000,
+  },
+  xiaohongshu: {
+    waitForSelector: '.note-content, meta[property="og:image"], [class*="note-detail"]',
+    extraWaitMs: 2500,
+    mobileUA: true,
+    timeout: 10000,
+  },
+  kuaishou: {
+    waitForSelector: 'video, meta[property="og:image"]',
+    extraWaitMs: 2000,
+    mobileUA: true,
+    timeout: 10000,
+  },
+  weibo: {
+    waitForSelector: '.WB_editor_iframe_new img, meta[property="og:image"]',
+    extraWaitMs: 1000,
+    timeout: 8000,
+  },
+  zhihu: {
+    waitForSelector: '.ContentItem, meta[property="og:image"]',
+    extraWaitMs: 1000,
+    timeout: 8000,
+  },
+  wechat: {
+    waitForSelector: 'meta[property="og:image"], .rich_media_content img',
+    extraWaitMs: 1500,
+    timeout: 10000,
+  },
+  bilibili: {
+    waitForSelector: 'meta[property="og:image"]',
+    extraWaitMs: 500,
+    timeout: 8000,
+  },
+}
+
+const MOBILE_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1'
+
+// ===== 主入口 =====
 
 export async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
   const controller = new AbortController()
@@ -139,8 +181,12 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
     return await fetchUrlMetadataCore(url, controller.signal)
   } catch (err) {
     if (err instanceof Error && (err.name === 'AbortError' || err.message === 'TOTAL_TIMEOUT')) {
-      console.log(`[fetchUrlMetadata] TOTAL_TIMEOUT fallback for ${url}`)
-      try { const { detectPlatform } = await import('./platforms'); const pk = detectPlatform(url); if (pk !== 'other') return getPlatformFallbackMetadata(pk, url) } catch {}
+      logger.warn({ url }, '[metadata] TOTAL_TIMEOUT，尝试平台降级')
+      try {
+        const { detectPlatform } = await import('./platforms')
+        const pk = detectPlatform(url)
+        if (pk !== 'other') return getPlatformFallbackMetadata(pk, url)
+      } catch { /* 忽略 */ }
     }
     return { title: null, coverImage: null, favicon: null, description: null }
   } finally {
@@ -149,86 +195,487 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
 }
 
 async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<UrlMetadata> {
-  console.log(`[fetchUrlMetadata] START url=${url}`)
+  logger.debug({ url }, '[metadata] START')
+
+  // 1. LRU 缓存
   const lruHit = lruCache.get(url)
   if (lruHit && (lruHit.title || lruHit.coverImage)) {
-    console.log(`[fetchUrlMetadata] LRU hit ${url}`)
+    logger.debug({ url }, '[metadata] LRU hit')
     metadataStats.total++
     metadataStats.lruHit++
     metadataStats.success++
     return lruHit
   }
 
+  // 2. Redis 缓存
   const cached = await getCachedMetadata(url)
   const cachedHasData = cached && (cached.title || cached.coverImage || cached.description)
-  console.log(`[fetchUrlMetadata] cache hit=${!!cached} hasData=${cachedHasData}`)
   if (cachedHasData) {
     metadataStats.total++
     metadataStats.redisHit++
     metadataStats.success++
-    lruCache.set(url, cached); return cached
+    lruCache.set(url, cached!)
+    return cached!
   }
 
   metadataStats.total++
 
-  let metadata: UrlMetadata | null = null
+  // 3. 平台检测
   let platformKey = 'other'
   try {
     const { detectPlatform } = await import('./platforms')
     platformKey = detectPlatform(url)
-    console.log(`[fetchUrlMetadata] platform=${platformKey}`)
-    const normalizedUrl = platformKey === 'youtube' ? normalizeYoutubeUrl(url) : url
+  } catch { /* 忽略 */ }
+  logger.debug({ url, platform: platformKey }, '[metadata] platform detected')
 
-    // 已知反爬平台：服务器IP会被拦截，跳过 ogs/html 抓取，直接 fallback + 异步 worker
-    const antiBotPlatforms = ['douyin', 'xiaohongshu', 'kuaishou']
-    const isAntiBotPlatform = antiBotPlatforms.includes(platformKey)
+  const normalizedUrl = platformKey === 'youtube' ? normalizeYoutubeUrl(url) : url
 
-    if (OEMBED_PROVIDERS[platformKey]) {
-      metadata = await fetchOEmbedMetadata(normalizedUrl, OEMBED_PROVIDERS[platformKey], signal, platformKey)
-      if (platformKey === 'youtube' && metadata && !metadata.title && CLOUDFLARE_WORKER_URL) {
-        const wr = await fetchCloudflareWorkerFallback(url, signal)
-        if (wr.title || wr.coverImage) metadata = wr
+  // 4. 快速 API 通道（并行尝试）
+  const fastResult = await tryFastChannels(normalizedUrl, platformKey, signal)
+  if (fastResult && (fastResult.title || fastResult.coverImage)) {
+    return finalizeMetadata(url, fastResult, platformKey)
+  }
+
+  // 5. Puppeteer 渲染（核心通道）
+  const puppeteerResult = await fetchWithPuppeteer(normalizedUrl, platformKey, signal)
+  if (puppeteerResult && (puppeteerResult.title || puppeteerResult.coverImage)) {
+    return finalizeMetadata(url, puppeteerResult, platformKey)
+  }
+
+  // 6. Cloudflare Worker 兜底（如果配置了）
+  if (CLOUDFLARE_WORKER_URL) {
+    const workerResult = await fetchCloudflareWorkerFallback(url, signal)
+    if (workerResult && (workerResult.title || workerResult.coverImage)) {
+      return finalizeMetadata(url, workerResult, platformKey)
+    }
+  }
+
+  // 7. 平台品牌色降级
+  if (platformKey !== 'other') {
+    const fallback = await getPlatformFallbackMetadata(platformKey, url)
+    return finalizeMetadata(url, fallback, platformKey)
+  }
+
+  metadataStats.failed++
+  return { title: null, coverImage: null, favicon: null, description: null }
+}
+
+// ===== 快速 API 通道（并行） =====
+
+async function tryFastChannels(
+  url: string,
+  platformKey: string,
+  signal?: AbortSignal
+): Promise<UrlMetadata | null> {
+  const tasks: Promise<UrlMetadata | null>[] = []
+
+  // B站 API
+  if (platformKey === 'bilibili') {
+    tasks.push(fetchBilibiliMetadata(url, signal))
+  }
+
+  // YouTube 缩略图构造
+  if (platformKey === 'youtube') {
+    const videoId = extractYoutubeVideoId(url)
+    if (videoId) {
+      tasks.push(Promise.resolve({
+        title: null,
+        coverImage: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+        favicon: 'https://www.youtube.com/favicon.ico',
+        description: null,
+      }))
+    }
+  }
+
+  // OEmbed API
+  if (OEMBED_PROVIDERS[platformKey]) {
+    tasks.push(fetchOEmbedMetadata(url, OEMBED_PROVIDERS[platformKey], signal, platformKey))
+  }
+
+  if (tasks.length === 0) return null
+
+  // 并行执行，取第一个有效结果
+  const results = await Promise.allSettled(tasks)
+  for (const result of results) {
+    if (result.status === 'fulfilled' && result.value && (result.value.title || result.value.coverImage)) {
+      return result.value
+    }
+  }
+  return null
+}
+
+// ===== Puppeteer 渲染（核心通道） =====
+
+async function fetchWithPuppeteer(
+  url: string,
+  platformKey: string,
+  signal?: AbortSignal
+): Promise<UrlMetadata | null> {
+  if (signal?.aborted) return null
+
+  const pool = getBrowserPool()
+  let page: Page | null = null
+
+  try {
+    page = await pool.acquireTab()
+    metadataStats.puppeteerUsed++
+
+    // 设置平台专用 UA
+    const strategy = PLATFORM_WAIT_STRATEGIES[platformKey]
+    if (strategy?.mobileUA) {
+      await page.setUserAgent(MOBILE_USER_AGENT)
+      await page.setViewport({ width: 375, height: 812, isMobile: true })
+    }
+
+    // 导航到目标页面
+    const navTimeout = strategy?.timeout || 10000
+    await page.goto(url, {
+      waitUntil: 'domcontentloaded',
+      timeout: navTimeout,
+    })
+
+    // 平台专用等待策略
+    if (strategy?.waitForSelector) {
+      try {
+        await page.waitForSelector(strategy.waitForSelector, {
+          timeout: strategy.timeout || 8000,
+        })
+      } catch {
+        // 等待选择器超时，继续提取
+        logger.debug({ url, platform: platformKey }, '[metadata] waitForSelector 超时，继续提取')
       }
     }
 
-    if (!isAntiBotPlatform && (!metadata || (!metadata.title && !metadata.coverImage))) {
-      if (platformKey === 'bilibili') metadata = await fetchBilibiliMetadata(normalizedUrl, signal)
-      else metadata = await fetchOgsMetadata(normalizedUrl, platformKey, signal)
+    // 额外等待（确保 SPA 渲染完成）
+    if (strategy?.extraWaitMs) {
+      await new Promise(resolve => setTimeout(resolve, strategy.extraWaitMs))
     }
 
-    if (!isAntiBotPlatform && (!metadata || (!metadata.title && !metadata.coverImage))) {
-      console.log(`[fetchUrlMetadata] ogs failed, trying html fallback for ${platformKey}`)
-      metadata = await fetchHtmlMetadata(normalizedUrl, platformKey, signal)
+    // 通用最小渲染等待
+    if (!strategy?.waitForSelector && !strategy?.extraWaitMs) {
+      await new Promise(resolve => setTimeout(resolve, 1500))
     }
-  } catch { metadata = await fetchOgsMetadata(url, undefined, signal) }
 
-  const hasAllFieldsEmpty = !metadata || (!metadata.title && !metadata.coverImage && !metadata.description)
-  if (hasAllFieldsEmpty && CLOUDFLARE_WORKER_URL) {
-    const { detectPlatform } = await import('./platforms')
-    const ef = platformKey !== 'other' ? platformKey : detectPlatform(url)
-    if (WORKER_FALLBACK_PLATFORMS.includes(ef)) metadata = await fetchCloudflareWorkerFallback(url, signal)
+    // 从渲染后的页面提取元数据
+    const metadata = await extractMetadataFromPage(page, url, platformKey)
+
+    // 如果没有封面图，尝试截图兜底
+    if (!metadata.coverImage) {
+      const screenshotUrl = await takeScreenshotAndUpload(page, url)
+      if (screenshotUrl) {
+        metadata.coverImage = screenshotUrl
+        metadataStats.screenshotUsed++
+      }
+    }
+
+    // 封面持久化到 COS
+    if (metadata.coverImage && isExternalImageUrl(metadata.coverImage)) {
+      const persistedUrl = await persistCoverToCos(metadata.coverImage, url)
+      if (persistedUrl) {
+        metadata.coverImage = persistedUrl
+        metadataStats.cosPersisted++
+      }
+    }
+
+    return metadata
+  } catch (err) {
+    logger.warn(
+      { url, platform: platformKey, err: err instanceof Error ? err.message : String(err) },
+      '[metadata] Puppeteer 渲染失败'
+    )
+    return null
+  } finally {
+    if (page) {
+      try {
+        await pool.releaseTab(page)
+      } catch {
+        // 释放失败不影响主流程
+      }
+    }
   }
+}
 
+// ===== 从渲染后的页面提取元数据 =====
+
+async function extractMetadataFromPage(
+  page: Page,
+  url: string,
+  platformKey: string
+): Promise<UrlMetadata> {
+  // page.evaluate 内部代码在浏览器环境执行，可使用 DOM API
+  // 使用字符串函数避免 TypeScript 对浏览器环境 API 的类型检查
+  const extractFn = `
+    (pk) => {
+      const result = { title: null, coverImage: null, favicon: null, description: null }
+
+      // 1. og:title
+      const ogTitle = document.querySelector('meta[property="og:title"]')
+      if (ogTitle) result.title = ogTitle.getAttribute('content')
+
+      // 2. og:image
+      const ogImage = document.querySelector('meta[property="og:image"]')
+        || document.querySelector('meta[property="og:image:url"]')
+      if (ogImage) {
+        const img = ogImage.getAttribute('content')
+        if (img && img.startsWith('http')) result.coverImage = img
+      }
+
+      // 3. twitter:image
+      if (!result.coverImage) {
+        const twitterImage = document.querySelector('meta[name="twitter:image"]')
+          || document.querySelector('meta[property="twitter:image"]')
+        if (twitterImage) {
+          const img = twitterImage.getAttribute('content')
+          if (img && img.startsWith('http')) result.coverImage = img
+        }
+      }
+
+      // 4. og:description
+      const ogDesc = document.querySelector('meta[property="og:description"]')
+      if (ogDesc) result.description = ogDesc.getAttribute('content')
+
+      // 5. twitter:title
+      if (!result.title) {
+        const twitterTitle = document.querySelector('meta[name="twitter:title"]')
+          || document.querySelector('meta[property="twitter:title"]')
+        if (twitterTitle) result.title = twitterTitle.getAttribute('content')
+      }
+
+      // 6. <title> 标签
+      if (!result.title) {
+        result.title = document.title || null
+      }
+
+      // 7. favicon
+      const faviconLink = document.querySelector('link[rel="icon"]')
+        || document.querySelector('link[rel="shortcut icon"]')
+        || document.querySelector('link[rel="apple-touch-icon"]')
+      if (faviconLink) {
+        const href = faviconLink.getAttribute('href')
+        if (href) {
+          result.favicon = href.startsWith('http') ? href : new URL(href, window.location.origin).href
+        }
+      }
+
+      // 8. JSON-LD 结构化数据（补充封面和描述）
+      if (!result.coverImage || !result.description) {
+        const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]')
+        for (const script of jsonLdScripts) {
+          try {
+            const data = JSON.parse(script.textContent || '{}')
+            const image = data.image
+            if (!result.coverImage && image) {
+              if (typeof image === 'string' && image.startsWith('http')) {
+                result.coverImage = image
+              } else if (Array.isArray(image) && image[0]) {
+                const img = typeof image[0] === 'string' ? image[0] : image[0]?.url
+                if (img && img.startsWith('http')) result.coverImage = img
+              } else if (image?.url && image.url.startsWith('http')) {
+                result.coverImage = image.url
+              }
+            }
+            if (!result.description && data.description) {
+              result.description = String(data.description).substring(0, 200)
+            }
+          } catch { /* 忽略 JSON 解析失败 */ }
+        }
+      }
+
+      // 9. 平台专用提取
+      if (pk === 'douyin') {
+        if (!result.coverImage) {
+          const video = document.querySelector('video')
+          if (video?.poster && video.poster.startsWith('http')) {
+            result.coverImage = video.poster
+          }
+        }
+        if (!result.title || !result.coverImage) {
+          try {
+            const ssrData = window._SSR_HYDRATED_DATA
+            if (ssrData?.app) {
+              const app = ssrData.app
+              const videoList = app.videoList || app.itemList || []
+              const video = videoList[0]
+              if (!result.title && video?.title) result.title = video.title
+              if (!result.title && video?.desc) result.title = video.desc
+              if (!result.coverImage && video?.cover) result.coverImage = video.cover
+              if (!result.coverImage && video?.originCover) result.coverImage = video.originCover
+            }
+          } catch { /* 忽略 */ }
+        }
+      }
+
+      if (pk === 'xiaohongshu') {
+        if (!result.coverImage) {
+          const noteImg = document.querySelector('.note-content img, [class*="note-detail"] img')
+          if (noteImg) {
+            const src = noteImg.getAttribute('src') || noteImg.getAttribute('data-src')
+            if (src) result.coverImage = src.startsWith('http') ? src : 'https:' + src
+          }
+        }
+        if (!result.coverImage) {
+          const video = document.querySelector('video')
+          if (video?.poster && video.poster.startsWith('http')) {
+            result.coverImage = video.poster
+          }
+        }
+      }
+
+      if (pk === 'kuaishou') {
+        if (!result.coverImage) {
+          const video = document.querySelector('video')
+          if (video?.poster && video.poster.startsWith('http')) {
+            result.coverImage = video.poster
+          }
+        }
+      }
+
+      // 10. 通用兜底：页面中第一张足够大的图片
+      if (!result.coverImage) {
+        const images = document.querySelectorAll('img')
+        for (const img of images) {
+          const src = img.getAttribute('src') || img.getAttribute('data-src')
+          const width = img.naturalWidth || img.width
+          const height = img.naturalHeight || img.height
+          if (src && src.startsWith('http') && width >= 200 && height >= 200) {
+            result.coverImage = src
+            break
+          }
+        }
+      }
+
+      return result
+    }
+  `
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (page.evaluate as any)(`(${extractFn})(${JSON.stringify(platformKey)})`) as Promise<UrlMetadata>
+}
+
+// ===== 截图兜底 =====
+
+async function takeScreenshotAndUpload(page: Page, url: string): Promise<string | null> {
+  try {
+    const screenshotBuffer = await page.screenshot({
+      type: 'jpeg',
+      quality: 60,
+      fullPage: false,
+      clip: { x: 0, y: 0, width: 800, height: 600 },
+    })
+
+    // 压缩截图
+    const compressed = await sharp(screenshotBuffer)
+      .resize(800, 600, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 70 })
+      .toBuffer()
+
+    // 上传到 COS
+    const cosKey = `screenshots/${new Date().toISOString().slice(0, 10).replace(/-/g, '')}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`
+    await uploadToCos(cosKey, compressed, 'image/webp')
+    const signedUrl = await getSignedUrl(cosKey, 86400 * 30) // 30 天有效期
+
+    logger.debug({ url }, '[metadata] 截图兜底成功')
+    return signedUrl
+  } catch (err) {
+    logger.debug({ url, err: err instanceof Error ? err.message : String(err) }, '[metadata] 截图兜底失败')
+    return null
+  }
+}
+
+// ===== 封面持久化到 COS =====
+
+function isExternalImageUrl(url: string): boolean {
+  if (!url) return false
+  // COS 签名 URL 或 COS 域名不算外部
+  if (url.includes('myqcloud.com') || url.includes('cos.')) return false
+  // 截图已上传到 COS，不算外部
+  if (url.includes('screenshots/')) return false
+  return url.startsWith('http')
+}
+
+async function persistCoverToCos(coverUrl: string, sourceUrl: string): Promise<string | null> {
+  try {
+    // 下载外部封面图
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 10000)
+
+    const resp = await fetch(coverUrl, {
+      headers: { 'User-Agent': DESKTOP_USER_AGENT },
+      signal: controller.signal,
+      agent: coverUrl.startsWith('https') ? httpsAgent : undefined,
+    })
+    clearTimeout(timeout)
+
+    if (!resp.ok) return null
+
+    const contentType = resp.headers.get('content-type') || ''
+    if (!contentType.startsWith('image/') && !contentType.startsWith('application/octet-stream')) {
+      return null
+    }
+
+    const buffer = await resp.buffer()
+
+    // Sharp 压缩
+    const compressed = await sharp(buffer)
+      .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer()
+
+    // 上传到 COS
+    const cosKey = `covers/auto/${new Date().toISOString().slice(0, 10).replace(/-/g, '')}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`
+    await uploadToCos(cosKey, compressed, 'image/webp')
+    const signedUrl = await getSignedUrl(cosKey, 86400 * 30) // 30 天有效期
+
+    logger.debug({ sourceUrl, coverUrl }, '[metadata] 封面持久化到 COS 成功')
+    return signedUrl
+  } catch (err) {
+    logger.debug(
+      { coverUrl, err: err instanceof Error ? err.message : String(err) },
+      '[metadata] 封面持久化失败，使用原始 URL'
+    )
+    return null
+  }
+}
+
+// ===== 最终化元数据（缓存 + 平台降级） =====
+
+async function finalizeMetadata(
+  url: string,
+  metadata: UrlMetadata,
+  platformKey: string
+): Promise<UrlMetadata> {
+  // 平台降级补充
   if (platformKey !== 'other') {
     const fallback = await getPlatformFallbackMetadata(platformKey, url)
-    const effectiveTitle = metadata?.title && !isLowQualityTitle(metadata.title) ? metadata.title : fallback.title
+    const effectiveTitle = metadata.title && !isLowQualityTitle(metadata.title)
+      ? metadata.title
+      : fallback.title
     metadata = {
       title: effectiveTitle,
-      coverImage: metadata?.coverImage || fallback.coverImage || null,
-      favicon: metadata?.favicon || fallback.favicon || null,
-      description: metadata?.description || fallback.description || null,
+      coverImage: metadata.coverImage || fallback.coverImage || null,
+      favicon: metadata.favicon || fallback.favicon || null,
+      description: metadata.description || fallback.description || null,
     }
   }
 
-  if (metadata && (metadata.title || metadata.coverImage)) {
+  // 清理标题
+  if (metadata.title) {
+    metadata.title = cleanTitle(metadata.title)
+  }
+
+  // 缓存
+  if (metadata.title || metadata.coverImage) {
     lruCache.set(url, metadata)
     setCachedMetadata(url, metadata).catch(() => {})
     metadataStats.success++
     return metadata
   }
+
   metadataStats.failed++
   return { title: null, coverImage: null, favicon: null, description: null }
 }
+
+// ===== 缓存操作 =====
 
 function cacheKey(url: string): string { return `md:${url}` }
 
@@ -240,7 +687,7 @@ async function getCachedMetadata(url: string): Promise<UrlMetadata | null> {
     if (!raw) return null
     const parsed = JSON.parse(raw) as UrlMetadata
     if (parsed && (parsed.title || parsed.coverImage)) return parsed
-  } catch {}
+  } catch { /* 忽略 */ }
   return null
 }
 
@@ -249,15 +696,17 @@ async function setCachedMetadata(url: string, data: UrlMetadata): Promise<void> 
   if (!redis) return
   const hasData = data && (data.title || data.coverImage || data.description)
   if (!hasData) return
-  try { await redis.setex(cacheKey(url), CACHE_TTL_SECONDS, JSON.stringify(data)) } catch {}
+  try { await redis.setex(cacheKey(url), CACHE_TTL_SECONDS, JSON.stringify(data)) } catch { /* 忽略 */ }
 }
 
-async function fetchOEmbedMetadata(url: string, config: OEmbedConfig, signal?: AbortSignal, platformKey?: string): Promise<UrlMetadata | null> {
+// ===== 快速 API 通道实现 =====
+
+async function fetchOEmbedMetadata(
+  url: string, config: OEmbedConfig, signal?: AbortSignal, platformKey?: string
+): Promise<UrlMetadata | null> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 2000)
-  if (signal) {
-    signal.addEventListener('abort', () => controller.abort(), { once: true })
-  }
+  if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true })
   try {
     const response = await fetch(config.endpoint(url), {
       headers: { 'User-Agent': DESKTOP_USER_AGENT, 'Accept': 'application/json' },
@@ -265,19 +714,26 @@ async function fetchOEmbedMetadata(url: string, config: OEmbedConfig, signal?: A
     })
     if (!response.ok) return null
     const data = await response.json() as Record<string, unknown>
+    // B站 API 特殊处理
     if (data.code === 0 && data.data && typeof data.data === 'object') {
       const bd = data.data as Record<string, unknown>
-      return { title: typeof bd.title === 'string' ? bd.title : null, coverImage: typeof bd.pic === 'string' ? bd.pic.replace(/^http:/, 'https:') : null, favicon: 'https://www.bilibili.com/favicon.ico', description: typeof bd.desc === 'string' ? bd.desc.substring(0, 200) : null }
+      return {
+        title: typeof bd.title === 'string' ? bd.title : null,
+        coverImage: typeof bd.pic === 'string' ? bd.pic.replace(/^http:/, 'https:') : null,
+        favicon: 'https://www.bilibili.com/favicon.ico',
+        description: typeof bd.desc === 'string' ? bd.desc.substring(0, 200) : null,
+      }
     }
-    return { title: typeof data.title === 'string' ? data.title : null, coverImage: ensureHttps(typeof data.thumbnail_url === 'string' ? data.thumbnail_url : typeof data.image === 'string' ? data.image : null), favicon: null, description: typeof data.description === 'string' ? data.description : (typeof data.author_name === 'string' ? `By ${data.author_name}` : null) }
+    return {
+      title: typeof data.title === 'string' ? data.title : null,
+      coverImage: ensureHttps(typeof data.thumbnail_url === 'string' ? data.thumbnail_url : typeof data.image === 'string' ? data.image : null),
+      favicon: null,
+      description: typeof data.description === 'string' ? data.description : (typeof data.author_name === 'string' ? `By ${data.author_name}` : null),
+    }
   } catch {
-    if (platformKey && platformKey !== 'other') {
-      return getPlatformFallbackMetadata(platformKey, url)
-    }
-    return { title: null, coverImage: null, favicon: null, description: null }
-  } finally {
-    clearTimeout(timeout)
-  }
+    if (platformKey && platformKey !== 'other') return getPlatformFallbackMetadata(platformKey, url)
+    return null
+  } finally { clearTimeout(timeout) }
 }
 
 async function fetchBilibiliMetadata(url: string, signal?: AbortSignal): Promise<UrlMetadata | null> {
@@ -285,9 +741,7 @@ async function fetchBilibiliMetadata(url: string, signal?: AbortSignal): Promise
   if (!bv) return null
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 5000)
-  if (signal) {
-    signal.addEventListener('abort', () => controller.abort(), { once: true })
-  }
+  if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true })
   try {
     const response = await fetch(`https://api.bilibili.com/x/web-interface/view?bvid=${bv}`, {
       headers: { 'User-Agent': DESKTOP_USER_AGENT, 'Accept': 'application/json' },
@@ -302,256 +756,40 @@ async function fetchBilibiliMetadata(url: string, signal?: AbortSignal): Promise
       favicon: 'https://www.bilibili.com/favicon.ico',
       description: data.data.desc ? data.data.desc.substring(0, 200) : null,
     }
-  } catch {
-    return null
-  } finally {
-    clearTimeout(timeout)
-  }
+  } catch { return null } finally { clearTimeout(timeout) }
 }
 
-async function fetchOgsMetadata(url: string, platformKey?: string, signal?: AbortSignal): Promise<UrlMetadata> {
-  if (signal?.aborted) {
-    return { title: null, coverImage: null, favicon: null, description: null }
-  }
-  try {
-    const ua = platformKey && PLATFORM_UA_MAP[platformKey] ? PLATFORM_UA_MAP[platformKey] : DESKTOP_USER_AGENT
-    const ogsPromise = ogs({
-      url, timeout: { request: FETCH_TIMEOUT_MS },
-      headers: { 'User-Agent': ua },
-      onlyGetOpenGraphInfo: false, followRedirect: true, maxRedirects: 5,
-    })
+// ===== Cloudflare Worker 兜底 =====
 
-    const { error, result } = signal
-      ? await Promise.race([
-          ogsPromise,
-          new Promise<never>((_, reject) => {
-            const handler = () => reject(new Error('AbortError'))
-            signal.addEventListener('abort', handler, { once: true })
-          }),
-        ])
-      : await ogsPromise
-
-    if (error || !result) {
-      logger.warn({ url, error }, '[fetchOgsMetadata] ogs 返回错误或无结果')
-      return { title: null, coverImage: null, favicon: null, description: null }
-    }
-    const r = result as unknown as {
-      ogTitle?: string
-      ogImage?: { url: string }[]
-      twitterTitle?: string
-      twitterImage?: { url: string }[]
-      articleTitle?: string
-      ogDescription?: string
-      twitterDescription?: string
-      favicon?: string
-    }
-    logger.info({ url, ogTitle: r.ogTitle, ogImageCount: r.ogImage?.length, twitterImageCount: r.twitterImage?.length, ogImageUrl: r.ogImage?.[0]?.url, twitterImageUrl: r.twitterImage?.[0]?.url }, '[fetchOgsMetadata] ogs 解析结果')
-    const ogImage = r.ogImage?.[0]
-    return {
-      title: r.ogTitle || r.twitterTitle || r.articleTitle || null,
-      coverImage: ensureHttps(ogImage?.url || r.twitterImage?.[0]?.url || null),
-      favicon: ensureHttps(r.favicon || null),
-      description: r.ogDescription || r.twitterDescription || null,
-    }
-  } catch (err) {
-    logger.error({ url, err }, '[fetchOgsMetadata] 失败')
-    return { title: null, coverImage: null, favicon: null, description: null }
-  }
-}
-
-async function fetchHtmlMetadata(url: string, platformKey?: string, signal?: AbortSignal): Promise<UrlMetadata> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 6000)
-  if (signal) {
-    signal.addEventListener('abort', () => controller.abort(), { once: true })
-  }
-  try {
-    const ua = platformKey && PLATFORM_UA_MAP[platformKey] ? PLATFORM_UA_MAP[platformKey] : DESKTOP_USER_AGENT
-    const resp = await fetch(url, {
-      headers: { 'User-Agent': ua, 'Accept': 'text/html,application/xhtml+xml', 'Accept-Language': 'zh-CN,zh;q=0.9' },
-      signal: controller.signal,
-      agent: url.startsWith('https') ? httpsAgent : undefined,
-    })
-    if (!resp.ok) return { title: null, coverImage: null, favicon: null, description: null }
-    const html = await resp.text()
-    if (isAntiBotPage(html)) {
-      console.log('[fetchHtmlMetadata] Anti-bot page detected')
-      return { title: null, coverImage: null, favicon: null, description: null }
-    }
-
-    let title: string | null = null
-    let coverImage: string | null = null
-
-    const ogTitleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/)
-    if (ogTitleMatch && ogTitleMatch[1]) {
-      title = ogTitleMatch[1]
-    }
-
-    const ogImageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/)
-      || html.match(/<meta\s+property=["']og:image:url["']\s+content=["']([^"']+)["']/)
-    if (ogImageMatch && ogImageMatch[1] && ogImageMatch[1].startsWith('http')) {
-      coverImage = ogImageMatch[1]
-    }
-
-    if (!title) {
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/)
-      if (titleMatch) {
-        let t = titleMatch[1].trim()
-        if (platformKey === 'douyin') {
-          t = t.replace(/\s*[-–—|]\s*抖音.*$/, '').trim()
-        } else if (platformKey === 'xiaohongshu') {
-          t = t.replace(/\s*[-–—|]\s*小红书.*$/, '').trim()
-        }
-        if (t && t !== '抖音' && t !== '小红书' && t !== '安全限制' && !isLowQualityTitle(t) && t.length > 1) {
-          title = t
-        }
-      }
-    }
-
-    // 抖音：从嵌入的 JSON 数据中提取视频信息
-    if (platformKey === 'douyin') {
-      try {
-        const ssrMatch = html.match(/<script>window\._SSR_HYDRATED_DATA=(.+?)<\/script>/)
-          || html.match(/window\._SSR_HYDRATED_DATA\s*=\s*(.+?);\s*<\/script>/)
-        if (ssrMatch) {
-          const data = JSON.parse(ssrMatch[1])
-          const app = data?.app
-          if (app) {
-            // 用户页视频：从 videoList 或 itemList 找对应 modal_id 的视频
-            const videoId = new URL(url).searchParams.get('modal_id')
-            const videos = app.videoList || app.itemList || []
-            const video = videoId
-              ? videos.find((v: any) => v.videoId === videoId || v.awemeId === videoId)
-              : videos[0]
-            if (video) {
-              if (!title && video.title) title = video.title
-              if (!title && video.desc) title = video.desc
-              if (!coverImage && video.cover) coverImage = video.cover
-              if (!coverImage && video.originCover) coverImage = video.originCover
-              if (!coverImage && video.dynamicCover) coverImage = video.dynamicCover
-            }
-            // 如果上面没找到，尝试直接取第一个视频
-            if (!title && videos[0]?.title) title = videos[0].title
-            if (!title && videos[0]?.desc) title = videos[0].desc
-            if (!coverImage && videos[0]?.cover) coverImage = videos[0].cover
-          }
-          // 精选页/视频页
-          const detail = data?.app?.videoInfo || data?.app?.detail
-          if (detail) {
-            if (!title && detail.title) title = detail.title
-            if (!title && detail.desc) title = detail.desc
-            if (!coverImage && detail.cover) coverImage = detail.cover
-            if (!coverImage && detail.originCover) coverImage = detail.originCover
-          }
-        }
-      } catch (e) {
-        // SSR JSON 解析失败，继续用正则兜底
-      }
-
-      // 正则兜底：poster 属性、douyinpic 图片
-      if (!coverImage) {
-        const posterMatch = html.match(/poster=["']([^"']+)["']/)
-        if (posterMatch && posterMatch[1].startsWith('http')) {
-          coverImage = posterMatch[1]
-        }
-      }
-      if (!coverImage) {
-        const imgMatch = html.match(/src=["']([^"']*douyinpic\.com[^"']*\.(?:jpe?g|webp)[^"']*)["']/)
-        if (imgMatch && imgMatch[1].startsWith('http')) {
-          coverImage = imgMatch[1]
-        }
-      }
-    }
-
-    // 小红书：从嵌入的 JSON 数据中提取笔记信息
-    if (platformKey === 'xiaohongshu') {
-      try {
-        const initStateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*([\s\S]*?)(?:;\s*<\/script>|<\/script>)/)
-        if (initStateMatch) {
-          let jsonStr = initStateMatch[1].trim()
-          if (jsonStr.endsWith(';')) jsonStr = jsonStr.slice(0, -1)
-          const state = JSON.parse(jsonStr.replace(/undefined/g, 'null'))
-          // 递归查找 note 数据
-          const findNote = (obj: any): any => {
-            if (!obj || typeof obj !== 'object') return null
-            if (obj.noteId || obj.note?.noteId) return obj.note || obj
-            if (obj.noteDetailMap) {
-              for (const key of Object.keys(obj.noteDetailMap)) {
-                if (obj.noteDetailMap[key]?.note) return obj.noteDetailMap[key].note
-              }
-            }
-            for (const key of Object.keys(obj)) {
-              const val = obj[key]
-              if (val && typeof val === 'object' && !Array.isArray(val)) {
-                const found = findNote(val)
-                if (found) return found
-              }
-            }
-            return null
-          }
-          const note = findNote(state)
-          if (note) {
-            if (!title && note.title) title = note.title
-            if (!title && note.displayTitle) title = note.displayTitle
-            if (!title && note.desc) title = note.desc
-            if (!coverImage && note.cover?.url) coverImage = note.cover.url
-            if (!coverImage && note.imageList?.[0]?.url) coverImage = note.imageList[0].url
-            if (!coverImage && note.imageList?.[0]?.urlDefault) coverImage = note.imageList[0].urlDefault
-          }
-        }
-      } catch (e) {
-        // INITIAL_STATE 解析失败
-      }
-
-      // 正则兜底：xhscdn 图片
-      if (!coverImage) {
-        const imgMatch = html.match(/src=["']([^"']*xhscdn[^"']*\.(?:jpe?g|webp)[^"']*)["']/)
-          || html.match(/src=["']([^"']*sns-webpic[^"']*\.(?:jpe?g|webp)[^"']*)["']/)
-        if (imgMatch) {
-          coverImage = imgMatch[1].startsWith('http') ? imgMatch[1] : 'https:' + imgMatch[1]
-        }
-      }
-    }
-
-    title = title ? cleanTitle(title) : null
-    coverImage = coverImage ? ensureHttps(coverImage) : null
-
-    if (title || coverImage) {
-      console.log(`[fetchHtmlMetadata] title=${title?.substring(0, 40)} cover=${coverImage?.substring(0, 60)}`)
-      return { title, coverImage, favicon: null, description: null }
-    }
-    return { title: null, coverImage: null, favicon: null, description: null }
-  } catch (err) {
-    console.log('[fetchHtmlMetadata] failed:', (err as Error).message)
-    return { title: null, coverImage: null, favicon: null, description: null }
-  } finally {
-    clearTimeout(timeout)
-  }
-}
-
-async function fetchCloudflareWorkerFallback(url: string, signal?: AbortSignal): Promise<UrlMetadata> {
-  if (!CLOUDFLARE_WORKER_URL) return { title: null, coverImage: null, favicon: null, description: null }
+async function fetchCloudflareWorkerFallback(url: string, signal?: AbortSignal): Promise<UrlMetadata | null> {
+  if (!CLOUDFLARE_WORKER_URL) return null
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 15000)
-  if (signal) {
-    signal.addEventListener('abort', () => controller.abort(), { once: true })
-  }
+  if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true })
   try {
     const response = await fetch(`${CLOUDFLARE_WORKER_URL}/?url=${encodeURIComponent(url)}`, {
       headers: { 'User-Agent': 'LinkChest/1.0', 'Accept': 'application/json' },
       signal: controller.signal, agent: url.startsWith('https') ? httpsAgent : undefined,
     })
-    if (!response.ok) return { title: null, coverImage: null, favicon: null, description: null }
+    if (!response.ok) return null
     const data = await response.json() as Record<string, unknown>
-    if (data.error) return { title: null, coverImage: null, favicon: null, description: null }
-    return { title: typeof data.title === 'string' ? data.title : null, coverImage: ensureHttps(typeof data.coverImage === 'string' ? data.coverImage : null), favicon: ensureHttps(typeof data.favicon === 'string' ? data.favicon : null), description: typeof data.description === 'string' ? data.description : null }
-  } catch { return { title: null, coverImage: null, favicon: null, description: null } } finally { clearTimeout(timeout) }
+    if (data.error) return null
+    return {
+      title: typeof data.title === 'string' ? data.title : null,
+      coverImage: ensureHttps(typeof data.coverImage === 'string' ? data.coverImage : null),
+      favicon: ensureHttps(typeof data.favicon === 'string' ? data.favicon : null),
+      description: typeof data.description === 'string' ? data.description : null,
+    }
+  } catch { return null } finally { clearTimeout(timeout) }
 }
+
+// ===== 平台降级 =====
 
 async function getPlatformFallbackMetadata(platformKey: string, url?: string): Promise<UrlMetadata> {
   const { getSupportedPlatformList } = await import('./platforms')
   const platform = getSupportedPlatformList().find(p => p.key === platformKey)
   if (!platform) return { title: null, coverImage: null, favicon: null, description: null }
+
   const faviconMap: Record<string, string> = {
     bilibili: 'https://www.bilibili.com/favicon.ico', douyin: 'https://www.douyin.com/favicon.ico',
     wechat: 'https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico', zhihu: 'https://static.zhihu.com/heifetz/favicon.ico',
@@ -560,13 +798,17 @@ async function getPlatformFallbackMetadata(platformKey: string, url?: string): P
     twitter: 'https://abs.twimg.com/favicons/twitter.2.ico', reddit: 'https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png',
     pinterest: 'https://s.pinimg.com/webapp/logo_trans_144x-a77cb6ed.png', xiaohongshu: 'https://www.xiaohongshu.com/favicon.ico',
   }
+
   let coverImage: string | null = null
   if (platformKey === 'youtube' && url) {
     const videoId = extractYoutubeVideoId(url)
     if (videoId) coverImage = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`
   }
+
   return { title: platform.name, coverImage, favicon: faviconMap[platformKey] || null, description: null }
 }
+
+// ===== 工具函数 =====
 
 function cleanTitle(title: string): string {
   if (!title) return ''
@@ -590,8 +832,7 @@ function isLowQualityTitle(title: string): boolean {
   return patterns.some(p => lower.includes(p.toLowerCase()))
 }
 
-import { ensureHttps } from '../lib/utils'
-
-function resolveUrl(base: string, relative: string): string {
-  try { return new URL(relative, base).href } catch { return relative }
+function ensureHttps(url: string | null): string | null {
+  if (!url) return null
+  return url.replace(/^http:/, 'https:')
 }

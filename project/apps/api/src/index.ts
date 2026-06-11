@@ -352,26 +352,36 @@ process.on('unhandledRejection', (reason) => {
   logger.error({ reason: reason instanceof Error ? reason.message : String(reason) }, 'unhandled rejection')
 })
 
-// 优雅关闭：先关闭 HTTP server，再断开数据库连接
+// 优雅关闭：先关闭 HTTP server，再关闭浏览器池，最后断开数据库连接
 function gracefulShutdown(signal: string) {
   logger.info(`收到 ${signal}，正在优雅关闭...`)
   const timeout = setTimeout(() => {
     logger.error('优雅关闭超时，强制退出')
     process.exit(1)
-  }, 10000)
+  }, 15000) // 增加到 15 秒，给浏览器池更多关闭时间
 
-  server.close(() => {
+  server.close(async () => {
     clearTimeout(timeout)
     logger.info('HTTP server 已关闭')
-    prisma.$disconnect()
-      .then(() => {
-        logger.info('数据库连接已断开')
-        process.exit(0)
-      })
-      .catch((err) => {
-        logger.error({ err: err instanceof Error ? err.message : err }, '断开数据库连接失败')
-        process.exit(1)
-      })
+
+    // 关闭浏览器池
+    try {
+      const { shutdownBrowserPool } = await import('./services/browser-pool')
+      await shutdownBrowserPool()
+      logger.info('浏览器池已关闭')
+    } catch (err) {
+      logger.warn({ err: err instanceof Error ? err.message : String(err) }, '浏览器池关闭失败')
+    }
+
+    // 断开数据库连接
+    try {
+      await prisma.$disconnect()
+      logger.info('数据库连接已断开')
+      process.exit(0)
+    } catch (err) {
+      logger.error({ err: err instanceof Error ? err.message : err }, '断开数据库连接失败')
+      process.exit(1)
+    }
   })
 }
 
