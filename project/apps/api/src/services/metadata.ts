@@ -66,6 +66,25 @@ function normalizeYoutubeUrl(url: string): string {
   return m ? `https://www.youtube.com/watch?v=${m[1]}` : url
 }
 
+/**
+ * 小红书 URL 预处理
+ * 去掉 xsec_token 和 xsec_source 参数（这些参数有时效性，过期会导致重定向到登录页）
+ * 保留笔记 ID，使用干净的 URL 访问
+ */
+function normalizeXiaohongshuUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+    // 只处理小红书域名
+    if (!parsed.hostname.includes('xiaohongshu.com')) return url
+    // 去掉过期的安全参数
+    parsed.searchParams.delete('xsec_token')
+    parsed.searchParams.delete('xsec_source')
+    return parsed.toString()
+  } catch {
+    return url
+  }
+}
+
 function extractYoutubeVideoId(url: string): string | null {
   const patterns = [
     /[?&]v=([a-zA-Z0-9_-]{11})/,
@@ -228,7 +247,10 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
   } catch { /* 忽略 */ }
   logger.debug({ url, platform: platformKey }, '[metadata] platform detected')
 
-  const normalizedUrl = platformKey === 'youtube' ? normalizeYoutubeUrl(url) : url
+  // 小红书 URL 预处理：去掉过期的 xsec_token/xsec_source（会导致重定向到登录页）
+  let normalizedUrl = url
+  if (platformKey === 'youtube') normalizedUrl = normalizeYoutubeUrl(url)
+  else if (platformKey === 'xiaohongshu') normalizedUrl = normalizeXiaohongshuUrl(url)
 
   // 4. 快速 API 通道（并行尝试）
   const fastResult = await tryFastChannels(normalizedUrl, platformKey, signal)
@@ -357,7 +379,18 @@ async function fetchWithPuppeteer(
     }
 
     // 从渲染后的页面提取元数据
-    const metadata = await extractMetadataFromPage(page, url, platformKey)
+    let metadata = await extractMetadataFromPage(page, url, platformKey)
+
+    // 小红书反爬检测：标题为"打开小红书"说明被重定向到登录页
+    // 尝试用桌面端 UA 重新访问
+    if (platformKey === 'xiaohongshu' && (!metadata.title || metadata.title === '打开小红书' || metadata.title === '小红书' || metadata.title === 'rednote')) {
+      logger.debug({ url }, '[metadata] 小红书可能被重定向到登录页，尝试桌面端 UA 重新访问')
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+      await page.setViewport({ width: 1280, height: 800 })
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 })
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      metadata = await extractMetadataFromPage(page, url, platformKey)
+    }
 
     // 验证封面 URL 是否有效（排除空 CDN 地址等无效 URL）
     if (metadata.coverImage && !isValidCoverUrl(metadata.coverImage)) {
