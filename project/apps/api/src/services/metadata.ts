@@ -85,6 +85,30 @@ function normalizeXiaohongshuUrl(url: string): string {
   }
 }
 
+/**
+ * 将 Cookie 字符串解析为 Puppeteer setCookie 格式
+ * 格式: "key1=value1; key2=value2" 或 JSON 数组
+ */
+function parseCookieString(cookieStr: string, domain: string): Array<{ name: string; value: string; domain: string; path: string }> {
+  try {
+    // 尝试 JSON 格式
+    const parsed = JSON.parse(cookieStr)
+    if (Array.isArray(parsed)) {
+      return parsed.map(c => ({ name: c.name, value: c.value, domain: c.domain || domain, path: c.path || '/' }))
+    }
+  } catch { /* 不是 JSON，按字符串解析 */ }
+
+  return cookieStr.split(';').map(pair => {
+    const [name, ...rest] = pair.trim().split('=')
+    return {
+      name: name.trim(),
+      value: rest.join('=').trim(),
+      domain,
+      path: '/',
+    }
+  }).filter(c => c.name && c.value)
+}
+
 function extractYoutubeVideoId(url: string): string | null {
   const patterns = [
     /[?&]v=([a-zA-Z0-9_-]{11})/,
@@ -347,6 +371,13 @@ async function fetchWithPuppeteer(
     if (strategy?.mobileUA) {
       await page.setUserAgent(MOBILE_USER_AGENT)
       await page.setViewport({ width: 375, height: 812, isMobile: true })
+    }
+
+    // 小红书 Cookie 注入（绕过服务器 IP 封锁）
+    if (platformKey === 'xiaohongshu' && process.env.XHS_COOKIE) {
+      const cookies = parseCookieString(process.env.XHS_COOKIE, '.xiaohongshu.com')
+      await page.setCookie(...cookies)
+      logger.debug({ url, cookieCount: cookies.length }, '[metadata] 小红书 Cookie 已注入')
     }
 
     // 导航到目标页面
