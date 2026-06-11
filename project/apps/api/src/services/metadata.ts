@@ -497,23 +497,56 @@ async function extractMetadataFromPage(
 
       // 9. 平台专用提取
       if (pk === 'douyin') {
+        // 抖音专用提取策略（按优先级）
+        // 1. video poster（最直接）
         if (!result.coverImage) {
           const video = document.querySelector('video')
           if (video?.poster && video.poster.startsWith('http')) {
             result.coverImage = video.poster
           }
         }
+        // 2. 从 SSR 数据提取（RENDER_DATA / _SSR_HYDRATED_DATA / __INITIAL_STATE__）
         if (!result.title || !result.coverImage) {
           try {
+            // 尝试 window._SSR_HYDRATED_DATA
             const ssrData = window._SSR_HYDRATED_DATA
             if (ssrData?.app) {
               const app = ssrData.app
               const videoList = app.videoList || app.itemList || []
-              const video = videoList[0]
-              if (!result.title && video?.title) result.title = video.title
-              if (!result.title && video?.desc) result.title = video.desc
-              if (!result.coverImage && video?.cover) result.coverImage = video.cover
-              if (!result.coverImage && video?.originCover) result.coverImage = video.originCover
+              const item = videoList[0]
+              if (!result.title && item?.title) result.title = item.title
+              if (!result.title && item?.desc) result.title = item.desc
+              if (!result.coverImage && item?.cover) result.coverImage = item.cover
+              if (!result.coverImage && item?.originCover) result.coverImage = item.originCover
+            }
+          } catch { /* 忽略 */ }
+        }
+        // 3. 从 script 标签提取 RENDER_DATA（抖音新版 SSR）
+        if (!result.title || !result.coverImage) {
+          try {
+            const scripts = document.querySelectorAll('script')
+            for (const s of scripts) {
+              const text = s.textContent || ''
+              const rdIdx = text.indexOf('RENDER_DATA')
+              if (rdIdx === -1) continue
+              const eqIdx = text.indexOf('=', rdIdx)
+              if (eqIdx === -1) continue
+              // RENDER_DATA 通常是 URL 编码的 JSON
+              const valStart = text.indexOf('"', eqIdx) + 1
+              const valEnd = text.indexOf('"', valStart)
+              if (valStart === 0 || valEnd === -1) continue
+              const encoded = text.substring(valStart, valEnd)
+              const decoded = decodeURIComponent(encoded)
+              const data = JSON.parse(decoded)
+              // 数据结构: data.app.videoDetail 或 data.app.awemeDetail
+              const detail = data?.app?.videoDetail || data?.app?.awemeDetail || data?.awemeDetail
+              if (detail) {
+                if (!result.title && detail.desc) result.title = detail.desc.substring(0, 100)
+                if (!result.coverImage && detail.cover?.urlList?.[0]) result.coverImage = detail.cover.urlList[0]
+                if (!result.coverImage && detail.video?.cover?.urlList?.[0]) result.coverImage = detail.video.cover.urlList[0]
+                if (!result.coverImage && detail.video?.poster) result.coverImage = detail.video.poster
+              }
+              break
             }
           } catch { /* 忽略 */ }
         }
