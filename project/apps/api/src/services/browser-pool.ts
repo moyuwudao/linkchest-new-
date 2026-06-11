@@ -45,8 +45,33 @@ const USER_AGENTS = [
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
 ]
 
-/** 系统 Chrome 可执行文件路径（优先使用系统安装的 Chrome） */
+/**
+ * 系统 Chrome 可执行文件路径
+ * 优先级：环境变量 > 常见系统路径自动检测
+ */
 const CHROME_EXECUTABLE_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+
+/** 常见 Chrome/Chromium 安装路径（Linux 服务器） */
+const CHROME_SEARCH_PATHS = [
+  '/usr/bin/google-chrome-stable',
+  '/usr/bin/google-chrome',
+  '/usr/bin/chromium-browser',
+  '/usr/bin/chromium',
+  '/snap/bin/chromium',
+]
+
+/** 查找系统 Chrome 路径（同步，只在启动时调用一次） */
+function findChromePath(): string | undefined {
+  if (CHROME_EXECUTABLE_PATH) return CHROME_EXECUTABLE_PATH
+  // 运行时检测需要 fs，延迟到启动时
+  try {
+    const fs = require('fs')
+    for (const p of CHROME_SEARCH_PATHS) {
+      try { if (fs.existsSync(p)) return p } catch { /* 忽略 */ }
+    }
+  } catch { /* 忽略 */ }
+  return undefined
+}
 
 /** 默认导航超时（毫秒） */
 const DEFAULT_NAVIGATION_TIMEOUT = 15_000
@@ -155,7 +180,7 @@ class BrowserPool {
       const browser = await puppeteer.launch({
         headless: 'shell' as const,
         args: CHROME_ARGS,
-        executablePath: CHROME_EXECUTABLE_PATH,
+        executablePath: findChromePath(),
       })
 
       const instance: BrowserInstance = {

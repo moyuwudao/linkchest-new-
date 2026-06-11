@@ -520,18 +520,90 @@ async function extractMetadataFromPage(
       }
 
       if (pk === 'xiaohongshu') {
+        // 小红书专用提取策略（按优先级）
+        // 1. 从 __INITIAL_STATE__ 提取（最可靠，SPA 注入的完整数据）
+        if (!result.coverImage || !result.title || result.title === '小红书' || result.title === 'rednote') {
+          try {
+            const scripts = document.querySelectorAll('script')
+            for (const s of scripts) {
+              const text = s.textContent || ''
+              if (text.includes('__INITIAL_STATE__')) {
+                // 提取 JSON 数据
+                const jsonMatch = text.match(/__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\})\s*<\/script>/)
+                  || text.match(/__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\})\s*;?\s*$/m)
+                if (jsonMatch) {
+                  const state = JSON.parse(jsonMatch[1])
+                  // 笔记详情数据在 note.noteDetailMap 或 noteDetail
+                  const noteMap = state?.note?.noteDetailMap || state?.noteDetail || {}
+                  const noteKey = Object.keys(noteMap)[0]
+                  const noteData = noteMap[noteKey]?.note || noteMap[noteKey]
+                  if (noteData) {
+                    // 标题
+                    if (!result.title || result.title === '小红书' || result.title === 'rednote') {
+                      result.title = noteData.title || noteData.desc?.substring(0, 50) || null
+                    }
+                    // 封面图
+                    if (!result.coverImage) {
+                      const cover = noteData.imageList?.[0]?.urlDefault
+                        || noteData.imageList?.[0]?.url
+                        || noteData.video?.cover?.urlList?.[0]
+                        || noteData.video?.cover?.url
+                        || noteData.emoji?.icon
+                      if (cover) {
+                        result.coverImage = cover.startsWith('http') ? cover : 'https:' + cover
+                      }
+                    }
+                    // 描述
+                    if (!result.description && noteData.desc) {
+                      result.description = noteData.desc.substring(0, 200)
+                    }
+                  }
+                }
+                break
+              }
+            }
+          } catch { /* 忽略 JSON 解析失败 */ }
+        }
+
+        // 2. 从 DOM 查找笔记图片（og:image 无效时的补充）
         if (!result.coverImage) {
-          const noteImg = document.querySelector('.note-content img, [class*="note-detail"] img')
-          if (noteImg) {
-            const src = noteImg.getAttribute('src') || noteImg.getAttribute('data-src')
-            if (src) result.coverImage = src.startsWith('http') ? src : 'https:' + src
+          // 笔记详情页的图片轮播
+          const slideImg = document.querySelector('.swiper-slide img, [class*="slide-item"] img, [class*="carousel"] img')
+          if (slideImg) {
+            const src = slideImg.getAttribute('src') || slideImg.getAttribute('data-src')
+            if (src && src.startsWith('http') && src.includes('xhscdn')) {
+              result.coverImage = src
+            }
           }
         }
+
+        // 3. 从笔记内容区查找
+        if (!result.coverImage) {
+          const noteImg = document.querySelector('.note-content img, [class*="note-detail"] img, [class*="note-card"] img')
+          if (noteImg) {
+            const src = noteImg.getAttribute('src') || noteImg.getAttribute('data-src')
+            if (src && src.startsWith('http') && src.includes('xhscdn')) {
+              result.coverImage = src
+            }
+          }
+        }
+
+        // 4. video poster
         if (!result.coverImage) {
           const video = document.querySelector('video')
           if (video?.poster && video.poster.startsWith('http')) {
             result.coverImage = video.poster
           }
+        }
+
+        // 5. 验证 og:image 是否有效（过滤空 CDN 地址）
+        if (result.coverImage) {
+          try {
+            const url = new URL(result.coverImage)
+            if (url.hostname.includes('xiaohongshu.com') && (!url.pathname || url.pathname === '/' || url.pathname === '')) {
+              result.coverImage = null
+            }
+          } catch { /* 忽略 */ }
         }
       }
 
