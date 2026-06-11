@@ -527,40 +527,52 @@ async function extractMetadataFromPage(
             const scripts = document.querySelectorAll('script')
             for (const s of scripts) {
               const text = s.textContent || ''
-              if (text.includes('__INITIAL_STATE__')) {
-                // 提取 JSON 数据
-                const jsonMatch = text.match(/__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\})\s*<\/script>/)
-                  || text.match(/__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\})\s*;?\s*$/m)
-                if (jsonMatch) {
-                  const state = JSON.parse(jsonMatch[1])
-                  // 笔记详情数据在 note.noteDetailMap 或 noteDetail
-                  const noteMap = state?.note?.noteDetailMap || state?.noteDetail || {}
-                  const noteKey = Object.keys(noteMap)[0]
-                  const noteData = noteMap[noteKey]?.note || noteMap[noteKey]
-                  if (noteData) {
-                    // 标题
-                    if (!result.title || result.title === '小红书' || result.title === 'rednote') {
-                      result.title = noteData.title || noteData.desc?.substring(0, 50) || null
-                    }
-                    // 封面图
-                    if (!result.coverImage) {
-                      const cover = noteData.imageList?.[0]?.urlDefault
-                        || noteData.imageList?.[0]?.url
-                        || noteData.video?.cover?.urlList?.[0]
-                        || noteData.video?.cover?.url
-                        || noteData.emoji?.icon
-                      if (cover) {
-                        result.coverImage = cover.startsWith('http') ? cover : 'https:' + cover
-                      }
-                    }
-                    // 描述
-                    if (!result.description && noteData.desc) {
-                      result.description = noteData.desc.substring(0, 200)
-                    }
+              const stateIdx = text.indexOf('__INITIAL_STATE__')
+              if (stateIdx === -1) continue
+              // 找到 = 后面的 JSON 起始位置
+              const eqIdx = text.indexOf('=', stateIdx)
+              if (eqIdx === -1) continue
+              const jsonStart = text.indexOf('{', eqIdx)
+              if (jsonStart === -1) continue
+              // 从 { 开始匹配到对应的 } （简单括号计数）
+              let depth = 0
+              let jsonEnd = -1
+              for (let i = jsonStart; i < text.length; i++) {
+                if (text[i] === '{') depth++
+                else if (text[i] === '}') {
+                  depth--
+                  if (depth === 0) { jsonEnd = i + 1; break }
+                }
+              }
+              if (jsonEnd === -1) continue
+              const jsonStr = text.substring(jsonStart, jsonEnd)
+              const state = JSON.parse(jsonStr)
+              // 笔记详情数据在 note.noteDetailMap 或 noteDetail
+              const noteMap = state?.note?.noteDetailMap || state?.noteDetail || {}
+              const noteKey = Object.keys(noteMap)[0]
+              const noteData = noteMap[noteKey]?.note || noteMap[noteKey]
+              if (noteData) {
+                // 标题
+                if (!result.title || result.title === '小红书' || result.title === 'rednote') {
+                  result.title = noteData.title || noteData.desc?.substring(0, 50) || null
+                }
+                // 封面图
+                if (!result.coverImage) {
+                  const cover = noteData.imageList?.[0]?.urlDefault
+                    || noteData.imageList?.[0]?.url
+                    || noteData.video?.cover?.urlList?.[0]
+                    || noteData.video?.cover?.url
+                    || noteData.emoji?.icon
+                  if (cover) {
+                    result.coverImage = cover.startsWith('http') ? cover : 'https:' + cover
                   }
                 }
-                break
+                // 描述
+                if (!result.description && noteData.desc) {
+                  result.description = noteData.desc.substring(0, 200)
+                }
               }
+              break
             }
           } catch { /* 忽略 JSON 解析失败 */ }
         }
