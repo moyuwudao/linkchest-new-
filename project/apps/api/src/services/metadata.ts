@@ -109,6 +109,113 @@ function parseCookieString(cookieStr: string, domain: string): Array<{ name: str
   }).filter(c => c.name && c.value)
 }
 
+// ===== 小红书 Cookie 池 =====
+
+interface XhsCookieEntry {
+  /** 原始 Cookie 字符串 */
+  raw: string
+  /** 解析后的 Puppeteer Cookie 数组 */
+  cookies: Array<{ name: string; value: string; domain: string; path: string }>
+  /** 最后一次成功使用的时间戳 */
+  lastUsed: number
+  /** 连续失败次数（超过 3 次标记为过期） */
+  failCount: number
+  /** 是否已过期 */
+  expired: boolean
+}
+
+class XhsCookiePool {
+  private entries: XhsCookieEntry[] = []
+  private currentIndex = 0
+
+  constructor() {
+    this.loadFromEnv()
+  }
+
+  /** 从环境变量加载 Cookie 池 */
+  private loadFromEnv() {
+    const envValue = process.env.XHS_COOKIE || ''
+    if (!envValue) return
+
+    // 支持多种分隔符：
+    // 1. 逗号分隔多个 Cookie: "web_session=aaa,web_session=bbb"
+    // 2. 管道分隔: "web_session=aaa|web_session=bbb"
+    // 3. 换行分隔
+    // 4. 单个 Cookie
+    const rawCookies = envValue
+      .split(/[|\n]/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+
+    for (const raw of rawCookies) {
+      const cookies = parseCookieString(raw, '.xiaohongshu.com')
+      if (cookies.length > 0) {
+        this.entries.push({ raw, cookies, lastUsed: 0, failCount: 0, expired: false })
+      }
+    }
+
+    logger.info({ count: this.entries.length }, '[XhsCookiePool] Cookie 池已加载')
+  }
+
+  /** 获取下一个可用 Cookie（轮换 + 跳过过期） */
+  getNext(): XhsCookieEntry | null {
+    if (this.entries.length === 0) return null
+
+    // 找到下一个未过期的 Cookie
+    for (let i = 0; i < this.entries.length; i++) {
+      const idx = (this.currentIndex + i) % this.entries.length
+      const entry = this.entries[idx]
+      if (!entry.expired) {
+        this.currentIndex = (idx + 1) % this.entries.length
+        entry.lastUsed = Date.now()
+        return entry
+      }
+    }
+
+    // 所有 Cookie 都过期了，重置并尝试第一个（可能已恢复）
+    logger.warn('[XhsCookiePool] 所有 Cookie 已过期，重置尝试')
+    for (const e of this.entries) {
+      e.expired = false
+      e.failCount = 0
+    }
+    this.currentIndex = 0
+    return this.entries[0] || null
+  }
+
+  /** 标记当前 Cookie 使用成功 */
+  markSuccess(entry: XhsCookieEntry) {
+    entry.failCount = 0
+    entry.expired = false
+  }
+
+  /** 标记当前 Cookie 使用失败（连续 3 次失败标记为过期） */
+  markFailed(entry: XhsCookieEntry) {
+    entry.failCount++
+    if (entry.failCount >= 3) {
+      entry.expired = true
+      logger.warn({ failCount: entry.failCount, raw: entry.raw.substring(0, 30) }, '[XhsCookiePool] Cookie 已标记过期')
+    }
+  }
+
+  /** 获取池状态摘要 */
+  getStatus() {
+    return {
+      total: this.entries.length,
+      active: this.entries.filter(e => !e.expired).length,
+      expired: this.entries.filter(e => e.expired).length,
+    }
+  }
+}
+
+/** 小红书 Cookie 池单例 */
+let xhsCookiePool: XhsCookiePool | null = null
+function getXhsCookiePool(): XhsCookiePool {
+  if (!xhsCookiePool) {
+    xhsCookiePool = new XhsCookiePool()
+  }
+  return xhsCookiePool
+}
+
 function extractYoutubeVideoId(url: string): string | null {
   const patterns = [
     /[?&]v=([a-zA-Z0-9_-]{11})/,
@@ -373,11 +480,15 @@ async function fetchWithPuppeteer(
       await page.setViewport({ width: 375, height: 812, isMobile: true })
     }
 
-    // 小红书 Cookie 注入（绕过服务器 IP 封锁）
-    if (platformKey === 'xiaohongshu' && process.env.XHS_COOKIE) {
-      const cookies = parseCookieString(process.env.XHS_COOKIE, '.xiaohongshu.com')
-      await page.setCookie(...cookies)
-      logger.debug({ url, cookieCount: cookies.length }, '[metadata] 小红书 Cookie 已注入')
+    // 小红书 Cookie 注入（Cookie 池轮换，绕过服务器 IP 封锁）
+    let xhsCookieEntry: XhsCookieEntry | null = null
+    if (platformKey === 'xiaohongshu') {
+      const cookiePool = getXhsCookiePool()
+      xhsCookieEntry = cookiePool.getNext()
+      if (xhsCookieEntry) {
+        await page.setCookie(...xhsCookieEntry.cookies)
+        logger.debug({ url, cookieCount: xhsCookieEntry.cookies.length, poolStatus: cookiePool.getStatus() }, '[metadata] 小红书 Cookie 已注入')
+      }
     }
 
     // 导航到目标页面
@@ -415,12 +526,23 @@ async function fetchWithPuppeteer(
     // 小红书反爬检测：标题为"打开小红书"说明被重定向到登录页
     // 尝试用桌面端 UA 重新访问
     if (platformKey === 'xiaohongshu' && (!metadata.title || metadata.title === '打开小红书' || metadata.title === '小红书' || metadata.title === 'rednote')) {
+      // 标记当前 Cookie 失败
+      if (xhsCookieEntry) {
+        const cookiePool = getXhsCookiePool()
+        cookiePool.markFailed(xhsCookieEntry)
+      }
       logger.debug({ url }, '[metadata] 小红书可能被重定向到登录页，尝试桌面端 UA 重新访问')
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
       await page.setViewport({ width: 1280, height: 800 })
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 })
       await new Promise(resolve => setTimeout(resolve, 3000))
       metadata = await extractMetadataFromPage(page, url, platformKey)
+    }
+
+    // 小红书抓取成功，标记 Cookie 成功
+    if (platformKey === 'xiaohongshu' && xhsCookieEntry && metadata.title && metadata.title !== '打开小红书' && metadata.title !== '小红书' && metadata.title !== 'rednote') {
+      const cookiePool = getXhsCookiePool()
+      cookiePool.markSuccess(xhsCookieEntry)
     }
 
     // 验证封面 URL 是否有效（排除空 CDN 地址等无效 URL）
