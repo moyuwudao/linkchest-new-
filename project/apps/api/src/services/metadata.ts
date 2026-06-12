@@ -68,21 +68,11 @@ function normalizeYoutubeUrl(url: string): string {
 
 /**
  * 小红书 URL 预处理
- * 去掉 xsec_token 和 xsec_source 参数（这些参数有时效性，过期会导致重定向到登录页）
- * 保留笔记 ID，使用干净的 URL 访问
+ * 关键：必须保留 xsec_token 参数！没有 xsec_token 会被识别为无效访问（300031 错误）
  */
 function normalizeXiaohongshuUrl(url: string): string {
-  try {
-    const parsed = new URL(url)
-    // 只处理小红书域名
-    if (!parsed.hostname.includes('xiaohongshu.com')) return url
-    // 去掉过期的安全参数
-    parsed.searchParams.delete('xsec_token')
-    parsed.searchParams.delete('xsec_source')
-    return parsed.toString()
-  } catch {
-    return url
-  }
+  // 不做任何处理，保留完整 URL（包括 xsec_token 和 xsec_source）
+  return url
 }
 
 /**
@@ -287,10 +277,11 @@ const PLATFORM_WAIT_STRATEGIES: Record<string, PlatformWaitStrategy> = {
     timeout: 10000,
   },
   xiaohongshu: {
-    waitForSelector: '.note-content, meta[property="og:image"], [class*="note-detail"]',
-    extraWaitMs: 2500,
-    mobileUA: true,
-    timeout: 10000,
+    // 小红书 SPA 渲染很慢，桌面 UA + 长等待 + 选择真实笔记元素
+    waitForSelector: '#detail-title, .note-content, [class*="noteContent"]',
+    extraWaitMs: 8000,
+    mobileUA: false,
+    timeout: 60000,  // 加大到 60s，应对 goto 慢的情况
   },
   kuaishou: {
     waitForSelector: 'video, meta[property="og:image"]',
@@ -427,6 +418,16 @@ async function tryFastChannels(
     tasks.push(fetchBilibiliMetadata(url, signal))
   }
 
+  // 小红书 HTTP 直拉通道（绕过 Puppeteer 渲染和反爬）
+  if (platformKey === 'xiaohongshu') {
+    tasks.push(fetchXiaohongshuHttp(url, signal))
+  }
+
+  // 抖音 HTTP 直拉通道（公网内容，RENDER_DATA 解析）
+  if (platformKey === 'douyin') {
+    tasks.push(fetchDouyinHttp(url, signal))
+  }
+
   // YouTube 缩略图构造
   if (platformKey === 'youtube') {
     const videoId = extractYoutubeVideoId(url)
@@ -475,7 +476,11 @@ async function fetchWithPuppeteer(
 
     // 设置平台专用 UA
     const strategy = PLATFORM_WAIT_STRATEGIES[platformKey]
-    if (strategy?.mobileUA) {
+    if (platformKey === 'xiaohongshu') {
+      // 小红书需要稳定的桌面 Chrome UA + 视口
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
+      await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 })
+    } else if (strategy?.mobileUA) {
       await page.setUserAgent(MOBILE_USER_AGENT)
       await page.setViewport({ width: 375, height: 812, isMobile: true })
     }
@@ -486,8 +491,33 @@ async function fetchWithPuppeteer(
       const cookiePool = getXhsCookiePool()
       xhsCookieEntry = cookiePool.getNext()
       if (xhsCookieEntry) {
-        await page.setCookie(...xhsCookieEntry.cookies)
-        logger.debug({ url, cookieCount: xhsCookieEntry.cookies.length, poolStatus: cookiePool.getStatus() }, '[metadata] 小红书 Cookie 已注入')
+        try {
+          // 重要：Puppeteer 必须在有 URL context 时才能 setCookie 和读取 cookies
+          // 先访问 xiaohongshu.com 根域建立 context
+          await page.goto('https://www.xiaohongshu.com', { waitUntil: 'domcontentloaded', timeout: 10000 }).catch(() => {})
+          await new Promise(r => setTimeout(r, 800))
+
+          // 使用 url 字段（更可靠，Puppeteer 内部转换 domain）
+          const cookieObjs = xhsCookieEntry.cookies.map(c => {
+            const cookieDomain = c.domain.startsWith('.') ? c.domain.slice(1) : c.domain
+            return {
+              name: c.name,
+              value: c.value,
+              url: `https://${cookieDomain}`,
+              path: c.path || '/',
+              sameSite: 'Lax' as const,
+            }
+          })
+          await page.setCookie(...cookieObjs)
+          // 验证 cookie 已生效
+          const allCookies = await page.cookies()
+          const xhsCookies = allCookies.filter(c => c.domain.includes('xiaohongshu'))
+          logger.info({ url, requested: cookieObjs.map(c => c.name), injected: xhsCookies.map(c => c.name) }, '[metadata] 小红书 Cookie 注入')
+        } catch (e) {
+          logger.warn({ url, err: (e as Error).message }, '[metadata] 小红书 Cookie 注入失败')
+        }
+      } else {
+        logger.warn({ url }, '[metadata] 小红书 Cookie 池为空，将无登录态抓取')
       }
     }
 
@@ -525,18 +555,30 @@ async function fetchWithPuppeteer(
 
     // 小红书反爬检测：标题为"打开小红书"说明被重定向到登录页
     // 尝试用桌面端 UA 重新访问
-    if (platformKey === 'xiaohongshu' && (!metadata.title || metadata.title === '打开小红书' || metadata.title === '小红书' || metadata.title === 'rednote')) {
+    if (platformKey === 'xiaohongshu' && (!metadata.title || metadata.title === '打开小红书' || metadata.title === '小红书' || metadata.title === 'rednote' || metadata.title === '小红书 - 你的生活兴趣社区' || metadata.title === '小红书_沪ICP备')) {
       // 标记当前 Cookie 失败
       if (xhsCookieEntry) {
         const cookiePool = getXhsCookiePool()
         cookiePool.markFailed(xhsCookieEntry)
       }
-      logger.debug({ url }, '[metadata] 小红书可能被重定向到登录页，尝试桌面端 UA 重新访问')
+      logger.info({ url, currentTitle: metadata.title, currentUrl: page.url() }, '[metadata] 小红书标题未就绪，重试')
+      // 重新设置 Cookie（重试时有时 Cookie 会被新页面清掉）
+      if (xhsCookieEntry) {
+        try { await page.setCookie(...xhsCookieEntry.cookies) } catch { /* ignore */ }
+      }
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-      await page.setViewport({ width: 1280, height: 800 })
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 })
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      metadata = await extractMetadataFromPage(page, url, platformKey)
+      await page.setViewport({ width: 1440, height: 900 })
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 })
+        // 等笔记标题或笔记内容出现
+        try {
+          await page.waitForSelector('#detail-title, .note-content, [class*="noteContent"]', { timeout: 12000 })
+        } catch { /* ignore */ }
+        await new Promise(resolve => setTimeout(resolve, 5000))
+        metadata = await extractMetadataFromPage(page, url, platformKey)
+      } catch (e) {
+        logger.warn({ url, err: (e as Error).message }, '[metadata] 小红书重试失败')
+      }
     }
 
     // 小红书抓取成功，标记 Cookie 成功
@@ -644,6 +686,39 @@ async function extractMetadataFromPage(
       // 6. <title> 标签
       if (!result.title) {
         result.title = document.title || null
+      }
+
+      // 6.5 小红书专用 title 提取（小红书不输出 og:title，靠真实 DOM）
+      if (pk === 'xiaohongshu') {
+        // 清理 document.title 的尾巴 " - 小红书" / " - REDnote"
+        if (result.title) {
+          result.title = result.title.replace(/\s*[-–—|]\s*(小红书|REDnote|rednote|你的生活兴趣社区)\s*$/i, '').trim()
+        }
+        // 从笔记详情区找标题
+        if (!result.title || result.title === '小红书' || result.title === 'rednote') {
+          const titleEl = document.querySelector(
+            '#detail-title, .note-content .title, [class*="noteDetail"] [class*="title"], ' +
+            '[class*="noteContent"] [class*="title"], [class*="note-detail"] [class*="title"]'
+          )
+          if (titleEl && titleEl.textContent) {
+            result.title = titleEl.textContent.trim()
+          }
+        }
+        // 从笔记详情区找描述
+        if (!result.description) {
+          const descEl = document.querySelector(
+            '#detail-desc, .note-content .desc, .desc, [class*="noteContent"] [class*="desc"], ' +
+            '[class*="note-detail"] [class*="desc"]'
+          )
+          if (descEl && descEl.textContent) {
+            result.description = descEl.textContent.trim().substring(0, 300)
+          }
+        }
+        // 备选：从 meta description 提取
+        if (!result.description) {
+          const md = document.querySelector('meta[name="description"]')
+          if (md) result.description = md.getAttribute('content')?.substring(0, 300) || null
+        }
       }
 
       // 7. favicon
@@ -808,14 +883,37 @@ async function extractMetadataFromPage(
           }
         }
 
-        // 3. 从笔记内容区查找
+        // 3. 从笔记内容区查找（小红书真实笔记的 DOM 结构）
         if (!result.coverImage) {
-          const noteImg = document.querySelector('.note-content img, [class*="note-detail"] img, [class*="note-card"] img')
+          const noteImg = document.querySelector(
+            '#noteContainer img, .note-content img, [class*="note-detail"] img, [class*="note-card"] img, ' +
+            '[class*="noteDetail"] img, [class*="noteContent"] img, [class*="NoteContent"] img'
+          )
           if (noteImg) {
             const src = noteImg.getAttribute('src') || noteImg.getAttribute('data-src')
             if (src && src.startsWith('http') && src.includes('xhscdn')) {
               result.coverImage = src
             }
+          }
+        }
+
+        // 3.5 从笔记详情区找最大尺寸的 xhscdn 图片（兜底）
+        if (!result.coverImage) {
+          const imgs = Array.from(document.querySelectorAll('img'))
+            .filter(i => {
+              const s = i.getAttribute('src') || ''
+              return s.startsWith('http') && s.includes('xhscdn') &&
+                     !s.includes('avatar') && !s.includes('comment/')
+            })
+            .sort((a, b) => {
+              const wa = a.naturalWidth || a.width || 0
+              const wb = b.naturalWidth || b.width || 0
+              return wb - wa
+            })
+          if (imgs.length > 0) {
+            const top = imgs[0]
+            const src = top.getAttribute('src')
+            if (src) result.coverImage = src
           }
         }
 
@@ -1111,6 +1209,298 @@ async function fetchBilibiliMetadata(url: string, signal?: AbortSignal): Promise
       description: data.data.desc ? data.data.desc.substring(0, 200) : null,
     }
   } catch { return null } finally { clearTimeout(timeout) }
+}
+
+/**
+ * 小红书 HTTP 直拉通道
+ * 关键：国内服务器 IP 已被风控，Puppeteer 访问直接被重定向到 captcha/404
+ * 改用普通 HTTP 请求 + 解析 __INITIAL_STATE__ 提取笔记元数据
+ * 注意：必须带 Cookie 模拟登录态（否则拿不到真实笔记数据）
+ */
+async function fetchXiaohongshuHttp(url: string, signal?: AbortSignal): Promise<UrlMetadata | null> {
+  const cookiePool = getXhsCookiePool()
+  const cookieEntry = cookiePool.getNext()
+  if (!cookieEntry) {
+    logger.debug({ url }, '[metadata] 小红书 HTTP 直拉：无 Cookie 池配置')
+    return null
+  }
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 12000)
+  if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true })
+
+  try {
+    // 构造 Cookie 字符串
+    const cookieHeader = cookieEntry.cookies.map(c => `${c.name}=${c.value}`).join('; ')
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': DESKTOP_USER_AGENT,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Cookie': cookieHeader,
+        'Referer': 'https://www.xiaohongshu.com/',
+        'sec-ch-ua': '"Chromium";v="125", "Not.A/Brand";v="24"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+      },
+      signal: controller.signal,
+      redirect: 'follow',
+    })
+
+    if (!response.ok) {
+      logger.warn({ url, status: response.status }, '[metadata] 小红书 HTTP 直拉失败')
+      cookiePool.markFailed(cookieEntry)
+      return null
+    }
+
+    const html = await response.text()
+
+    // 验证是否被重定向到验证页
+    if (html.includes('website-login/captcha') || html.includes('Security Verification')) {
+      logger.warn({ url }, '[metadata] 小红书 HTTP 直拉被风控（验证页）')
+      cookiePool.markFailed(cookieEntry)
+      return null
+    }
+
+    // 解析 <title>
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
+    let title = titleMatch ? titleMatch[1].trim() : null
+    if (title) {
+      // 清理尾巴 " - 小红书" / " - REDnote"
+      title = title.replace(/\s*[-–—|]\s*(小红书|REDnote|rednote|你的生活兴趣社区)\s*$/i, '').trim()
+    }
+
+    // 笔记不可访问（删除/风控/Token失效）—返回空让平台降级
+    if (title === '你访问的页面不见了' || title === '小红书 - 你访问的页面不见了' || html.includes('error_code=300031')) {
+      logger.info({ url }, '[metadata] 小红书笔记不可访问（404/已删除）')
+      cookiePool.markFailed(cookieEntry)
+      return null
+    }
+
+    // 解析 __INITIAL_STATE__
+    const stateIdx = html.indexOf('__INITIAL_STATE__')
+    let coverImage: string | null = null
+    let description: string | null = null
+
+    if (stateIdx !== -1) {
+      const eqIdx = html.indexOf('=', stateIdx)
+      if (eqIdx !== -1) {
+        const jsonStart = html.indexOf('{', eqIdx)
+        if (jsonStart !== -1) {
+          // 简单括号匹配找到 JSON 结束位置
+          let depth = 0
+          let jsonEnd = -1
+          for (let i = jsonStart; i < html.length && i < jsonStart + 2_000_000; i++) {
+            if (html[i] === '{') depth++
+            else if (html[i] === '}') {
+              depth--
+              if (depth === 0) { jsonEnd = i + 1; break }
+            }
+          }
+          if (jsonEnd !== -1) {
+            try {
+              // 小红书 INITIAL_STATE 含有 undefined 字段，JSON 解析会失败
+              // 先把 :undefined 替换为 :null，再做 JSON.parse
+              let jsonStr = html.substring(jsonStart, jsonEnd)
+              jsonStr = jsonStr.replace(/:undefined/g, ':null')
+              const state = JSON.parse(jsonStr) as Record<string, unknown>
+              // 笔记数据通常在 state.note.noteDetailMap[noteId].note
+              const note = (state as any)?.note
+              const noteMap = note?.noteDetailMap || note?.noteDetail
+              if (noteMap && typeof noteMap === 'object') {
+                const noteKey = Object.keys(noteMap)[0]
+                const noteData = noteMap[noteKey]?.note || noteMap[noteKey]
+                if (noteData) {
+                  if (!title || title === '小红书' || title === 'rednote') {
+                    title = noteData.title || noteData.desc?.substring(0, 50) || null
+                  }
+                  const cover = noteData.imageList?.[0]?.urlDefault
+                    || noteData.imageList?.[0]?.urlPre
+                    || noteData.imageList?.[0]?.url
+                    || noteData.video?.cover?.urlList?.[0]
+                    || noteData.video?.cover?.url
+                  if (cover) {
+                    coverImage = cover.startsWith('http') ? cover : 'https:' + cover
+                  }
+                  if (!description && noteData.desc) {
+                    description = String(noteData.desc).substring(0, 200)
+                  }
+                }
+              }
+            } catch { /* JSON 解析失败忽略 */ }
+          }
+        }
+      }
+    }
+
+    // 兜底：从 og:image 提取
+    if (!coverImage) {
+      const ogMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i)
+        || html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:image["']/i)
+      if (ogMatch) {
+        const img = ogMatch[1]
+        if (img && img.startsWith('http') && isValidCoverUrl(img)) {
+          coverImage = img
+        }
+      }
+    }
+
+    // 兜底：从 HTML 找 xhscdn 图片（必须是 sns-webpic/sns-avatar/fe-platform 域名，且不是 .js）
+    if (!coverImage) {
+      const imgMatch = html.match(/https?:\/\/sns-(webpic|avatar)-[a-z]+\.xhscdn\.com\/[^\s"']+\.(jpg|jpeg|png|webp)[^\s"']*/i)
+        || html.match(/https?:\/\/fe-platform\.xhscdn\.com\/[^\s"']+\.(jpg|jpeg|png|webp)[^\s"']*/i)
+      if (imgMatch) {
+        coverImage = imgMatch[0]
+      }
+    }
+
+    if (title || coverImage) {
+      cookiePool.markSuccess(cookieEntry)
+      logger.info({ url, title, hasCover: !!coverImage }, '[metadata] 小红书 HTTP 直拉成功')
+      return {
+        title,
+        coverImage,
+        favicon: 'https://www.xiaohongshu.com/favicon.ico',
+        description,
+      }
+    }
+
+    return null
+  } catch (err) {
+    logger.debug({ url, err: (err as Error).message }, '[metadata] 小红书 HTTP 直拉异常')
+    return null
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+/**
+ * 抖音 HTTP 直拉通道（备份）
+ * - 公网内容，无需 Cookie
+ * - 解析 HTML 中的 RENDER_DATA（URL 编码的 JSON）
+ * - 数据结构: data.app.videoDetail / data.app.awemeDetail
+ * - 兜底: og:image / og:title
+ */
+async function fetchDouyinHttp(url: string, signal?: AbortSignal): Promise<UrlMetadata | null> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 12000)
+  if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true })
+
+  try {
+    // 抖音桌面端走移动端 UA 成功率更高（PC 端经常有挑战）
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': MOBILE_USER_AGENT,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Referer': 'https://www.douyin.com/',
+      },
+      signal: controller.signal,
+      redirect: 'follow',
+    })
+
+    if (!response.ok) {
+      logger.debug({ url, status: response.status }, '[metadata] 抖音 HTTP 直拉失败')
+      return null
+    }
+
+    const finalUrl = response.url || url
+    const html = await response.text()
+
+    // 验证页 / 短链跳转失败兜底
+    if (html.includes('Security Verification') || html.includes('人机验证')) {
+      logger.debug({ url }, '[metadata] 抖音 HTTP 直拉被风控（验证页）')
+      return null
+    }
+
+    // 1. 解析 <title>
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
+    let title: string | null = titleMatch ? titleMatch[1].trim() : null
+    if (title) {
+      // 清理尾巴 " - 抖音" / " - Douyin"
+      title = title.replace(/\s*[-–—|]\s*(抖音|Douyin|douyin)\s*$/i, '').trim()
+    }
+
+    let coverImage: string | null = null
+    let description: string | null = null
+
+    // 2. 解析 RENDER_DATA script（抖音桌面端主要数据源）
+    try {
+      const scripts = html.match(/<script[^>]*>[^<]*RENDER_DATA[^<]*<\/script>/gi) || []
+      for (const tag of scripts) {
+        const eqIdx = tag.indexOf('RENDER_DATA')
+        if (eqIdx === -1) continue
+        const afterEq = tag.indexOf('=', eqIdx)
+        if (afterEq === -1) continue
+        // 取两个引号之间的内容
+        const q1 = tag.indexOf('"', afterEq)
+        if (q1 === -1) continue
+        const q2 = tag.indexOf('"', q1 + 1)
+        if (q2 === -1) continue
+        const encoded = tag.substring(q1 + 1, q2)
+        const decoded = decodeURIComponent(encoded)
+        const data = JSON.parse(decoded)
+        const detail = data?.app?.videoDetail || data?.app?.awemeDetail || data?.awemeDetail || data?.app?.itemList?.[0]
+        if (detail) {
+          if (!title && detail.desc) title = String(detail.desc).substring(0, 100)
+          if (!description && detail.desc) description = String(detail.desc).substring(0, 200)
+          if (!coverImage) {
+            coverImage = detail.cover?.urlList?.[0]
+              || detail.video?.cover?.urlList?.[0]
+              || detail.video?.poster
+              || detail.originCover?.urlList?.[0]
+              || detail.dynamicCover?.urlList?.[0]
+          }
+        }
+        if (coverImage) break
+      }
+    } catch { /* 解析失败忽略 */ }
+
+    // 3. 兜底：og:image
+    if (!coverImage) {
+      const ogMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i)
+        || html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:image["']/i)
+      if (ogMatch) {
+        const img = ogMatch[1]
+        if (img && img.startsWith('http') && isValidCoverUrl(img)) {
+          coverImage = img
+        }
+      }
+    }
+
+    // 4. 兜底：og:title / og:description
+    if (!title) {
+      const ogTitle = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i)
+        || html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:title["']/i)
+      if (ogTitle) title = ogTitle[1].trim()
+    }
+    if (!description) {
+      const ogDesc = html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i)
+        || html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:description["']/i)
+      if (ogDesc) description = ogDesc[1].trim().substring(0, 200)
+    }
+
+    if (title || coverImage) {
+      logger.info(
+        { url, finalUrl, title, hasCover: !!coverImage },
+        '[metadata] 抖音 HTTP 直拉成功'
+      )
+      return {
+        title,
+        coverImage,
+        favicon: 'https://www.douyin.com/favicon.ico',
+        description,
+      }
+    }
+
+    return null
+  } catch (err) {
+    logger.debug({ url, err: (err as Error).message }, '[metadata] 抖音 HTTP 直拉异常')
+    return null
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 // ===== Cloudflare Worker 兜底 =====
