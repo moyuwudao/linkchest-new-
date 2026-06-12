@@ -275,11 +275,13 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       }
 
       const requestId = Math.random().toString(36).substring(2, 15)
+      let resolved = false
 
       const handleMessage = (event: MessageEvent) => {
         const data = event.data
         if (data?.source === 'linkchest-extension' && data?.requestId === requestId && data?.type === 'METADATA_RESPONSE') {
           window.removeEventListener('message', handleMessage)
+          resolved = true
           if (data.data && (data.data.title || data.data.coverImage)) {
             resolve(data.data)
           } else {
@@ -298,11 +300,13 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         url: inputUrl,
       }, '*')
 
-      // 设置超时
+      // 缩短超时：500ms（绝大多数扩展响应 < 100ms，超时即跳过，让 server 接管）
       setTimeout(() => {
-        window.removeEventListener('message', handleMessage)
-        resolve(null)
-      }, 3000)
+        if (!resolved) {
+          window.removeEventListener('message', handleMessage)
+          resolve(null)
+        }
+      }, 500)
     })
   }, [])
 
@@ -354,12 +358,13 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       setParsePhase(t('add.resolvingShortLink'))
 
       // 先尝试从 Chrome Extension 获取元数据（对抖音/小红书等反爬平台有效）
+      // 超时 500ms，跳过后 server 接管
       const extMetadata = await fetchMetadataFromExtension(inputUrl)
       if (extMetadata) {
         console.log('[CollectionForm] Got metadata from extension:', extMetadata)
-        if (extMetadata.title) setTitle(extMetadata.title)
-        if (extMetadata.coverImage) setCoverImage(extMetadata.coverImage)
-        if (extMetadata.platform) setPlatform(extMetadata.platform)
+        if (extMetadata.title && !title) setTitle(extMetadata.title)
+        if (extMetadata.coverImage && !coverImage) setCoverImage(extMetadata.coverImage)
+        if (extMetadata.platform && (!platform || platform === 'other')) setPlatform(extMetadata.platform)
         // 如果 extension 提供了完整数据，跳过服务器解析
         if (extMetadata.title && extMetadata.coverImage) {
           setParsing(false)
@@ -372,9 +377,9 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       const parsed = parseResponse.data.data
 
       if (parsed.url) setUrl(parsed.url)
-      if (parsed.title) setTitle(parsed.title)
-      if (parsed.platform) setPlatform(parsed.platform)
-      if (parsed.coverImage) setCoverImage(parsed.coverImage)
+      if (parsed.title && !title) setTitle(parsed.title)
+      if (parsed.platform && (!platform || platform === 'other')) setPlatform(parsed.platform)
+      if (parsed.coverImage && !coverImage) setCoverImage(parsed.coverImage)
 
       if (parsed.duplicateWarning) {
         setDuplicateWarning(parsed.duplicateWarning)
@@ -383,23 +388,11 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       setParsing(false)
     } catch (err: any) {
       console.error('Parse failed:', err)
-      // 尝试直接获取元数据
-      try {
-        const directMetadata = await fetchMetadataDirectly(inputUrl)
-        if (directMetadata) {
-          if (directMetadata.title) setTitle(directMetadata.title)
-          if (directMetadata.coverImage) setCoverImage(directMetadata.coverImage)
-          setParseError('')
-          setParsing(false)
-          return
-        }
-      } catch (directErr) {
-        console.error('Direct fetch failed:', directErr)
-      }
-      setParseError(t('add.parseFailed'))
+      // 解析失败：让用户能直接保存（标题/封面可后补）
+      setParseError(t('add.parseFailed') + ' - ' + (err?.message || ''))
       setParsing(false)
     }
-  }, [t, fetchMetadataDirectly])
+  }, [t, title, coverImage, platform])
 
   // 标题变化时检测重复
   useEffect(() => {
@@ -425,18 +418,21 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
     }
   }, [title, isAdd])
 
-  // 保存收藏
+  // 保存收藏（允许标题/封面为空，后台补全）
   const handleSave = () => {
-    if (!url.trim() || !title.trim() || selectedListIds.length === 0) {
+    if (!url.trim() || selectedListIds.length === 0) {
       alert(t('add.pleaseEnterValidLink') || '请填写完整信息')
       return
     }
 
+    // 标题为空时使用占位（数据库非空约束），后端会异步补全
+    const finalTitle = title.trim() || (url.length > 60 ? url.substring(0, 60) + '...' : url)
+
     const data: any = {
       url,
-      title,
-      coverImage,
-      platform,
+      title: finalTitle,
+      coverImage: coverImage || '',
+      platform: platform || 'other',
       note: note.trim() || null,
       tagIds: selectedTags,
       listIds: selectedListIds,
@@ -725,6 +721,20 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
               {parsing ? t('common.loading') : t('add.reParse')}
             </button>
           </div>
+          {/* 解析进行中或已完成时，显示"暂不解析"按钮 — 跳过抓取直接填写 */}
+          {parsing && (
+            <button
+              onClick={() => {
+                setParsing(false)
+                setParsePhase('')
+                // 保留已抓到的 title/cover（如果有）
+                setParseError(t('add.skippedParse') || '已跳过自动解析，可手动填写或保存后由系统补全')
+              }}
+              className="mt-2 text-sm text-taupe dark:text-parchment/60 hover:text-charcoal dark:hover:text-parchment underline"
+            >
+              {t('add.skipParse') || '暂不解析，手动填写'}
+            </button>
+          )}
           {parsing && (
             <p className="text-sm text-taupe dark:text-parchment/60 mt-2">{parsePhase}</p>
           )}

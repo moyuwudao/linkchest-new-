@@ -39,6 +39,17 @@ function dedupKey(item: MetadataQueueItem): string {
 }
 
 /**
+ * 判断标题是否是占位符（前端用 URL 兜底的情况）
+ * 规则：长度 >= 20 且以 http:// 或 https:// 开头
+ */
+function isTitlePlaceholder(title: string): boolean {
+  if (!title) return true
+  const trimmed = title.trim()
+  if (trimmed.length < 20) return false
+  return /^https?:\/\//i.test(trimmed)
+}
+
+/**
  * 将元数据抓取任务入队，异步执行，不阻塞 HTTP 响应
  * - Redis 可用时：持久化到 Redis List
  * - Redis 不可用时：降级到内存队列
@@ -107,12 +118,30 @@ async function processItem(item: MetadataQueueItem): Promise<void> {
       return
     }
 
-    // 只更新缺失字段，不覆盖用户已填写的内容
-    const updateData: Prisma.CollectionUpdateInput = {}
-    if (metadata.title) updateData.title = metadata.title
-    if (metadata.coverImage) updateData.coverImage = metadata.coverImage
+    // 智能补全：只更新"缺失"或"占位符"字段，避免覆盖用户已填的内容
+    const current = await prisma.collection.findUnique({
+      where: { id: item.collectionId },
+      select: { title: true, coverImage: true },
+    })
+    if (!current) {
+      logger.warn({ collectionId: item.collectionId }, '[MetadataQueue] 收藏已被删除，跳过补全')
+      return
+    }
 
-    if (Object.keys(updateData).length === 0) return
+    const updateData: Prisma.CollectionUpdateInput = {}
+    // 标题：仅当当前是占位符（以 http:// 或 https:// 开头的长串）时才更新
+    if (metadata.title && (!current.title || isTitlePlaceholder(current.title))) {
+      updateData.title = metadata.title
+    }
+    // 封面：仅当当前为空时才更新
+    if (metadata.coverImage && !current.coverImage) {
+      updateData.coverImage = metadata.coverImage
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      logger.debug({ url: item.url }, '[MetadataQueue] 无需更新（用户已填写完整）')
+      return
+    }
 
     await prisma.collection.update({
       where: { id: item.collectionId },
@@ -120,8 +149,8 @@ async function processItem(item: MetadataQueueItem): Promise<void> {
     })
 
     logger.info(
-      { url: item.url, title: !!metadata.title, cover: !!metadata.coverImage },
-      '[MetadataQueue] 更新成功'
+      { url: item.url, updatedTitle: !!updateData.title, updatedCover: !!updateData.coverImage },
+      '[MetadataQueue] 异步补全成功'
     )
   } catch (err) {
     const retryCount = (item.retryCount || 0) + 1

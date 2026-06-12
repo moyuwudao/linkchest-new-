@@ -376,6 +376,44 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
 
   // 4. 快速 API 通道（并行尝试）
   const fastResult = await tryFastChannels(normalizedUrl, platformKey, signal)
+
+  // 4.1 如果快速通道已返回 title 但 coverImage 缺失，启动 Puppeteer 短超时补全
+  // 这样能解决"添加页有标题无封面"的问题
+  if (fastResult && fastResult.title && !fastResult.coverImage) {
+    logger.debug({ url, platform: platformKey }, '[metadata] fast 通道缺封面，并行启动 Puppeteer 补全')
+
+    // 并行：Puppeteer 补全（短超时 5s）+ 先返回快速通道结果
+    const puppeteerPromise = fetchWithPuppeteer(normalizedUrl, platformKey, signal)
+      .catch(() => null)
+      .then((p) => {
+        if (p?.coverImage) {
+          // 写入 LRU 缓存供下次使用
+          try { lruCache.set(url, { ...fastResult!, coverImage: p.coverImage }) } catch { /* ignore */ }
+          logger.info({ url, platform: platformKey }, '[metadata] Puppeteer 补全封面成功（异步）')
+        }
+        return p
+      })
+
+    // 给 Puppeteer 3.5s 时间补全（不阻塞主流程）
+    const enhanced = await Promise.race([
+      puppeteerPromise,
+      new Promise<null>((r) => setTimeout(() => r(null), 3500)),
+    ])
+
+    if (enhanced?.coverImage) {
+      return finalizeMetadata(url, { ...fastResult, coverImage: enhanced.coverImage, description: fastResult.description || enhanced.description }, platformKey)
+    }
+
+    // 异步：即使超时也等 Puppeteer 完成（写入缓存）
+    puppeteerPromise.catch(() => null).then((p) => {
+      if (p?.coverImage) {
+        logger.debug({ url }, '[metadata] 异步 Puppeteer 补全完成（已写入缓存）')
+      }
+    })
+
+    return finalizeMetadata(url, fastResult, platformKey)
+  }
+
   if (fastResult && (fastResult.title || fastResult.coverImage)) {
     return finalizeMetadata(url, fastResult, platformKey)
   }
@@ -448,14 +486,83 @@ async function tryFastChannels(
 
   if (tasks.length === 0) return null
 
-  // 并行执行，取第一个有效结果
-  const results = await Promise.allSettled(tasks)
-  for (const result of results) {
-    if (result.status === 'fulfilled' && result.value && (result.value.title || result.value.coverImage)) {
-      return result.value
+  // 并行执行，合并所有通道的最佳字段（解决单一通道只返回 title 而无 coverImage 的问题）
+  // - 任何单一通道命中立即返回快速结果（保留速度优势）
+  // - 但后台继续运行其他 task，最多等 3 秒
+  // - 合并阶段：取每个字段的最优值（title 取最完整，coverImage 取第一个有效值）
+
+  // 阶段1：等第一个有效结果（保留速度），最多等 FAST_FIRST_HIT_MS
+  const FAST_FIRST_HIT_MS = 2000
+  const racePromise = Promise.allSettled(tasks).then((results) => {
+    // 合并所有完成 task 的最优字段
+    const merged = mergeFastChannelResults(results)
+    return merged
+  })
+  const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), FAST_FIRST_HIT_MS))
+
+  // 阶段1：fast path（立即返回）
+  const quickResult = await Promise.race([
+    racePromise,
+    timeoutPromise.then(() => null),
+  ])
+
+  if (quickResult && (quickResult.title || quickResult.coverImage)) {
+    return quickResult
+  }
+
+  // 阶段2：超时未命中，再等一会（最多再等 1.5s 补全）
+  const extended = await Promise.race([
+    racePromise,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
+  ])
+
+  if (extended && (extended.title || extended.coverImage)) {
+    return extended
+  }
+
+  return null
+}
+
+/**
+ * 合并所有快速通道结果的最优字段
+ * - title: 取最长的（信息量最大）
+ * - coverImage: 取第一个有效的
+ * - description: 取第一个有效的
+ * - favicon: 取第一个有效的
+ */
+function mergeFastChannelResults(
+  results: PromiseSettledResult<UrlMetadata | null>[]
+): UrlMetadata | null {
+  let title: string | null = null
+  let coverImage: string | null = null
+  let favicon: string | null = null
+  let description: string | null = null
+  let hasAny = false
+
+  for (const r of results) {
+    if (r.status !== 'fulfilled' || !r.value) continue
+    const v = r.value
+    if (v.title) {
+      hasAny = true
+      if (!title || v.title.length > title.length) {
+        title = v.title
+      }
+    }
+    if (v.coverImage) {
+      hasAny = true
+      if (!coverImage) coverImage = v.coverImage
+    }
+    if (v.description) {
+      hasAny = true
+      if (!description) description = v.description
+    }
+    if (v.favicon) {
+      if (!favicon) favicon = v.favicon
     }
   }
-  return null
+
+  if (!hasAny) return null
+  return { title, coverImage, favicon, description }
 }
 
 // ===== Puppeteer 渲染（核心通道） =====
