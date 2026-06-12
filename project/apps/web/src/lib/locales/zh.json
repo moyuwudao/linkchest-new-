@@ -917,7 +917,12 @@
     "viewMorePlatforms": "查看更多平台",
     "collapseMorePlatforms": "收起更多平台",
     "levelPlatforms": "级平台",
-    "reParse": "解析"
+    "reParse": "解析",
+    "skipParse": "稍后解析",
+    "skippedParse": "已加入后台解析队列，预计 10-30 秒自动补充标题和封面",
+    "skipParseHint": "跳过自动解析",
+    "backgroundParsing": "后台解析中...",
+    "backgroundParseEnqueued": "已加入后台解析队列"
   },
   "tag": {
     "management": "标签管理",

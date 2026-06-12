@@ -781,7 +781,12 @@
     "quickSelectPlatform": "Sélection rapide de plateforme",
     "viewMorePlatforms": "Voir plus",
     "collapseMorePlatforms": "Réduire",
-    "levelPlatforms": "niveau(x)"
+    "levelPlatforms": "niveau(x)",
+    "skipParse": "Analyser plus tard",
+    "skippedParse": "Ajouté à la file d'analyse en arrière-plan. Titre et couverture remplis sous 10-30s",
+    "skipParseHint": "Ignorer l'analyse auto",
+    "backgroundParsing": "Analyse en arrière-plan...",
+    "backgroundParseEnqueued": "Ajouté à la file d'arrière-plan"
   },
   "tag": {
     "management": "Gestion des tags",

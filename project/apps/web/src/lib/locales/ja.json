@@ -786,7 +786,12 @@
     "quickSelectPlatform": "クイック選択プラットフォーム",
     "viewMorePlatforms": "もっと見る",
     "collapseMorePlatforms": "閉じる",
-    "levelPlatforms": "级プラットフォーム"
+    "levelPlatforms": "级プラットフォーム",
+    "skipParse": "後で解析",
+    "skippedParse": "バックグラウンド解析キューに追加しました。10〜30秒でタイトルと封面を自動補完",
+    "skipParseHint": "自動解析をスキップ",
+    "backgroundParsing": "バックグラウンド解析中...",
+    "backgroundParseEnqueued": "バックグラウンド解析キューに追加"
   },
   "tag": {
     "management": "タグ管理",

@@ -781,7 +781,12 @@
     "quickSelectPlatform": "Schnellauswahl Plattform",
     "viewMorePlatforms": "Mehr anzeigen",
     "collapseMorePlatforms": "Einklappen",
-    "levelPlatforms": "Ebene(n)"
+    "levelPlatforms": "Ebene(n)",
+    "skipParse": "Später parsen",
+    "skippedParse": "In Hintergrund-Warteschlange. Titel & Cover werden in 10-30s ergänzt",
+    "skipParseHint": "Auto-Parse überspringen",
+    "backgroundParsing": "Hintergrund-Analyse läuft...",
+    "backgroundParseEnqueued": "In Hintergrund-Warteschlange"
   },
   "tag": {
     "management": "Tag-Verwaltung",

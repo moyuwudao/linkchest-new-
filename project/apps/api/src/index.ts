@@ -320,6 +320,16 @@ if (process.env.NODE_ENV !== 'test') {
     // 启动 5 分钟重试队列扫描器（反爬平台先放空再放行场景）
     startRetryQueueProcessor()
   })
+
+  // 预热 BrowserPool（避免首次解析时 puppeteer.launch 冷启动 ~1s 延迟）
+  // 异步执行，不阻塞 server 启动
+  setTimeout(() => {
+    import('./services/browser-pool').then(({ warmupBrowserPool }) => {
+      warmupBrowserPool()
+    }).catch((err) => {
+      logger.warn({ err: err instanceof Error ? err.message : String(err) }, '[Startup] 加载 BrowserPool 失败')
+    })
+  }, 1000) // 延迟 1s 启动，不阻塞 server ready
 }
 
 const server = app.listen(PORT, '0.0.0.0', () => {

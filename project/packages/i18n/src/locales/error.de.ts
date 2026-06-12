@@ -54,6 +54,7 @@ export default {
   ERR_COLLECTION_NOT_IN_TRASH: "Dieses Lesezeichen ist nicht im Papierkorb",
   ERR_COLLECTION_ALREADY_IN_TRASH: "Dieses Lesezeichen ist bereits im Papierkorb",
   ERR_COLLECTION_TIER_REQUIRED: "Diese Funktion erfordert den Pro-Tarif oder höher",
+  ERR_COLLECTION_ENQUEUE_FAILED: "Hinzufügen zur Hintergrund-Warteschlange fehlgeschlagen",
   ERR_LIST_FETCH_FAILED: "Listen konnten nicht abgerufen werden",
   ERR_LIST_CREATE_FAILED: "Liste konnte nicht erstellt werden",
   ERR_LIST_UPDATE_FAILED: "Liste konnte nicht aktualisiert werden",

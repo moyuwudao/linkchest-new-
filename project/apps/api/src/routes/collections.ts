@@ -1838,4 +1838,101 @@ router.post('/:id/sync-cover', authenticate, async (req: AuthenticatedRequest, r
   }
 })
 
+// ===== 后台解析入队（点击"暂不解析"时调用）=====
+// 用途：用户主动跳过元数据抓取时，立即创建一个草稿收藏 + 入队后台解析
+// 行为：10-30 秒内自动补全 title/cover，用户无需等待
+router.post('/enqueue-metadata', authenticate, [
+  body('url').custom((value) => {
+    const processed = ensureHttps(value)
+    return !!processed && isURL(processed)
+  }).withMessage('请输入有效的URL'),
+  body('listIds').optional().isArray({ max: 1 }).withMessage('一个收藏只能属于一个分组'),
+], async (req: AuthenticatedRequest, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, errors.array())
+  }
+
+  const { url, listIds = [] } = req.body
+  const userId = req.user.id
+  const platform = detectPlatform(url)
+
+  try {
+    // 配额检查（"暂不解析"也会创建一条收藏，占用配额）
+    const quotaError = await checkQuota(userId, 'collections')
+    if (quotaError) {
+      return errorResponse(res, 403, quotaError)
+    }
+
+    // 确保用户有默认分组
+    let defaultListIds = [...listIds]
+    if (defaultListIds.length === 0) {
+      let defaultList = await prisma.list.findFirst({
+        where: { userId, name: DEFAULT_LIST_KEY },
+      })
+      if (!defaultList) {
+        // 兼容旧数据
+        defaultList = await prisma.list.findFirst({
+          where: { userId, name: '我的收藏' },
+        })
+      }
+      if (!defaultList) {
+        defaultList = await prisma.list.create({
+          data: { userId, name: DEFAULT_LIST_KEY, description: DEFAULT_LIST_DESC },
+        })
+      }
+      defaultListIds = [defaultList.id]
+    }
+
+    // 验证 listIds 所有权（只取第一个）
+    const existingLists = await prisma.list.findMany({
+      where: { id: { in: defaultListIds }, userId },
+      select: { id: true },
+    })
+    if (existingLists.length !== defaultListIds.length) {
+      const fallbackList = await prisma.list.findFirst({
+        where: { userId, name: DEFAULT_LIST_KEY },
+      })
+      if (fallbackList) {
+        defaultListIds = [fallbackList.id]
+      } else {
+        return errorResponse(res, 400, CollectionErrorCodes.COLLECTION_INVALID_LIST_ID)
+      }
+    }
+
+    // 创建草稿收藏（标题用 URL 占位，后台队列会智能补全）
+    const collection = await prisma.collection.create({
+      data: {
+        userId,
+        url,
+        // 用 URL 前 80 字符作为占位标题（避免被 isTitlePlaceholder 误判为占位符）
+        title: url.length > 80 ? url.slice(0, 80) + '…' : url,
+        coverImage: null,
+        coverStrategy: 'url', // 标记为 URL 策略，触发后台抓取
+        platform,
+        lists: { connect: defaultListIds.map((id: string) => ({ id })) },
+      },
+      include: {
+        tags: { select: { id: true, name: true } },
+        lists: { select: { id: true, name: true } },
+      },
+    })
+
+    // 立即入队后台解析（不阻塞响应）
+    enqueueMetadataFetch({ collectionId: collection.id, url, userId })
+
+    invalidateQuotaCache(userId).catch(() => {})
+    recordCollectionCreated(platform)
+
+    res.status(202).json({
+      data: collection,
+      message: 'enqueued',
+    })
+  } catch (error) {
+    const details = error instanceof Error ? error.message : String(error)
+    logger.error({ err: details, url, userId }, '后台解析入队错误')
+    errorResponse(res, 500, CollectionErrorCodes.COLLECTION_ENQUEUE_FAILED, details)
+  }
+})
+
 export default router

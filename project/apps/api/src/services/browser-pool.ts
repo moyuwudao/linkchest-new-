@@ -492,6 +492,26 @@ export function getBrowserPool(config?: Partial<BrowserPoolConfig>): BrowserPool
 }
 
 /**
+ * 预热浏览器池（启动时调用，避免首次解析时的冷启动延迟）
+ * - 异步执行，不阻塞调用方
+ * - 失败不影响后续 acquireTab（懒加载机制仍会兜底）
+ */
+export async function warmupBrowserPool(): Promise<void> {
+  const start = Date.now()
+  try {
+    const pool = getBrowserPool()
+    // 直接访问私有 init（懒加载：启动 maxBrowsers 个 puppeteer 实例）
+    await (pool as unknown as { init: () => Promise<void> }).init.call(pool)
+    logger.info({ costMs: Date.now() - start }, '[BrowserPool] 预热完成')
+  } catch (err) {
+    logger.warn(
+      { err: err instanceof Error ? err.message : String(err) },
+      '[BrowserPool] 预热失败（不影响后续请求）'
+    )
+  }
+}
+
+/**
  * 优雅关闭浏览器池
  */
 export async function shutdownBrowserPool(): Promise<void> {

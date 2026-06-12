@@ -55,6 +55,7 @@ export default {
   ERR_COLLECTION_NOT_IN_TRASH: "该收藏不在回收站中",
   ERR_COLLECTION_ALREADY_IN_TRASH: "该收藏已在回收站中",
   ERR_COLLECTION_TIER_REQUIRED: "该功能需要升级到专业版或更高版本",
+  ERR_COLLECTION_ENQUEUE_FAILED: "加入后台解析队列失败",
   ERR_LIST_FETCH_FAILED: "获取分组失败",
   ERR_LIST_CREATE_FAILED: "创建分组失败",
   ERR_LIST_UPDATE_FAILED: "更新分组失败",

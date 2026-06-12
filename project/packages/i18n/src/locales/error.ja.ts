@@ -57,6 +57,7 @@ export default {
   ERR_COLLECTION_NOT_IN_TRASH: "このブックマークはごみ箱にありません",
   ERR_COLLECTION_ALREADY_IN_TRASH: "このブックマークは既にごみ箱にあります",
   ERR_COLLECTION_TIER_REQUIRED: "この機能はPro以上のプランが必要です",
+  ERR_COLLECTION_ENQUEUE_FAILED: "バックグラウンド解析キューへの追加に失敗しました",
   ERR_LIST_FETCH_FAILED: "Failed to fetch lists",
   ERR_LIST_CREATE_FAILED: "Failed to create list",
   ERR_LIST_UPDATE_FAILED: "Failed to update list",

@@ -63,6 +63,7 @@ export const CollectionErrorCodes = {
   COLLECTION_NOT_IN_TRASH: 'ERR_COLLECTION_NOT_IN_TRASH',
   COLLECTION_ALREADY_IN_TRASH: 'ERR_COLLECTION_ALREADY_IN_TRASH',
   COLLECTION_TIER_REQUIRED: 'ERR_COLLECTION_TIER_REQUIRED',
+  COLLECTION_ENQUEUE_FAILED: 'ERR_COLLECTION_ENQUEUE_FAILED',
 } as const;
 
 export type CollectionErrorCode = typeof CollectionErrorCodes[keyof typeof CollectionErrorCodes];

@@ -55,6 +55,7 @@ export default {
   ERR_COLLECTION_NOT_IN_TRASH: "This collection is not in trash",
   ERR_COLLECTION_ALREADY_IN_TRASH: "This collection is already in trash",
   ERR_COLLECTION_TIER_REQUIRED: "This feature requires Pro plan or above",
+  ERR_COLLECTION_ENQUEUE_FAILED: "Failed to enqueue background parsing",
   ERR_LIST_FETCH_FAILED: "Failed to fetch lists",
   ERR_LIST_CREATE_FAILED: "Failed to create list",
   ERR_LIST_UPDATE_FAILED: "Failed to update list",

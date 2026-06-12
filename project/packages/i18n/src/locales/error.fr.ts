@@ -56,6 +56,7 @@ export default {
   ERR_COLLECTION_NOT_IN_TRASH: "Ce favori n'est pas dans la corbeille",
   ERR_COLLECTION_ALREADY_IN_TRASH: "Ce favori est déjà dans la corbeille",
   ERR_COLLECTION_TIER_REQUIRED: "Cette fonctionnalité nécessite le plan Pro ou supérieur",
+  ERR_COLLECTION_ENQUEUE_FAILED: "Échec de l'ajout à la file d'analyse en arrière-plan",
   ERR_LIST_FETCH_FAILED: "Failed to fetch lists",
   ERR_LIST_CREATE_FAILED: "Failed to create list",
   ERR_LIST_UPDATE_FAILED: "Failed to update list",

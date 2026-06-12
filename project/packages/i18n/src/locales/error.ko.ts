@@ -56,6 +56,7 @@ export default {
   ERR_COLLECTION_NOT_IN_TRASH: "이 즐겨찾기는 휴지통에 없습니다",
   ERR_COLLECTION_ALREADY_IN_TRASH: "이 즐겨찾기는 이미 휴지통에 있습니다",
   ERR_COLLECTION_TIER_REQUIRED: "이 기능은 Pro 플랜 이상이 필요합니다",
+  ERR_COLLECTION_ENQUEUE_FAILED: "백그라운드 파싱 대기열 추가 실패",
   ERR_LIST_FETCH_FAILED: "Failed to fetch lists",
   ERR_LIST_CREATE_FAILED: "Failed to create list",
   ERR_LIST_UPDATE_FAILED: "Failed to update list",

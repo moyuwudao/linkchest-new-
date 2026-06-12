@@ -873,7 +873,12 @@
     "quickSelectPlatform": "Quick Select Platform",
     "viewMorePlatforms": "View More Platforms",
     "collapseMorePlatforms": "Collapse More Platforms",
-    "levelPlatforms": "-Tier Platforms"
+    "levelPlatforms": "-Tier Platforms",
+    "skipParse": "Parse Later",
+    "skippedParse": "Queued for background parsing, title & cover will be filled in 10-30s",
+    "skipParseHint": "Skip auto-parse",
+    "backgroundParsing": "Background parsing...",
+    "backgroundParseEnqueued": "Queued for background parsing"
   },
   "tag": {
     "management": "Tag Management",

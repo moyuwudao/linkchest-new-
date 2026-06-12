@@ -97,6 +97,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
   const [parsing, setParsing] = useState(false)
   const [parseError, setParseError] = useState('')
   const [parsePhase, setParsePhase] = useState('')
+  const [skipEnqueued, setSkipEnqueued] = useState(false) // "暂不解析" 后显示后台入队提示
 
   const [duplicateWarning, setDuplicateWarning] = useState<any>(null)
   const [titleDuplicateWarning, setTitleDuplicateWarning] = useState<any>(null)
@@ -704,6 +705,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                     setCoverImage('')
                     setPlatform('')
                     setParseError('')
+                    setSkipEnqueued(false)
                     setDuplicateWarning(null)
                     setTitleDuplicateWarning(null)
                   }}
@@ -721,22 +723,42 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
               {parsing ? t('common.loading') : t('add.reParse')}
             </button>
           </div>
-          {/* 解析进行中或已完成时，显示"暂不解析"按钮 — 跳过抓取直接填写 */}
+          {/* 解析进行中时显示"暂不解析"按钮 — 入队后台解析，立即返回 */}
           {parsing && (
             <button
-              onClick={() => {
+              onClick={async () => {
+                if (!url.trim()) return
                 setParsing(false)
                 setParsePhase('')
-                // 保留已抓到的 title/cover（如果有）
-                setParseError(t('add.skippedParse') || '已跳过自动解析，可手动填写或保存后由系统补全')
+                setParseError('')
+                setSkipEnqueued(true)
+                try {
+                  // 调用独立入队端点：立即创建草稿收藏 + 入队后台解析
+                  await api.post('/collections/enqueue-metadata', {
+                    url,
+                    listIds: selectedListIds,
+                  })
+                  // 10-30 秒内自动补全 title/cover
+                  // 刷新收藏列表（用户可能已经在外面）
+                  queryClient.invalidateQueries({ queryKey: ['collections'] })
+                } catch (err) {
+                  console.error('[CollectionForm] 后台解析入队失败:', err)
+                  setParseError(t('add.skippedParse') || '已跳过自动解析，可手动填写')
+                  setSkipEnqueued(false)
+                }
               }}
               className="mt-2 text-sm text-taupe dark:text-parchment/60 hover:text-charcoal dark:hover:text-parchment underline"
             >
-              {t('add.skipParse') || '暂不解析，手动填写'}
+              {t('add.skipParse') || '暂不解析，后台处理'}
             </button>
           )}
           {parsing && (
             <p className="text-sm text-taupe dark:text-parchment/60 mt-2">{parsePhase}</p>
+          )}
+          {skipEnqueued && (
+            <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2">
+              {t('add.skippedParse') || '已加入后台解析队列，预计 10-30 秒自动补充标题和封面'}
+            </p>
           )}
           {parseError && (
             <p className="text-sm text-rust mt-2">{parseError}</p>
