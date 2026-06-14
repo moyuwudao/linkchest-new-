@@ -183,7 +183,7 @@ export default function CollectionList() {
     if (!hasParsingItems) return;
     const interval = setInterval(() => {
       refetch();
-    }, 10000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [hasParsingItems, refetch]);
 

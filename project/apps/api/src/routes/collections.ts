@@ -481,7 +481,7 @@ router.post('/', authenticate, [
         userId,
         url,
         title,
-        coverImage,
+        coverImage: coverImage || null,
         coverStrategy: coverStrategy || 'brand',
         platform,
         pageType,
@@ -502,11 +502,13 @@ router.post('/', authenticate, [
     }
 
     // 根据封面策略决定是否触发元数据抓取
+    // 封面为空时，无论策略如何都触发后台补全（避免默认 brand 策略导致封面永远缺失）
     const shouldFetchMetadata = (() => {
       if (!url) return false
+      if (!coverImage) return true
       if (coverStrategy === 'brand') return false
       if (coverStrategy === 'ai') return false
-      return !title || !coverImage
+      return !title
     })()
     
     if (shouldFetchMetadata) {
@@ -1137,7 +1139,7 @@ router.post('/extract-url', authenticate, [
 
 // 去重检查（必须在 /:id 之前注册）
 router.post('/check-duplicate', authenticate, [
-  body('url').optional().isURL().withMessage('请输入有效的URL'),
+  body('url').optional().isString(),
   body('title').optional().isString(),
 ], async (req: AuthenticatedRequest, res) => {
   const errors = validationResult(req)

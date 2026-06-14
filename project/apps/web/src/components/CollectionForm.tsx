@@ -197,6 +197,10 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       queryClient.refetchQueries({ queryKey: ['collections'] })
       queryClient.invalidateQueries({ queryKey: ['lists'] })
       queryClient.invalidateQueries({ queryKey: ['quota'] })
+      // 延迟3秒再次刷新，等待后台封面补全完成
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['collections'] })
+      }, 3000)
       router.push('/')
     },
     onError: (error: any) => {
@@ -366,8 +370,16 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
         if (extMetadata.title && !title) setTitle(extMetadata.title)
         if (extMetadata.coverImage && !coverImage) setCoverImage(extMetadata.coverImage)
         if (extMetadata.platform && (!platform || platform === 'other')) setPlatform(extMetadata.platform)
-        // 如果 extension 提供了完整数据，跳过服务器解析
+        // 如果 extension 提供了完整数据，跳过服务器解析（但仍需URL重复校验）
         if (extMetadata.title && extMetadata.coverImage) {
+          try {
+            const dupResponse = await api.post('/collections/check-duplicate', { url: inputUrl })
+            if (dupResponse.data.data?.duplicateUrl && dupResponse.data.data?.urlCollection) {
+              setDuplicateWarning(dupResponse.data.data.urlCollection)
+            }
+          } catch {
+            // 重复检测失败不阻塞主流程
+          }
           setParsing(false)
           return
         }
@@ -382,8 +394,14 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       if (parsed.platform && (!platform || platform === 'other')) setPlatform(parsed.platform)
       if (parsed.coverImage && !coverImage) setCoverImage(parsed.coverImage)
 
-      if (parsed.duplicateWarning) {
-        setDuplicateWarning(parsed.duplicateWarning)
+      // URL重复性校验
+      try {
+        const dupResponse = await api.post('/collections/check-duplicate', { url: inputUrl })
+        if (dupResponse.data.data?.duplicateUrl && dupResponse.data.data?.urlCollection) {
+          setDuplicateWarning(dupResponse.data.data.urlCollection)
+        }
+      } catch {
+        // 重复检测失败不阻塞主流程
       }
 
       setParsing(false)
@@ -401,11 +419,11 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       if (titleCheckTimer.current) clearTimeout(titleCheckTimer.current)
       titleCheckTimer.current = setTimeout(async () => {
         try {
-          const response = await api.get('/collections/check-duplicate', {
-            params: { title: title.trim() },
+          const response = await api.post('/collections/check-duplicate', {
+            title: title.trim(),
           })
-          if (response.data.data?.duplicate) {
-            setTitleDuplicateWarning(response.data.data)
+          if (response.data.data?.duplicateTitle && response.data.data?.titleCollection) {
+            setTitleDuplicateWarning(response.data.data.titleCollection)
           } else {
             setTitleDuplicateWarning(null)
           }
@@ -438,7 +456,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
     const data: any = {
       url,
       title: finalTitle,
-      coverImage: coverImage || '',
+      coverImage: coverImage || null,
       platform: platform || 'other',
       note: note.trim() || null,
       tagIds: selectedTags,
