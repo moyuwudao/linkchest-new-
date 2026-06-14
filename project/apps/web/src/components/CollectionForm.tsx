@@ -194,7 +194,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
       return response.data.data || response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['collections'] })
+      queryClient.refetchQueries({ queryKey: ['collections'] })
       queryClient.invalidateQueries({ queryKey: ['lists'] })
       queryClient.invalidateQueries({ queryKey: ['quota'] })
       router.push('/')
@@ -745,8 +745,8 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                     listIds: selectedListIds,
                   })
                   // 10-30 秒内自动补全 title/cover
-                  // 刷新收藏列表 + 配额
-                  queryClient.invalidateQueries({ queryKey: ['collections'] })
+                  // 强制刷新收藏列表 + 配额（refetchQueries 立即重新获取，invalidateQueries 只标记 stale 可能不触发）
+                  await queryClient.refetchQueries({ queryKey: ['collections'] })
                   queryClient.invalidateQueries({ queryKey: ['quota'] })
                   // 直接跳转首页，避免用户再点保存导致重复创建
                   router.push('/')
