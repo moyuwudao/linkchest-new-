@@ -114,15 +114,18 @@ export default function LazyImage({
       }
 
       // 网络加载并缓存（后台执行，不阻塞展示）
-      // 统一尝试 fetch 缓存所有图片（包括 COS），CORS 失败时由 Service Worker 兜底
-      try {
-        const res = await fetch(imageSrc, { mode: 'cors', credentials: 'omit' });
-        if (res.ok && res.headers.get('content-type')?.startsWith('image/')) {
-          const blob = await res.blob();
-          await setCachedCover(imageSrc, blob, collectionId);
+      // COS URL 无 CORS 配置，跳过 fetch 缓存避免大量 CORS 错误和连接占用
+      const isCosUrl = imageSrc.includes('cos.') || imageSrc.includes('myqcloud.com');
+      if (!isCosUrl) {
+        try {
+          const res = await fetch(imageSrc, { mode: 'cors', credentials: 'omit' });
+          if (res.ok && res.headers.get('content-type')?.startsWith('image/')) {
+            const blob = await res.blob();
+            await setCachedCover(imageSrc, blob, collectionId);
+          }
+        } catch {
+          // fetch 缓存失败（如 CORS 限制）不影响展示
         }
-      } catch {
-        // fetch 缓存失败（如 CORS 限制）不影响展示，Service Worker CacheFirst 已兜底
       }
     }
 

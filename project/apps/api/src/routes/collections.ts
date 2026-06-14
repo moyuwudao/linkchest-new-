@@ -395,6 +395,7 @@ router.post('/', authenticate, [
   body('coverStrategy').optional().isIn(['url', 'brand', 'ai']).withMessage('封面策略只能是 url、brand 或 ai'),
   body('pageType').optional().isIn(['home', 'detail', 'list', 'search', 'navigation', 'document', 'download', 'other']).withMessage('页面类型不正确'),
 ], async (req: AuthenticatedRequest, res) => {
+  const t0 = Date.now()
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, errors.array())
@@ -415,7 +416,9 @@ router.post('/', authenticate, [
     // if (Array.isArray(tagIds) && tagIds.length > 0) { ... }
 
     // 配额检查
+    const t1 = Date.now()
     const quotaError = await checkQuota(userId, 'collections')
+    logger.info({ step: 'checkQuota', ms: Date.now() - t1 }, '[POST /collections] timing')
     if (quotaError) {
       return errorResponse(res, 403, quotaError)
     }
@@ -495,6 +498,8 @@ router.post('/', authenticate, [
         lists: { select: { id: true, name: true } },
       },
     })
+
+    logger.info({ step: 'total', ms: Date.now() - t0 }, '[POST /collections] timing')
 
     // 如果有无效 tag，记录到 console 方便排查
     if (invalidTagCount > 0) {
