@@ -92,3 +92,42 @@ export function recordRedisFailure(err?: Error): void {
 
 // 启动时预创建客户端
 getRedisClient()
+
+/**
+ * 获取专用于阻塞操作（BRPOP 等）的独立 Redis 连接
+ * 避免阻塞命令延迟主连接上的其他命令（如 ping、get、set 等）
+ */
+let _subscriberClient: Redis | null = null
+
+export function getRedisSubscriber(): Redis | null {
+  if (_subscriberClient) return _subscriberClient
+
+  try {
+    _subscriberClient = new Redis(REDIS_URL, {
+      retryStrategy: (times) => Math.min(times * 200, 3000),
+      maxRetriesPerRequest: null, // 阻塞命令不设重试上限，避免超时中断
+      lazyConnect: true,
+      connectTimeout: 5000,
+      // 不设 commandTimeout，BRPOP 等阻塞命令需要长时间等待
+      enableOfflineQueue: false,
+    })
+
+    _subscriberClient.on('error', (err) => {
+      console.warn('⚠️ Redis Subscriber 连接错误:', err.message)
+    })
+
+    // 尝试连接（不阻塞启动）
+    ;(async () => {
+      try {
+        await _subscriberClient!.connect()
+        console.log('✅ Redis Subscriber 连接成功（独立连接，用于阻塞操作）')
+      } catch {
+        console.warn('⚠️ Redis Subscriber 不可用')
+      }
+    })()
+
+    return _subscriberClient
+  } catch {
+    return null
+  }
+}

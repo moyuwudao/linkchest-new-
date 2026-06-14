@@ -2,7 +2,7 @@ import pLimit from 'p-limit'
 import prisma from '../lib/prisma'
 import { Prisma } from '@prisma/client'
 import { fetchUrlMetadata } from './metadata'
-import { getRedisClient, isRedisAvailable, recordRedisFailure } from '../lib/redis'
+import { getRedisClient, getRedisSubscriber, isRedisAvailable, recordRedisFailure } from '../lib/redis'
 import { METADATA_MAX_CONCURRENT } from '../lib/constants'
 import logger from '../lib/logger'
 
@@ -266,12 +266,15 @@ function waitForRedisAndSwitch(redis: Redis): void {
 function startRedisConsumer(redis: Redis): void {
   let consecutiveErrors = 0
 
+  // 使用独立的 Redis 连接做 BRPOP，避免阻塞主连接上的其他命令
+  const subscriber = getRedisSubscriber() || redis
+
   // eslint-disable-next-line no-constant-condition
   ;(async () => {
     while (true) {
       try {
-        // BRPOP 阻塞消费，超时 1 秒（避免 commandTimeout 误杀）
-        const result = await redis.brpop(QUEUE_KEY, 1)
+        // BRPOP 阻塞消费，超时 1 秒（使用独立连接，不阻塞主连接）
+        const result = await subscriber.brpop(QUEUE_KEY, 1)
         if (!result) {
           consecutiveErrors = 0
           continue
