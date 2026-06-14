@@ -15,7 +15,7 @@ const FAILURE_THRESHOLD = 3
 const FAILURE_WINDOW_MS = 30000 // 30秒内连续失败3次则临时降级
 
 export function getRedisClient(): Redis | null {
-  if (_client) return _available ? _client : null
+  if (_client) return _client  // 始终返回客户端实例，让调用方自行检查可用性
 
   try {
     _client = new Redis(REDIS_URL, {

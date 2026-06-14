@@ -203,14 +203,17 @@ async function pushToDLQ(item: MetadataQueueItem): Promise<void> {
  * 应在应用启动时调用，持续运行
  */
 export async function startMetadataQueueConsumer(): Promise<void> {
+  // 确保 Redis 客户端已初始化
   const redis = getRedisClient()
+
+  // 如果 Redis 客户端完全无法创建，直接用内存队列
   if (!redis) {
-    logger.info('[MetadataQueue] Redis 客户端为空，启动内存队列消费者')
+    logger.info('[MetadataQueue] Redis 客户端无法创建，启动内存队列消费者')
     startMemoryConsumer()
     return
   }
 
-  // 等待 Redis 连接 ready（避免 BRPOP 在 ready 前被 reject）
+  // 等待 Redis 连接 ready（lazyConnect 模式下，首次调用时才连接）
   if (redis.status !== 'ready') {
     logger.info({ status: redis.status }, '[MetadataQueue] 等待 Redis 连接 ready...')
     await new Promise<void>((resolve) => {
