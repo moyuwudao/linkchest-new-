@@ -4,17 +4,17 @@ import type { NextRequest } from 'next/server';
 // Middleware 处理路由重定向和认证保护
 // token 同时存储在 cookie 和 localStorage 中，cookie 供 middleware 读取
 
-// 需要认证才能访问的路径
-const PROTECTED_PATHS = ['/', '/add', '/lists', '/tags', '/shares', '/shares/create', '/trash', '/settings', '/account', '/edit'];
+// 需要认证才能访问的路径（/ 由 landing 页面自行处理重定向）
+const PROTECTED_PATHS = ['/add', '/lists', '/tags', '/shares', '/shares/create', '/trash', '/settings', '/account', '/edit'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('linkchest_token')?.value;
 
-  // 已登录访问 /login，重定向到首页
+  // 已登录访问 /login，重定向到收藏页
   if (token && pathname === '/login') {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = '/collections';
     const response = NextResponse.redirect(url);
     response.headers.set('Cache-Control', 'no-store, private');
     return response;
