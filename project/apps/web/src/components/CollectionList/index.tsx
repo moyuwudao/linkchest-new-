@@ -151,7 +151,7 @@ export default function CollectionList() {
     },
     initialPageParam: 1,
     enabled: !!getToken(),
-    staleTime: 30 * 1000,
+    staleTime: 5 * 1000,
   });
 
   const { data: tagsData } = useQuery({
@@ -173,6 +173,17 @@ export default function CollectionList() {
       lists: item.lists || [],
     }))
   ) || [];
+
+  // 检测列表中是否有"稍后解析"的收藏（标题是 URL 占位符），有则自动轮询刷新
+  const hasParsingItems = allCollections.some(c => c.title && /^https?:\/\//i.test(c.title) && c.title.length >= 20);
+  useEffect(() => {
+    if (!hasParsingItems) return;
+    const interval = setInterval(() => {
+      refetch();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [hasParsingItems, refetch]);
+
   const totalCount = data?.pages[0]?.pagination?.total || 0;
   const hasMore = hasNextPage;
 
