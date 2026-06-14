@@ -424,6 +424,7 @@ router.post('/', authenticate, [
     }
 
     // 确保用户有默认分组
+    const t2 = Date.now()
     // 分组唯一性限制：一个收藏只能属于一个分组，只取第一个 listId
     let defaultListIds = [...listIds]
     if (defaultListIds.length > 1) {
@@ -447,8 +448,10 @@ router.post('/', authenticate, [
       }
       defaultListIds = [defaultList.id]
     }
+    logger.info({ step: 'ensureDefaultList', ms: Date.now() - t2 }, '[POST /collections] timing')
 
     // ★ 校验 tagIds 全部属于当前用户且存在；过滤无效的 ID
+    const t3 = Date.now()
     let validTagIds: string[] = []
     let invalidTagCount = 0
     if (tagIds.length > 0) {
@@ -460,8 +463,10 @@ router.post('/', authenticate, [
       validTagIds = tagIds.filter((id: string) => existingIdSet.has(id))
       invalidTagCount = tagIds.length - validTagIds.length
     }
+    logger.info({ step: 'validateTags', ms: Date.now() - t3, tagCount: tagIds.length }, '[POST /collections] timing')
 
     // ★ 校验 listIds 全部属于当前用户且存在
+    const t4 = Date.now()
     const existingLists = await prisma.list.findMany({
       where: { id: { in: defaultListIds }, userId },
       select: { id: true },
@@ -479,6 +484,9 @@ router.post('/', authenticate, [
       }
     }
 
+    logger.info({ step: 'validateLists', ms: Date.now() - t4 }, '[POST /collections] timing')
+
+    const t5 = Date.now()
     const collection = await prisma.collection.create({
       data: {
         userId,
@@ -499,6 +507,7 @@ router.post('/', authenticate, [
       },
     })
 
+    logger.info({ step: 'createCollection', ms: Date.now() - t5 }, '[POST /collections] timing')
     logger.info({ step: 'total', ms: Date.now() - t0 }, '[POST /collections] timing')
 
     // 如果有无效 tag，记录到 console 方便排查
