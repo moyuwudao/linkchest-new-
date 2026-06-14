@@ -174,8 +174,11 @@ export default function CollectionList() {
     }))
   ) || [];
 
-  // 检测列表中是否有"稍后解析"的收藏（标题是 URL 占位符），有则自动轮询刷新
-  const hasParsingItems = allCollections.some(c => c.title && /^https?:\/\//i.test(c.title) && c.title.length >= 20);
+  // 检测列表中是否有待补全的收藏（标题是URL占位符 或 封面为空），有则自动轮询刷新
+  const hasParsingItems = allCollections.some(c =>
+    (c.title && /^https?:\/\//i.test(c.title) && c.title.length >= 20) || // 稍后解析：标题是URL
+    (!c.coverImage && c.platform && c.platform !== 'other') // 正常解析：有平台但无封面
+  );
   useEffect(() => {
     if (!hasParsingItems) return;
     const interval = setInterval(() => {
