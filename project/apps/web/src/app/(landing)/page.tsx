@@ -408,7 +408,7 @@ export default function LandingPage() {
               &copy; 2026 {appName}. {t('landing.allRightsReserved')}
             </p>
 
-            {/* ICP 备案（仅国内版） */}
+            {/* ICP 备案 + 公司信息（仅国内版） */}
             <ICPFiling />
           </div>
         </div>
