@@ -88,12 +88,16 @@ export async function getQuotaUsage(
   userId: string,
   txClient: Prisma.TransactionClient = prisma
 ): Promise<QuotaUsageData> {
+  const gu0 = Date.now()
   // 优先从 Redis 缓存读取（无事务场景下）
   if (txClient === prisma) {
     const cached = await getCachedQuotaUsage(userId)
+    logger.info({ step: 'getQuotaUsage.getCachedQuotaUsage', ms: Date.now() - gu0, hit: !!cached }, '[quota] timing')
     if (cached) {
       // limits 可能在管理后台已更新，实时重新获取最新配置
+      const t1 = Date.now()
       const freshLimits = await getQuotaConfig(cached.tier)
+      logger.info({ step: 'getQuotaUsage.getQuotaConfig', ms: Date.now() - t1 }, '[quota] timing')
       return { ...cached, limits: freshLimits }
     }
   }
@@ -205,7 +209,9 @@ export async function checkQuota(
   increment = 1,
   txClient: Prisma.TransactionClient = prisma
 ): Promise<QuotaErrorCode | null> {
+  const qt0 = Date.now()
   const { limits, usage } = await getQuotaUsage(userId, txClient)
+  logger.info({ step: 'checkQuota.getQuotaUsage', ms: Date.now() - qt0, userId, resourceType }, '[quota] timing')
   const limit = limits[resourceType]
   const current = usage[resourceType]
 
