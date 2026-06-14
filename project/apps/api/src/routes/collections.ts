@@ -428,14 +428,15 @@ router.post('/', authenticate, [
     }
     if (defaultListIds.length === 0) {
       let defaultList = await prisma.list.findFirst({
-        where: { userId, name: DEFAULT_LIST_KEY },
+        where: {
+          userId,
+          OR: [
+            { name: DEFAULT_LIST_KEY },
+            { name: '我的收藏' },
+          ],
+        },
+        orderBy: { name: 'asc' },
       })
-      if (!defaultList) {
-        // 兼容旧数据
-        defaultList = await prisma.list.findFirst({
-          where: { userId, name: '我的收藏' },
-        })
-      }
       if (!defaultList) {
         defaultList = await prisma.list.create({
           data: { userId, name: DEFAULT_LIST_KEY, description: DEFAULT_LIST_DESC },
@@ -794,11 +795,10 @@ router.post('/batch-update', authenticate, [
 
     // 处理移除分组：先分配到默认分组，再移除
     if (removeListId) {
-      let defaultList = await prisma.list.findFirst({ where: { userId, name: DEFAULT_LIST_KEY } })
-      if (!defaultList) {
-        // 兼容旧数据
-        defaultList = await prisma.list.findFirst({ where: { userId, name: '我的收藏' } })
-      }
+      let defaultList = await prisma.list.findFirst({
+        where: { userId, OR: [{ name: DEFAULT_LIST_KEY }, { name: '我的收藏' }] },
+        orderBy: { name: 'asc' },
+      })
       if (!defaultList) {
         defaultList = await prisma.list.create({ data: { userId, name: DEFAULT_LIST_KEY, description: DEFAULT_LIST_DESC } })
       }
@@ -1462,10 +1462,10 @@ router.post('/import', authenticate, async (req: AuthenticatedRequest, res) => {
     }
 
     // 确保有默认分组
-    let defaultList = await prisma.list.findFirst({ where: { userId, name: DEFAULT_LIST_KEY } })
-    if (!defaultList) {
-      defaultList = await prisma.list.findFirst({ where: { userId, name: '我的收藏' } })
-    }
+    let defaultList = await prisma.list.findFirst({
+      where: { userId, OR: [{ name: DEFAULT_LIST_KEY }, { name: '我的收藏' }] },
+      orderBy: { name: 'asc' },
+    })
     if (!defaultList) {
       defaultList = await prisma.list.create({ data: { userId, name: DEFAULT_LIST_KEY, description: DEFAULT_LIST_DESC } })
     }
@@ -1701,11 +1701,10 @@ router.put('/:id', authenticate, [
       let targetListId = Array.isArray(listIds) && listIds.length > 0 ? listIds[0] : null
       if (!targetListId) {
         // 如果没有指定分组，自动分配到默认分组
-        let defaultList = await prisma.list.findFirst({ where: { userId, name: DEFAULT_LIST_KEY } })
-        if (!defaultList) {
-          // 兼容旧数据
-          defaultList = await prisma.list.findFirst({ where: { userId, name: '我的收藏' } })
-        }
+        let defaultList = await prisma.list.findFirst({
+          where: { userId, OR: [{ name: DEFAULT_LIST_KEY }, { name: '我的收藏' }] },
+          orderBy: { name: 'asc' },
+        })
         if (!defaultList) {
           defaultList = await prisma.list.create({ data: { userId, name: DEFAULT_LIST_KEY, description: DEFAULT_LIST_DESC } })
         }
@@ -1864,18 +1863,19 @@ router.post('/enqueue-metadata', authenticate, [
       return errorResponse(res, 403, quotaError)
     }
 
-    // 确保用户有默认分组
+    // 确保用户有默认分组（合并两次 findFirst 为一次 OR 查询，减少串行 IO）
     let defaultListIds = [...listIds]
     if (defaultListIds.length === 0) {
       let defaultList = await prisma.list.findFirst({
-        where: { userId, name: DEFAULT_LIST_KEY },
+        where: {
+          userId,
+          OR: [
+            { name: DEFAULT_LIST_KEY },
+            { name: '我的收藏' },
+          ],
+        },
+        orderBy: { name: 'asc' }, // 优先匹配 DEFAULT_LIST_KEY（字母序靠前）
       })
-      if (!defaultList) {
-        // 兼容旧数据
-        defaultList = await prisma.list.findFirst({
-          where: { userId, name: '我的收藏' },
-        })
-      }
       if (!defaultList) {
         defaultList = await prisma.list.create({
           data: { userId, name: DEFAULT_LIST_KEY, description: DEFAULT_LIST_DESC },
@@ -1891,7 +1891,13 @@ router.post('/enqueue-metadata', authenticate, [
     })
     if (existingLists.length !== defaultListIds.length) {
       const fallbackList = await prisma.list.findFirst({
-        where: { userId, name: DEFAULT_LIST_KEY },
+        where: {
+          userId,
+          OR: [
+            { name: DEFAULT_LIST_KEY },
+            { name: '我的收藏' },
+          ],
+        },
       })
       if (fallbackList) {
         defaultListIds = [fallbackList.id]
@@ -1905,10 +1911,9 @@ router.post('/enqueue-metadata', authenticate, [
       data: {
         userId,
         url,
-        // 用 URL 前 80 字符作为占位标题（避免被 isTitlePlaceholder 误判为占位符）
         title: url.length > 80 ? url.slice(0, 80) + '…' : url,
         coverImage: null,
-        coverStrategy: 'url', // 标记为 URL 策略，触发后台抓取
+        coverStrategy: 'url',
         platform,
         lists: { connect: defaultListIds.map((id: string) => ({ id })) },
       },

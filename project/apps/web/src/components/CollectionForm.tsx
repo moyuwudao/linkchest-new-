@@ -421,6 +421,12 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
 
   // 保存收藏（允许标题/封面为空，后台补全）
   const handleSave = () => {
+    // 如果已经通过"稍后解析"入队创建了收藏，不再重复创建
+    if (skipEnqueued) {
+      router.push('/')
+      return
+    }
+
     if (!url.trim() || selectedListIds.length === 0) {
       alert(t('add.pleaseEnterValidLink') || '请填写完整信息')
       return
