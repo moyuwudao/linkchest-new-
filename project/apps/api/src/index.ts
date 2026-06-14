@@ -227,13 +227,16 @@ app.get('/health', async (req, res) => {
 
 // API 健康检查（兼容移动端 /api/health 请求）
 app.get('/api/health', async (req, res) => {
+  const t0 = Date.now()
   const checks: Record<string, string> = {}
   let allHealthy = true
 
   // 数据库连通性检测
   try {
+    const t1 = Date.now()
     await prisma.$queryRaw`SELECT 1`
     checks.database = 'ok'
+    logger.info({ step: 'health.db', ms: Date.now() - t1 }, '[health] timing')
   } catch (err) {
     checks.database = 'error'
     allHealthy = false
@@ -241,6 +244,7 @@ app.get('/api/health', async (req, res) => {
 
   // Redis 连通性检测
   try {
+    const t2 = Date.now()
     const redisClient = getRedisClient()
     if (redisClient && isRedisAvailable()) {
       await redisClient.ping()
@@ -248,10 +252,13 @@ app.get('/api/health', async (req, res) => {
     } else {
       checks.redis = 'unavailable'
     }
+    logger.info({ step: 'health.redis', ms: Date.now() - t2 }, '[health] timing')
   } catch (err) {
     checks.redis = 'error'
     allHealthy = false
   }
+
+  logger.info({ step: 'health.total', ms: Date.now() - t0 }, '[health] timing')
 
   const statusCode = allHealthy ? 200 : 503
   res.status(statusCode).json({
