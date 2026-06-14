@@ -205,7 +205,7 @@ async function pushToDLQ(item: MetadataQueueItem): Promise<void> {
 export async function startMetadataQueueConsumer(): Promise<void> {
   const redis = getRedisClient()
   if (!redis) {
-    logger.info('[MetadataQueue] Redis 不可用，启动内存队列消费者')
+    logger.info('[MetadataQueue] Redis 客户端为空，启动内存队列消费者')
     startMemoryConsumer()
     return
   }
@@ -232,62 +232,87 @@ export async function startMetadataQueueConsumer(): Promise<void> {
     })
   }
 
-  if (!isRedisAvailable()) {
-    logger.info('[MetadataQueue] Redis 连接未就绪，启动内存队列消费者')
+  // 再次检查 Redis 是否可用
+  if (isRedisAvailable()) {
+    logger.info('[MetadataQueue] 启动 Redis 队列消费者')
+    startRedisConsumer(redis)
+  } else {
+    // Redis 10 秒内未就绪，启动内存消费者，但后台持续尝试重连 Redis
+    logger.warn('[MetadataQueue] Redis 未就绪，启动内存队列消费者（后台尝试重连）')
     startMemoryConsumer()
-    return
+    waitForRedisAndSwitch(redis)
   }
+}
 
-  logger.info('[MetadataQueue] 启动 Redis 队列消费者')
+/**
+ * 后台等待 Redis 就绪后切换到 Redis 消费者
+ */
+function waitForRedisAndSwitch(redis: Redis): void {
+  const checkInterval = setInterval(() => {
+    if (isRedisAvailable()) {
+      logger.info('[MetadataQueue] Redis 已就绪，切换到 Redis 队列消费者')
+      clearInterval(checkInterval)
+      startRedisConsumer(redis)
+    }
+  }, 5000) // 每 5 秒检查一次
+}
+
+/**
+ * Redis 队列消费者主循环
+ */
+function startRedisConsumer(redis: Redis): void {
   let consecutiveErrors = 0
 
   // eslint-disable-next-line no-constant-condition
-  while (true) {
-    try {
-      // BRPOP 阻塞消费，超时 1 秒（避免 commandTimeout 误杀）
-      const result = await redis.brpop(QUEUE_KEY, 1)
-      if (!result) {
-        consecutiveErrors = 0
-        continue
-      }
-
-      const [, rawItem] = result
-      const item: MetadataQueueItem = JSON.parse(rawItem)
-
-      // 标记为处理中
-      await redis.sadd(PROCESSING_KEY, dedupKey(item))
-
-      // 使用 p-limit 限制并发
-      limit(async () => {
-        try {
-          await processItem(item)
-        } finally {
-          // 移除处理中标记
-          await redis.srem(PROCESSING_KEY, dedupKey(item)).catch(() => {})
+  ;(async () => {
+    while (true) {
+      try {
+        // BRPOP 阻塞消费，超时 1 秒（避免 commandTimeout 误杀）
+        const result = await redis.brpop(QUEUE_KEY, 1)
+        if (!result) {
+          consecutiveErrors = 0
+          continue
         }
-      }).catch(() => {})
 
-      consecutiveErrors = 0
-    } catch (err) {
-      consecutiveErrors++
-      recordRedisFailure(err instanceof Error ? err : undefined)
-      logger.error({ err: err instanceof Error ? err.message : String(err), consecutiveErrors }, '[MetadataQueue] 消费者错误')
-      // 连续失败5次后切换到内存队列（避免 Redis 超时风暴）
-      if (consecutiveErrors >= 5) {
-        logger.warn('[MetadataQueue] Redis 连续失败5次，切换到内存队列')
-        startMemoryConsumer()
-        return
+        const [, rawItem] = result
+        const item: MetadataQueueItem = JSON.parse(rawItem)
+
+        // 标记为处理中
+        await redis.sadd(PROCESSING_KEY, dedupKey(item))
+
+        // 使用 p-limit 限制并发
+        limit(async () => {
+          try {
+            await processItem(item)
+          } finally {
+            // 移除处理中标记
+            await redis.srem(PROCESSING_KEY, dedupKey(item)).catch(() => {})
+          }
+        }).catch(() => {})
+
+        consecutiveErrors = 0
+      } catch (err) {
+        consecutiveErrors++
+        recordRedisFailure(err instanceof Error ? err : undefined)
+        logger.error({ err: err instanceof Error ? err.message : String(err), consecutiveErrors }, '[MetadataQueue] 消费者错误')
+        // 连续失败5次后切换到内存队列（避免 Redis 超时风暴）
+        if (consecutiveErrors >= 5) {
+          logger.warn('[MetadataQueue] Redis 连续失败5次，切换到内存队列')
+          startMemoryConsumer()
+          return
+        }
+        // 短暂休眠后重试
+        await sleep(1000)
       }
-      // 短暂休眠后重试
-      await sleep(1000)
     }
-  }
+  })()
 }
 
 /**
  * 内存队列消费者（Redis 不可用时的降级）
  */
 function startMemoryConsumer(): void {
+  logger.info('[MetadataQueue] 内存队列消费者已启动（每 1s 扫描）')
   setInterval(() => {
     while (memoryQueue.length > 0) {
       const item = memoryQueue.shift()
@@ -299,10 +324,21 @@ function startMemoryConsumer(): void {
       limit(async () => {
         try {
           await processItem(item)
+        } catch (err) {
+          // 内存模式下也要记录错误，避免静默失败
+          logger.error(
+            { url: item.url, err: err instanceof Error ? err.message : String(err) },
+            '[MetadataQueue] 内存消费者处理异常'
+          )
         } finally {
           memoryProcessing.delete(key)
         }
-      }).catch(() => {})
+      }).catch((err) => {
+        logger.error(
+          { url: item.url, err: err instanceof Error ? err.message : String(err) },
+          '[MetadataQueue] 内存消费者 limit 调度异常'
+        )
+      })
     }
   }, 1000)
 }
