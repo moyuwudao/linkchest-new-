@@ -24,7 +24,9 @@ interface CoverEditorProps {
 
 function inferModeFromValue(val: string): CoverMode {
   if (!val || val.startsWith('data:image/svg')) return 'gradient';
-  if (val.startsWith('data:image/') || val.includes('cos.') || val.includes('myqcloud.com')) return 'library';
+  // 用户手动上传的封面（非auto目录）归为library，自动抓取的COS封面归为url
+  if ((val.includes('cos.') || val.includes('myqcloud.com')) && !val.includes('/covers/auto/')) return 'library';
+  if (val.startsWith('data:image/')) return 'library';
   return 'url';
 }
 
@@ -35,6 +37,8 @@ function isSystemCoverValue(val: string, systemCovers: { cosUrl: string }[]): bo
 
 function isLibraryCoverValue(val: string): boolean {
   if (!val) return false;
+  // 自动抓取的COS封面不算library（用户手动上传的才算）
+  if (val.includes('/covers/auto/')) return false;
   return val.includes('cos.') || val.includes('myqcloud.com');
 }
 

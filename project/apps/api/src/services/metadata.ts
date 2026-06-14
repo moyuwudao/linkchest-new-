@@ -377,40 +377,10 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
   // 4. 快速 API 通道（并行尝试）
   const fastResult = await tryFastChannels(normalizedUrl, platformKey, signal)
 
-  // 4.1 如果快速通道已返回 title 但 coverImage 缺失，启动 Puppeteer 短超时补全
-  // 这样能解决"添加页有标题无封面"的问题
+  // 4.1 如果快速通道已返回 title 但 coverImage 缺失，直接返回快速通道结果
+  // 封面由后台补全队列异步获取，不阻塞 parse-url API 响应
   if (fastResult && fastResult.title && !fastResult.coverImage) {
-    logger.debug({ url, platform: platformKey }, '[metadata] fast 通道缺封面，并行启动 Puppeteer 补全')
-
-    // 并行：Puppeteer 补全（短超时 5s）+ 先返回快速通道结果
-    const puppeteerPromise = fetchWithPuppeteer(normalizedUrl, platformKey, signal)
-      .catch(() => null)
-      .then((p) => {
-        if (p?.coverImage) {
-          // 写入 LRU 缓存供下次使用
-          try { lruCache.set(url, { ...fastResult!, coverImage: p.coverImage }) } catch { /* ignore */ }
-          logger.info({ url, platform: platformKey }, '[metadata] Puppeteer 补全封面成功（异步）')
-        }
-        return p
-      })
-
-    // 给 Puppeteer 3.5s 时间补全（不阻塞主流程）
-    const enhanced = await Promise.race([
-      puppeteerPromise,
-      new Promise<null>((r) => setTimeout(() => r(null), 3500)),
-    ])
-
-    if (enhanced?.coverImage) {
-      return finalizeMetadata(url, { ...fastResult, coverImage: enhanced.coverImage, description: fastResult.description || enhanced.description }, platformKey)
-    }
-
-    // 异步：即使超时也等 Puppeteer 完成（写入缓存）
-    puppeteerPromise.catch(() => null).then((p) => {
-      if (p?.coverImage) {
-        logger.debug({ url }, '[metadata] 异步 Puppeteer 补全完成（已写入缓存）')
-      }
-    })
-
+    logger.debug({ url, platform: platformKey }, '[metadata] fast 通道缺封面，直接返回，封面由后台补全')
     return finalizeMetadata(url, fastResult, platformKey)
   }
 
