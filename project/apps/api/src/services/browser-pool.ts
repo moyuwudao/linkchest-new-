@@ -132,7 +132,8 @@ class BrowserPool {
   constructor(config?: Partial<BrowserPoolConfig>) {
     this.config = {
       maxBrowsers: config?.maxBrowsers ?? 2,
-      maxTabsPerBrowser: config?.maxTabsPerBrowser ?? 5,
+      // 2核4G 服务器：2 浏览器 x 2 标签页 = 4 并发（原 10 并发拖慢全局）
+      maxTabsPerBrowser: config?.maxTabsPerBrowser ?? 2,
       restartAfterRequests: config?.restartAfterRequests ?? 100,
     }
   }

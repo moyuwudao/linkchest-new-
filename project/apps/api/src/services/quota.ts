@@ -10,7 +10,7 @@ import type { Prisma } from '@prisma/client'
 // 数值型配额字段（用于 checkQuota 检查）
 export type ResourceType = 'collections' | 'tags' | 'lists' | 'shares' | 'shareItems' | 'coverImages' | 'coverImagesDaily' | 'maxItemsPerShare' | 'dailyImportLimit' | 'metadataDailyLimit' | 'trashRetentionDays'
 
-const QUOTA_CACHE_TTL_SECONDS = 60
+const QUOTA_CACHE_TTL_SECONDS = 300 // 5 分钟（原 60s 太短，频繁失效导致 6 个 count 查询）
 
 const QUOTA_CODE_MAP: Record<ResourceType, QuotaErrorCode> = {
   collections: QuotaErrorCodes.QUOTA_COLLECTIONS_EXCEEDED,
@@ -31,16 +31,21 @@ function quotaCacheKey(userId: string): string {
 }
 
 /**
- * 清除用户配额缓存（写操作后调用）
+ * 主动更新用户配额缓存（写操作后调用）
+ * 优化：不再删除缓存（删除导致下次请求重新跑 6 个 count 查询），
+ * 而是异步重新计算并写入缓存，下次请求直接命中。
  */
 export async function invalidateQuotaCache(userId: string): Promise<void> {
-  const redis = getRedisClient()
-  if (!redis) return
-  try {
-    await redis.del(quotaCacheKey(userId))
-  } catch {
-    // 缓存删除失败不影响主流程
-  }
+  // 异步重新计算配额并更新缓存（不阻塞调用方）
+  getQuotaUsage(userId).then((data) => {
+    setCachedQuotaUsage(userId, data).catch(() => {})
+  }).catch(() => {
+    // 重新计算失败时降级：删除缓存，下次请求重新计算
+    const redis = getRedisClient()
+    if (redis) {
+      redis.del(quotaCacheKey(userId)).catch(() => {})
+    }
+  })
 }
 
 interface QuotaUsageData {

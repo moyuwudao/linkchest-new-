@@ -80,6 +80,8 @@ export default function Popup() {
   const [dataLoading, setDataLoading] = useState(false);
   const [localCoverOrder, setLocalCoverOrder] = useState<CoverStrategy[]>([]);
   const [currentServer, setCurrentServer] = useState<ServerConfig | null>(null);
+  const [defaultListIdLocal, setDefaultListIdLocal] = useState('');
+  const [defaultTagIdsLocal, setDefaultTagIdsLocal] = useState<string[]>([]);
 
   const [coverStrategy, setCoverStrategy] = useState<CoverStrategy>('url');
   const [selectedListId, setSelectedListId] = useState('');
@@ -139,42 +141,52 @@ export default function Popup() {
   }, []);
 
   async function loadUserData() {
-    setDataLoading(true);
+    // ★ 优化：先从本地 storage 读取（<10ms），立即显示 UI，API 请求异步补充
     try {
-      const results = await Promise.all([
-        getUserSettings(),
-        getFlatLists(),
-        getTags(),
+      const [localOrder, localListId, localTagIds, localNote, localPageType] = await Promise.all([
         getCoverStrategyOrder(),
         getDefaultListId(),
         getDefaultTagIds(),
         getDefaultNote(),
         getDefaultPageType(),
       ]);
-      const s = results[0] as Awaited<ReturnType<typeof getUserSettings>>;
-      const l = results[1] as Awaited<ReturnType<typeof getFlatLists>>;
-      const tagList = results[2] as Awaited<ReturnType<typeof getTags>>;
-      const localOrder = results[3] as Awaited<ReturnType<typeof getCoverStrategyOrder>>;
-      const localListId = results[4] as Awaited<ReturnType<typeof getDefaultListId>>;
-      const localTagIds = results[5] as Awaited<ReturnType<typeof getDefaultTagIds>>;
-      const localNote = results[6] as Awaited<ReturnType<typeof getDefaultNote>>;
-      const localPageType = results[7] as Awaited<ReturnType<typeof getDefaultPageType>>;
+      setLocalCoverOrder(localOrder);
+      const validStrategies: CoverStrategy[] = ['url', 'brand', 'ai'];
+      const safeOrder = (localOrder?.length ? localOrder : validStrategies)
+        .filter((x: string): x is CoverStrategy => validStrategies.includes(x as CoverStrategy));
+      if (safeOrder.length > 0) setCoverStrategy(safeOrder[0]);
+      if (localNote) setNote(localNote);
+      if (localPageType) setSelectedPageType(localPageType);
+      // 保存本地默认值供后续使用
+      setDefaultListIdLocal(localListId || '');
+      setDefaultTagIdsLocal(localTagIds || []);
+    } catch (e) {
+      console.warn('[LinkChest] 本地 storage 读取失败:', e);
+    }
+
+    // ★ 异步加载 API 数据（不阻塞 UI 渲染）
+    setDataLoading(true);
+    try {
+      const [s, l, tagList] = await Promise.all([
+        getUserSettings(),
+        getFlatLists(),
+        getTags(),
+      ]);
       setSettings(s);
       setLists(l);
       setTags(tagList);
 
-      setLocalCoverOrder(localOrder);
       // ★ 过滤服务器返回的可能非法值（兼容历史 order 包含 'auto' 等情况）
       const validStrategies: CoverStrategy[] = ['url', 'brand', 'ai'];
-      const safeOrder = (localOrder?.length ? localOrder : (s?.coverStrategyOrder || validStrategies))
+      const safeOrder = (localCoverOrder?.length ? localCoverOrder : (s?.coverStrategyOrder || validStrategies))
         .filter((x: string): x is CoverStrategy => validStrategies.includes(x as CoverStrategy));
       const order = safeOrder.length ? safeOrder : validStrategies;
       if (order.length > 0) setCoverStrategy(order[0]);
 
       // ★ 默认分组：本地 → 服务器 settings → isDefault list
-      // 如果本地 defaultListId 不在服务器返回的列表中（被删了），回退
       let defaultList = '';
       const validListIds = new Set(l.map((x: ListItem) => x.id));
+      const localListId = defaultListIdLocal;
       if (localListId && validListIds.has(localListId)) {
         defaultList = localListId;
       } else if (s?.defaultListId && validListIds.has(s.defaultListId)) {
@@ -184,17 +196,11 @@ export default function Popup() {
       }
       setSelectedListId(defaultList);
 
-      // ★ 过滤失效的默认标签（tags 列表里已不存在的 id 静默丢弃）
+      // ★ 过滤失效的默认标签
       const validTagIdSet = new Set(tagList.map((x: TagItem) => x.id));
-      const safeDefaultTags = (localTagIds?.length ? localTagIds : (s?.defaultTagIds || []))
+      const safeDefaultTags = (defaultTagIdsLocal?.length ? defaultTagIdsLocal : (s?.defaultTagIds || []))
         .filter((id: string) => validTagIdSet.has(id));
       setSelectedTagIds(safeDefaultTags);
-
-      // ★ 默认备注（仅本地 storage）
-      setNote(localNote || '');
-
-      // ★ 默认页面类型（仅本地 storage）
-      setSelectedPageType(localPageType || '');
     } catch (e) {
       console.error('Failed to load user data', e);
     } finally {
@@ -270,7 +276,7 @@ export default function Popup() {
       await createCollection(payload as Parameters<typeof createCollection>[0]);
       setSaveStatus('success');
       setSaveMessage(t('saveSuccess', lang));
-      setTimeout(() => window.close(), 1200);
+      setTimeout(() => window.close(), 600);
     } catch (err: any) {
       const info = extractApiError(err);
       console.error('[LinkChest] save error:', info);
@@ -348,7 +354,7 @@ export default function Popup() {
     return list.name;
   }
 
-  if (!authChecked || dataLoading) {
+  if (!authChecked) {
     return (
       <div className="loading-spinner">
         <div className="spinner" />
@@ -587,7 +593,7 @@ export default function Popup() {
       <button
         className="btn-primary"
         onClick={handleSave}
-        disabled={saving || !pageUrl}
+        disabled={saving || dataLoading || !pageUrl}
       >
         {saving ? t('saving', lang) : t('saveToLinkchest', lang)}
       </button>

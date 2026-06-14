@@ -723,7 +723,7 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
               {parsing ? t('common.loading') : t('add.reParse')}
             </button>
           </div>
-          {/* 解析进行中时显示"暂不解析"按钮 — 入队后台解析，立即返回 */}
+          {/* 解析进行中时显示"稍后解析"按钮 — 入队后台解析，立即创建收藏并跳转首页 */}
           {parsing && (
             <button
               onClick={async () => {
@@ -739,8 +739,11 @@ export default function CollectionForm({ mode, preselectedTagId, preselectedList
                     listIds: selectedListIds,
                   })
                   // 10-30 秒内自动补全 title/cover
-                  // 刷新收藏列表（用户可能已经在外面）
+                  // 刷新收藏列表 + 配额
                   queryClient.invalidateQueries({ queryKey: ['collections'] })
+                  queryClient.invalidateQueries({ queryKey: ['quota'] })
+                  // 直接跳转首页，避免用户再点保存导致重复创建
+                  router.push('/')
                 } catch (err) {
                   console.error('[CollectionForm] 后台解析入队失败:', err)
                   setParseError(t('add.skippedParse') || '已跳过自动解析，可手动填写')

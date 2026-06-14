@@ -29,8 +29,8 @@ export const DEFAULT_PAGE_SIZE = 40
 export const MAX_PAGE_SIZE = 100
 
 // ===== 元数据抓取配置 =====
-// 从环境变量读取并发数，兼容不同服务器配置；国内升级到 5，海外默认 3
-export const METADATA_MAX_CONCURRENT = Number(process.env.METADATA_MAX_CONCURRENT) || 5
+// 从环境变量读取并发数，兼容不同服务器配置；默认 3（2核4G 服务器跑 5 个并发会拖慢全局）
+export const METADATA_MAX_CONCURRENT = Number(process.env.METADATA_MAX_CONCURRENT) || 3
 export const METADATA_FETCH_TIMEOUT_MS = 4000
 export const METADATA_TOTAL_TIMEOUT_MS = 8000
 export const METADATA_LRU_CACHE_MAX_SIZE = 500
