@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Bookmark, FolderOpen, Share2, Rocket, ChevronRight, Loader2 } from 'lucide-react';
+import { Sparkles, FolderTree, Share2, Rocket, ChevronRight, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -12,10 +12,9 @@ interface OnboardingModalProps {
 }
 
 const STEPS = [
-  { icon: Bookmark, titleKey: 'step1Title', descKey: 'step1Desc', color: 'text-blue-500' },
-  { icon: FolderOpen, titleKey: 'step2Title', descKey: 'step2Desc', color: 'text-emerald-500' },
-  { icon: Share2, titleKey: 'step3Title', descKey: 'step3Desc', color: 'text-purple-500' },
-  { icon: Rocket, titleKey: 'step4Title', descKey: 'step4Desc', color: 'text-amber-500' },
+  { icon: Sparkles, titleKey: 'step1Title', descKey: 'step1Desc', highlights: ['step1H1', 'step1H2', 'step1H3'], color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+  { icon: FolderTree, titleKey: 'step2Title', descKey: 'step2Desc', highlights: ['step2H1', 'step2H2', 'step2H3'], color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+  { icon: Share2, titleKey: 'step3Title', descKey: 'step3Desc', highlights: ['step3H1', 'step3H2', 'step3H3'], color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
 ];
 
 export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
@@ -29,7 +28,6 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
       onComplete(dismissForever);
     },
     onError: () => {
-      // 即使失败也关闭引导，不阻塞用户
       onComplete(dismissForever);
     },
   });
@@ -38,7 +36,6 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
     if (step < STEPS.length - 1) {
       setStep(step + 1);
     } else {
-      // 最后一步：完成引导
       completeMutation.mutate();
     }
   };
@@ -69,26 +66,40 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
         </div>
 
         {/* Content */}
-        <div className="px-8 py-10 text-center">
-          <div className={cn('inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6', 'bg-chest-50 dark:bg-chest-700/50')}>
-            <Icon size={32} className={currentStep.color} strokeWidth={1.8} />
+        <div className="px-8 pt-8 pb-4 text-center">
+          <div className={cn('inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5', currentStep.bg)}>
+            <Icon size={28} className={currentStep.color} strokeWidth={1.8} />
           </div>
 
-          <p className="text-xs text-chest-400 dark:text-parchment/40 mb-2">
+          <p className="text-xs text-chest-400 dark:text-parchment/40 mb-1.5">
             {t('onboarding.step', { current: step + 1, total: STEPS.length })}
           </p>
 
-          <h2 className="text-xl font-semibold text-chest-800 dark:text-parchment mb-3">
+          <h2 className="text-lg font-semibold text-chest-800 dark:text-parchment mb-2">
             {t(`onboarding.${currentStep.titleKey}`)}
           </h2>
 
-          <p className="text-sm text-chest-500 dark:text-parchment/60 leading-relaxed">
+          <p className="text-sm text-chest-500 dark:text-parchment/60 leading-relaxed mb-5">
             {t(`onboarding.${currentStep.descKey}`)}
           </p>
+
+          {/* Feature highlights */}
+          <div className="space-y-2.5 text-left">
+            {currentStep.highlights.map((key, i) => (
+              <div key={i} className="flex items-start gap-2.5 px-3 py-2 rounded-lg bg-chest-50/60 dark:bg-chest-700/30">
+                <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-amber-400/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-medium">
+                  {i + 1}
+                </span>
+                <span className="text-sm text-chest-600 dark:text-parchment/70 leading-snug">
+                  {t(`onboarding.${key}`)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Dismiss forever checkbox */}
-        <div className="px-8 pb-3 flex items-center justify-center">
+        <div className="px-8 pt-2 pb-2 flex items-center justify-center">
           <label className="flex items-center gap-2 text-xs text-chest-400 dark:text-parchment/50 cursor-pointer select-none">
             <input
               type="checkbox"
