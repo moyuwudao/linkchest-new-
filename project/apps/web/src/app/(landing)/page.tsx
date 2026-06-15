@@ -298,9 +298,7 @@ export default function LandingPage() {
                     {t('landing.downloadApp')}
                   </a>
                   <a
-                    href="https://chrome.google.com/webstore/detail/linkchest-collection/abcdefghijklmnopqrstuvwxyz"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="/download/chrome-extension"
                     className="flex items-center gap-3 px-4 py-3 text-sm text-charcoal dark:text-parchment hover:bg-chest-50 dark:hover:bg-chest-700/50 transition-colors border-t border-black/5 dark:border-white/5"
                   >
                     <Globe className="w-4 h-4 text-taupe" />

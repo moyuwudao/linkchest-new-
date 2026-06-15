@@ -57,7 +57,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     if (mode === 'silent') {
       // 一键保存：直接静默保存
-      await silentSave(url, title);
+      await silentSave(url, title, tab?.id);
     } else {
       // 一键新建：打开 popup 面板
       try {
@@ -80,12 +80,12 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
     const url = tab?.url || '';
     const title = tab?.title || '';
     if (url) {
-      await silentSave(url, title);
+      await silentSave(url, title, tab?.id);
     }
   }
 });
 
-async function silentSave(url: string, title: string) {
+async function silentSave(url: string, title: string, tabId?: number) {
   const loggedIn = await isLoggedIn();
   if (!loggedIn) {
     chrome.runtime.openOptionsPage();
@@ -109,11 +109,37 @@ async function silentSave(url: string, title: string) {
     const note = localNote || undefined;
     const pageType = localPageType || '';
 
+    // 从 content script 获取封面图片（与 Popup 模式一致）
+    let coverImage: string | undefined;
+    if (tabId) {
+      try {
+        const metadata = await new Promise<any>((resolve) => {
+          chrome.tabs.sendMessage(tabId, { type: 'GET_METADATA' }, (response) => {
+            if (chrome.runtime.lastError) {
+              resolve(null);
+            } else {
+              resolve(response);
+            }
+          });
+        });
+        if (metadata?.coverImage) {
+          coverImage = metadata.coverImage;
+        }
+        // content script 可能返回更准确的标题
+        if (metadata?.title) {
+          title = metadata.title;
+        }
+      } catch {
+        // content script 未注入，忽略
+      }
+    }
+
     const payload: Record<string, unknown> = {
       url,
       title,
       coverStrategy,
     };
+    if (coverImage) payload.coverImage = coverImage;
     if (listId) payload.listIds = [listId];
     if (tagIds.length) payload.tagIds = tagIds;
     if (note) payload.note = note;
