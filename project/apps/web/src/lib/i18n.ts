@@ -54,6 +54,12 @@ const I18nContext = createContext<I18nContextType>({
 function getInitialLocale(): SupportedLocale {
   if (typeof window === 'undefined') return 'en';
 
+  // 国内域名（.cn 结尾）默认中文
+  const hostname = window.location.hostname.toLowerCase();
+  if (hostname === 'linkchest.cn' || hostname.endsWith('.linkchest.cn')) {
+    return 'zh';
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   const urlLang = urlParams.get('lang');
   if (urlLang && isValidLocale(urlLang)) {
