@@ -109,7 +109,7 @@ export default function ChromeExtensionPage() {
 
   // 直接下载链接（COS/TOS 存储桶）— 部署后替换为实际 URL
   const directDownloadUrl = isChina
-    ? 'https://linkchest-cos.ap-beijing.myqcloud.com/extensions/linkchest-chrome-extension-v1.1.0.zip'
+    ? 'https://linkchest-cn-1426030060.cos.ap-nanjing.myqcloud.com/extensions/linkchest-chrome-extension-v1.1.0.zip'
     : 'https://linkchest-cos.ap-singapore.myqcloud.com/extensions/linkchest-chrome-extension-v1.1.0.zip';
 
   // 根据当前语言显示内容
