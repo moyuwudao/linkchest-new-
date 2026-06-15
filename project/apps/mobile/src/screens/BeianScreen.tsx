@@ -15,14 +15,10 @@ export default function BeianScreen() {
   const { colors } = useThemeStore();
   const isZh = locale === 'zh';
 
-  // 备案信息（手动维护与备案号一致）
+  // 备案信息（仅展示法规要求内容）
   const beian = {
     icp: '粤ICP备2026065057号-4A',
     icpLink: 'https://beian.miit.gov.cn/',
-    appName: isZh ? '链藏' : 'LinkChest',
-    appPackage: 'com.linkchest.app',
-    appSignMd5: '532FD00CDFE8E47071536704767B85FD',
-    appPublicKey: '8fd8ccd9f1e1db1ea707789533a94bea9e9dd3a9b01e66f351ecfc769d7a0cf78c43da8c6ac09e8420d36efdad7c8224cd28f4eabf14c9d4d7e25cf91fd9d1960eec43a16fbc7e568bd9728dc911f84d47bfec16c5fe0f03cd766af8cb1755121794dd8c63fb9f99ee7d10c66d368b51a1f5361630539a457decc47c9398252abb42ac73bd01c4861e574a11c9d6dd9df594d32a55e7ea5fd84591fc45e26cedde483982553507e3b37155fc65c2af821f0517f8be25807f03998fb2753736e28f0ed2ccc5571cf69d8265ec72a2fd6a4cff34b58247c3e797c4ecb842d5ebbc266d5861cd36d8c31fb024e9a148e7b888db7d83111031e247cde6413f480339',
   };
 
   return (
@@ -72,44 +68,30 @@ export default function BeianScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* APP 备案信息 */}
+      {/* APP 备案说明卡片 */}
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.cardHeader}>
           <Ionicons name="phone-portrait" size={20} color={colors.primary} />
           <Text style={[styles.cardTitle, { color: colors.text }]}>
-            {isZh ? 'APP 备案信息' : 'APP Registration'}
+            {isZh ? '移动应用备案' : 'Mobile APP Filing'}
           </Text>
         </View>
 
-        <View style={styles.row}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {isZh ? '应用名称' : 'App Name'}
-          </Text>
-          <Text style={[styles.value, { color: colors.text }]}>{beian.appName}</Text>
-        </View>
+        <Text style={[styles.bodyText, { color: colors.textSecondary }]}>
+          {isZh
+            ? '本应用已依据《移动互联网应用程序信息服务管理规定》完成移动互联网应用程序（APP）备案，备案信息可在工信部政务服务平台查询。'
+            : 'This APP has been filed in accordance with the Regulations on the Administration of Information Services of Mobile Internet Applications. The filing record is queryable on the MIIT platform.'}
+        </Text>
 
-        <View style={styles.row}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {isZh ? '应用包名' : 'Package'}
+        <TouchableOpacity
+          onPress={() => Linking.openURL('https://beian.miit.gov.cn/#/app/index')}
+          style={[styles.linkBtn, { borderColor: colors.primary }]}
+        >
+          <Ionicons name="open-outline" size={16} color={colors.primary} />
+          <Text style={[styles.linkText, { color: colors.primary }]}>
+            {isZh ? '查询移动应用备案信息' : 'Query Mobile APP filing'}
           </Text>
-          <Text style={[styles.valueMono, { color: colors.text }]}>{beian.appPackage}</Text>
-        </View>
-
-        <View style={styles.row}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {isZh ? '签名 MD5' : 'Signature MD5'}
-          </Text>
-          <Text style={[styles.valueMono, { color: colors.text }]}>{beian.appSignMd5}</Text>
-        </View>
-
-        <View style={styles.rowColumn}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>
-            {isZh ? '公钥' : 'Public Key'}
-          </Text>
-          <Text style={[styles.valueMonoSmall, { color: colors.text }]} selectable>
-            {beian.appPublicKey}
-          </Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* 法规说明 */}
@@ -183,12 +165,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    marginTop: 8,
+    marginTop: 12,
     borderWidth: 1,
     borderRadius: 8,
     gap: 6,
   },
   linkText: { fontSize: 14, fontWeight: '500' },
+  bodyText: { fontSize: 13, lineHeight: 20, marginBottom: 4 },
   notice: {
     flexDirection: 'row',
     alignItems: 'flex-start',
