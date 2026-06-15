@@ -23,6 +23,7 @@ import { CollectionViewsProvider } from './src/lib/collectionViewsContext';
 import LoginScreen from './src/screens/LoginScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 import TermsScreen from './src/screens/TermsScreen';
+import BeianScreen from './src/screens/BeianScreen';
 import CollectionFormScreen from './src/screens/CollectionFormScreen';
 import CollectionDetailScreen from './src/screens/CollectionDetailScreen';
 import PlatformSelectScreen from './src/screens/PlatformSelectScreen';
@@ -812,11 +813,19 @@ function AppContent() {
               title: t('payment.title')
             }}
           />
-          <Stack.Screen 
-            name="Terms" 
+          <Stack.Screen
+            name="Terms"
             component={TermsScreen}
-            options={{ 
+            options={{
               headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="Beian"
+            component={BeianScreen}
+            options={{
+              headerShown: true,
+              title: t('profile.beian'),
             }}
           />
           <Stack.Screen 

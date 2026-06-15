@@ -152,6 +152,11 @@ export default function ProfileScreen() {
       onPress: () => navigation.navigate('Terms' as any, { tab: 'terms' }),
     },
     {
+      icon: 'shield-checkmark-outline',
+      title: t('profile.beian'),
+      onPress: () => navigation.navigate('Beian' as any),
+    },
+    {
       icon: 'refresh-outline',
       title: t('profile.checkUpdate'),
       onPress: () => {

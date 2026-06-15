@@ -433,6 +433,7 @@
     "light": "Light",
     "other": "Other",
     "feedback": "Feedback",
+    "beian": "Registration Info",
     "logout": "Log Out",
     "logoutConfirm": "Are you sure you want to log out?",
     "logoutBtn": "Log Out",
