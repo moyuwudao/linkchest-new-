@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Sparkles, FolderTree, Share2, Globe, Monitor, Smartphone, TabletSmartphone, ArrowRight, Check } from 'lucide-react';
+import { Sparkles, FolderTree, Share2, Globe, Monitor, Smartphone, TabletSmartphone, ArrowRight, Check, Download } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useI18n } from '@/lib/i18n';
 import { isLoggedIn } from '@/lib/auth';
@@ -280,13 +280,35 @@ export default function LandingPage() {
               {t('landing.ctaStart')}
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              href="/download"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 text-charcoal dark:text-parchment rounded-xl font-semibold text-base hover:bg-white/80 dark:hover:bg-white/10 transition-all"
-            >
-              <Smartphone className="w-4 h-4" />
-              {t('landing.ctaDownload')}
-            </Link>
+            <div className="relative group">
+              <button
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5 text-charcoal dark:text-parchment rounded-xl font-semibold text-base hover:bg-white/80 dark:hover:bg-white/10 transition-all"
+              >
+                <Download className="w-4 h-4" />
+                {t('landing.ctaDownload')}
+              </button>
+              {/* 下拉菜单 */}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                <div className="bg-white dark:bg-chest-800 rounded-xl shadow-floating border border-black/5 dark:border-white/5 overflow-hidden">
+                  <a
+                    href="/download"
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-charcoal dark:text-parchment hover:bg-chest-50 dark:hover:bg-chest-700/50 transition-colors"
+                  >
+                    <Smartphone className="w-4 h-4 text-taupe" />
+                    {t('landing.downloadApp')}
+                  </a>
+                  <a
+                    href="https://chrome.google.com/webstore/detail/linkchest-collection/abcdefghijklmnopqrstuvwxyz"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-charcoal dark:text-parchment hover:bg-chest-50 dark:hover:bg-chest-700/50 transition-colors border-t border-black/5 dark:border-white/5"
+                  >
+                    <Globe className="w-4 h-4 text-taupe" />
+                    {t('landing.downloadChrome')}
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* 信任标签 */}
@@ -294,10 +316,6 @@ export default function LandingPage() {
             <span className="flex items-center gap-1.5">
               <Check className="w-3.5 h-3.5 text-sage" />
               {t('landing.trustFree')}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-sage" />
-              {t('landing.trustPlatforms')}
             </span>
             <span className="flex items-center gap-1.5">
               <Check className="w-3.5 h-3.5 text-sage" />
