@@ -80,6 +80,10 @@ export const translations: Record<string, Record<string, string>> = {
     serverChina: '链藏（国内）',
     serverSwitched: '服务器已切换',
     currentServer: '当前服务器',
+    keyboardShortcuts: '快捷键',
+    shortcutSaveDesc: '保存当前页面到 LinkChest',
+    customizeShortcut: '自定义快捷键',
+    shortcutHint: '点击上方按钮跳转到 Chrome 扩展快捷键设置页面，可自由修改快捷键组合',
   },
   en: {
     loading: 'Loading...',
@@ -162,6 +166,10 @@ export const translations: Record<string, Record<string, string>> = {
     serverChina: 'LinkChest China',
     serverSwitched: 'Server switched',
     currentServer: 'Current Server',
+    keyboardShortcuts: 'Keyboard Shortcuts',
+    shortcutSaveDesc: 'Save current page to LinkChest',
+    customizeShortcut: 'Customize Shortcut',
+    shortcutHint: 'Click the button above to open Chrome extension shortcut settings, where you can freely change the key combination',
   },
   ja: {
     loading: '読み込み中...',

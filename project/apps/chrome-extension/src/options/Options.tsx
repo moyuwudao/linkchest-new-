@@ -40,7 +40,7 @@ const LOCALE_LABEL: Record<string, string> = {
   de: 'Deutsch',
 };
 
-type TabKey = 'quickSave' | 'language' | 'account';
+type TabKey = 'quickSave' | 'language' | 'account' | 'shortcuts';
 
 interface ListItem {
   id: string;
@@ -75,6 +75,7 @@ export default function Options() {
   const detectedLang = detectSystemLocale();
   const [activeTab, setActiveTab] = useState<TabKey>('quickSave');
   const [lang, setLang] = useState(detectedLang);
+  const [shortcutKey, setShortcutKey] = useState('Ctrl+Shift+S');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -100,6 +101,7 @@ export default function Options() {
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'quickSave', label: t('quickSaveMode', lang) },
+    { key: 'shortcuts', label: t('keyboardShortcuts', lang) },
     { key: 'language', label: t('interfaceLanguage', lang) },
     { key: 'account', label: t('accountInfo', lang) },
   ];
@@ -132,6 +134,16 @@ export default function Options() {
       setDefaultNoteState(defNote || '');
       setDefaultPageTypeState(defPageType || '');
       setCurrentServer(server);
+
+      // 获取当前快捷键设置
+      if (typeof chrome !== 'undefined' && chrome.commands) {
+        chrome.commands.getAll((commands) => {
+          const saveCommand = commands.find((cmd) => cmd.name === 'save-to-linkchest');
+          if (saveCommand?.shortcut) {
+            setShortcutKey(saveCommand.shortcut);
+          }
+        });
+      }
     }
     init();
   }, []);
@@ -442,6 +454,32 @@ export default function Options() {
                     <span>{label}</span>
                   </label>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 快捷键设置 */}
+        {activeTab === 'shortcuts' && (
+          <div className="tab-content">
+            <div className="section-card">
+              <div className="section-title">{t('keyboardShortcuts', lang)}</div>
+              <div className="shortcut-display">
+                <div className="shortcut-key">
+                  <span className="key-combo">{shortcutKey}</span>
+                </div>
+                <p className="shortcut-desc">{t('shortcutSaveDesc', lang)}</p>
+              </div>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+                }}
+              >
+                {t('customizeShortcut', lang)}
+              </button>
+              <div className="shortcut-hint">
+                <p>{t('shortcutHint', lang)}</p>
               </div>
             </div>
           </div>
