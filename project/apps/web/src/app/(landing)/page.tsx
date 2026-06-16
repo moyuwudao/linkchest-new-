@@ -120,7 +120,7 @@ function PlatformItem({
 
 export default function LandingPage() {
   const router = useRouter();
-  const { t, locale } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
 
   useEffect(() => {
