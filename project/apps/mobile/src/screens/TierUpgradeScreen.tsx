@@ -94,7 +94,8 @@ const hiddenBenefitKeys = ['batchops', 'exportpdf', 'sharestats', 'earlyaccess',
 export default function TierUpgradeScreen({ navigation }: { navigation?: any }) {
   const { colors } = useThemeStore();
   const { t, locale } = useI18n();
-  const [cycle, setCycle] = useState<'monthly' | 'yearly'>('monthly');
+  // v4.1: 仅年付
+  const cycle = 'yearly' as const;
   const [paying, setPaying] = useState(false);
 
   // 共享 tier-me 缓存（与 AccountSettingsScreen 共用，5 分钟内复用）
@@ -114,31 +115,20 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
     const p = tier.pricing || {};
     const isChina = isChinaMarket();
     const yearlyConfig = p.yearly || {};
-    const monthlyConfig = p.monthly || {};
 
     if (isChina) {
-      // 国内市场：读取 cny（人民币分），需要除以 100 转为元
-      if (cycle === 'yearly') {
-        const cnyPrice = yearlyConfig.cny;
-        if (typeof cnyPrice === 'number' && cnyPrice > 0) {
-          const yuan = cnyPrice / 100;
-          return { amt: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', per: t('tier.perYear') };
-        }
-      }
-      const cnyPrice = monthlyConfig.cny;
+      // v4.1: 仅年付，读取 cny（人民币分），需要除以 100 转为元
+      const cnyPrice = yearlyConfig.cny;
       if (typeof cnyPrice === 'number' && cnyPrice > 0) {
         const yuan = cnyPrice / 100;
-        return { amt: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', per: t('tier.perMonth') };
+        return { amt: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', per: t('tier.perYear') };
       }
       // cny 缺失时不显示（避免显示美元或 0）
       return null;
     } else {
-      // 海外市场：读取 usd（美分）
-      if (cycle === 'yearly' && yearlyConfig.usd) {
+      // v4.1: 仅年付
+      if (yearlyConfig.usd) {
         return { amt: (yearlyConfig.usd / 100).toFixed(2), symbol: '$', per: t('tier.perYear') };
-      }
-      if (monthlyConfig.usd) {
-        return { amt: (monthlyConfig.usd / 100).toFixed(2), symbol: '$', per: t('tier.perMonth') };
       }
     }
     return null;
@@ -202,14 +192,7 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, margin: 16 }}>
-        {(['monthly', 'yearly'] as const).map(c => (
-          <TouchableOpacity key={c} onPress={() => setCycle(c)}
-            style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, backgroundColor: cycle === c ? colors.primary : colors.secondaryBg }}>
-            <Text style={{ color: cycle === c ? colors.headerText : colors.text, fontWeight: '600' }}>{t(`tier.${c}`)}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* v4.1: 仅年付，不再显示月付/年付切换 */}
 
       {sorted.map(tier => {
         const isCurrent = tier.key === data.tier;

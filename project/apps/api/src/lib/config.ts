@@ -77,41 +77,24 @@ export interface QuotaLimits {
   dailyImportLimit: number   // 每日导入条数上限
   metadataDailyLimit: number // 元数据日抓取上限
   trashRetentionDays: number // 回收站保留天数
-  // 功能开关型（true=开启，false=关闭）
+  // 功能开关型（true=开启，false=关闭）- 仅保留已实现的功能
   sharePassword: boolean     // 分享密码保护
-  shareStats: boolean        // 分享访问统计
   shareExpiry: boolean       // 分享有效期设置
   shareRating: boolean       // 分享时附带评分
-  customShareCover: boolean  // 自定义分享封面
-  shareLayout: boolean       // 分享布局选择（非 grid）
-  batchOps: boolean          // 批量操作
-  exportPdf: boolean         // PDF 导出
-  prioritySupport: boolean
-  earlyAccess: boolean
 }
 
-// ===== 配额配置（v4.0 - 简化为 2 档套餐）=====
-// 核心原则：非服务器瓶颈资源设极高上限（999,999 = 功能性无限）
+// ===== 配额配置（v4.1 - 仅年付，移除未实现功能字段）=====
+// v4.1: 仅支持年付（¥98），删除未实现功能字段 (shareStats/shareViews/shareLayout/
+//       batchOps/exportPdf/prioritySupport/earlyAccess/customShareCover)
 // v4.0: 简化为 2 档套餐（medium=免费, heavy=付费）
 //       super 保留内部数据兼容，UI 不展示（未来扩展/企业版使用）
 export const QUOTA_CONFIG: Record<UserTier, QuotaLimits> = {
-  // 免费版（medium）：体验核心功能不设限，分享/导入做收敛引导升级
-  //  - 每日 5 个封面（服务器资源最贵）
-  //  - 每日 30 次元数据抓取（防滥用）
-  //  - 每日 30 个导入（轻度使用足够）
-  //  - 最多 5 个分享（团队协作受限，引导升级）
-  //  - 分享功能：基础
-  medium: { collections: 999999, tags: 999999, lists: 999999, shares: 5, shareItems: 999999, coverImages: 999999, coverImagesDaily: 5, maxItemsPerShare: 50, dailyImportLimit: 30, metadataDailyLimit: 30, trashRetentionDays: 7, sharePassword: false, shareStats: false, shareExpiry: false, shareRating: false, customShareCover: false, shareLayout: false, batchOps: false, exportPdf: false, prioritySupport: false, earlyAccess: false },
-  // 付费版（heavy）：覆盖 95% 重度用户
-  //  - 每日 80 个封面（每月 2400 个新收藏，覆盖几乎所有使用场景）
-  //  - 每日 200 次元数据抓取
-  //  - 每日 500 个导入（实际不可能用满）
-  //  - 最多 100 个分享
-  //  - 单次分享 500 项
-  //  - 分享功能：全部解锁
-  heavy:  { collections: 999999, tags: 999999, lists: 999999, shares: 100, shareItems: 999999, coverImages: 999999, coverImagesDaily: 80, maxItemsPerShare: 500, dailyImportLimit: 500, metadataDailyLimit: 200, trashRetentionDays: 30, sharePassword: true, shareStats: true, shareExpiry: true, shareRating: true, customShareCover: true, shareLayout: true, batchOps: true, exportPdf: true, prioritySupport: true, earlyAccess: true },
+  // 免费版（medium）
+  medium: { collections: 999999, tags: 999999, lists: 999999, shares: 5, shareItems: 999999, coverImages: 999999, coverImagesDaily: 5, maxItemsPerShare: 50, dailyImportLimit: 30, metadataDailyLimit: 30, trashRetentionDays: 7, sharePassword: false, shareExpiry: false, shareRating: false },
+  // 付费版（heavy）¥98/年
+  heavy:  { collections: 999999, tags: 999999, lists: 999999, shares: 100, shareItems: 999999, coverImages: 999999, coverImagesDaily: 80, maxItemsPerShare: 500, dailyImportLimit: 500, metadataDailyLimit: 200, trashRetentionDays: 30, sharePassword: true, shareExpiry: true, shareRating: true },
   // 旗舰版（super）：保留内部数据兼容，UI 不展示（未来扩展/企业版使用）
-  super:  { collections: 999999, tags: 999999, lists: 999999, shares: 300, shareItems: 999999, coverImages: 999999, coverImagesDaily: 100, maxItemsPerShare: 1000, dailyImportLimit: 5000, metadataDailyLimit: 500, trashRetentionDays: 90, sharePassword: true, shareStats: true, shareExpiry: true, shareRating: true, customShareCover: true, shareLayout: true, batchOps: true, exportPdf: true, prioritySupport: true, earlyAccess: true },
+  super:  { collections: 999999, tags: 999999, lists: 999999, shares: 300, shareItems: 999999, coverImages: 999999, coverImagesDaily: 100, maxItemsPerShare: 1000, dailyImportLimit: 5000, metadataDailyLimit: 500, trashRetentionDays: 90, sharePassword: true, shareExpiry: true, shareRating: true },
 }
 
 // ===== 头像处理配置 =====
@@ -203,7 +186,9 @@ export const TIER_DISPLAY_NAMES: Record<UserTier, { nameZh: string; nameEn: stri
 }
 
 // ===== 定价配置（价格单位：美元美分，避免浮点精度问题） =====
-export type BillingCycle = 'monthly' | 'yearly'
+// v4.1: 仅支持年付（¥98）。BillingCycle 改为 'yearly' 单值，TS 编译时强制。
+//       后续如需支持月付，再改回 'monthly' | 'yearly'
+export type BillingCycle = 'yearly'
 
 export interface PlanPrice {
   usd: number  // 美元美分

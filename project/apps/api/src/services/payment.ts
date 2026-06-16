@@ -146,11 +146,8 @@ export async function getPaymentDetails(tier: Exclude<UserTier, 'medium'>, billi
 
   const now = new Date()
   const expiresAt = new Date(now)
-  if (billingCycle === 'monthly') {
-    expiresAt.setMonth(expiresAt.getMonth() + 1)
-  } else {
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1)
-  }
+  // v4.1: 仅年付（+1 年）
+  expiresAt.setFullYear(expiresAt.getFullYear() + 1)
 
   return {
     priceCny: price.cny ?? 0,

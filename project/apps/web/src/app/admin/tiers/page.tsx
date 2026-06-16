@@ -26,13 +26,14 @@ interface TierStats {
 
 const emptyForm: TierConfigInput = {
   key: '', nameZh: '', nameEn: '', description: '', sortOrder: 0, isActive: true,
-  // v3.0 默认值：开放类资源 999999（功能性无限），分级资源按基础版默认值，功能开关默认关闭
+  // v4.1: 仅保留已实现功能
   quotaConfig: {
-    collections: 999999, tags: 999999, lists: 999999, shares: 10, shareItems: 999999, coverImages: 999999,
-    coverImagesDaily: 5, maxItemsPerShare: 100, dailyImportLimit: 200, metadataDailyLimit: 30, trashRetentionDays: 7,
-    sharePassword: 0, shareStats: 0, shareRating: 0, shareViews: 0, customShareCover: 0, shareLayout: 0, batchOps: 0, exportPdf: 0, prioritySupport: 0, earlyAccess: 0,
+    collections: 999999, tags: 999999, lists: 999999, shares: 5, shareItems: 999999, coverImages: 999999,
+    coverImagesDaily: 5, maxItemsPerShare: 50, dailyImportLimit: 30, metadataDailyLimit: 30, trashRetentionDays: 7,
+    sharePassword: 0, shareExpiry: 0, shareRating: 0,
   },
-  pricingConfig: { monthly: { usd: 0, cny: 0 }, yearly: { usd: 0, cny: 0 } }, benefits: [],
+  // v4.1: 仅年付
+  pricingConfig: { yearly: { usd: 0, cny: 0 } }, benefits: [],
 };
 
 export default function TierManagementPage() {
@@ -80,14 +81,9 @@ export default function TierManagementPage() {
   function openCreate() { setEditingId(null); setForm(emptyForm); setBenefitInput(''); setModalOpen(true); }
   function openEdit(c: TierConfig) {
     setEditingId(c.id);
-    // 兼容旧数据结构 (monthlyPrice/yearlyPrice -> monthly/yearly)
+    // v4.1: 仅年付
     const pc = c.pricingConfig || {};
-    const normalizedPricing = (pc as any).monthly
-      ? {
-          monthly: { usd: (pc as any).monthly?.usd ?? 0, cny: (pc as any).monthly?.cny ?? 0 },
-          yearly: { usd: (pc as any).yearly?.usd ?? 0, cny: (pc as any).yearly?.cny ?? 0 },
-        }
-      : { monthly: { usd: Math.round((pc as any).monthlyPrice * 100) || 0, cny: 0 }, yearly: { usd: Math.round((pc as any).yearlyPrice * 100) || 0, cny: 0 } };
+    const normalizedPricing = { yearly: { usd: (pc as any).yearly?.usd ?? 0, cny: (pc as any).yearly?.cny ?? 0 } };
     // 兼容旧 quotaConfig 字段名 (maxCollections -> collections 等)
     const qc = c.quotaConfig || {};
     const oldQuotaMap: Record<string, string> = {
@@ -146,15 +142,14 @@ export default function TierManagementPage() {
   function removeBenefit(i: number) { setForm(p => ({ ...p, benefits: (p.benefits || []).filter((_, idx) => idx !== i) })); }
   function uq(k: string, v: string) { const n = v === '' ? 0 : parseInt(v, 10); setForm(p => ({ ...p, quotaConfig: { ...p.quotaConfig, [k]: isNaN(n) ? 0 : n } })); }
   function toggleFeature(k: string) { setForm(p => ({ ...p, quotaConfig: { ...p.quotaConfig, [k]: (p.quotaConfig[k] ?? 0) ? 0 : 1 } })); }
-  function up(path: string, v: string) {
+  function up(v: string) {
     const n = v === '' ? 0 : parseInt(v, 10);
+    // v4.1: 仅年付
+    const field = market === 'china' ? 'cny' : 'usd';
     setForm(p => {
-      const pc = JSON.parse(JSON.stringify(p.pricingConfig || { monthly: { usd: 0, cny: 0 }, yearly: { usd: 0, cny: 0 } }));
-      const [parent] = path.split('.');
-      if (!pc[parent]) pc[parent] = {};
-      // 根据市场保存到对应字段：国内 -> cny，海外 -> usd
-      const field = market === 'china' ? 'cny' : 'usd';
-      pc[parent][field] = isNaN(n) ? 0 : n;
+      const pc: any = JSON.parse(JSON.stringify(p.pricingConfig || { yearly: { usd: 0, cny: 0 } }));
+      if (!pc.yearly) pc.yearly = { usd: 0, cny: 0 };
+      pc.yearly[field] = isNaN(n) ? 0 : n;
       return { ...p, pricingConfig: pc };
     });
   }
@@ -174,12 +169,11 @@ export default function TierManagementPage() {
     { k: 'trashRetentionDays', l: '回收站保留天数' },
   ];
 
-  // 功能开关型配置（布尔值，不同 tier 权限不同）
+  // 功能开关型配置（v4.1: 仅保留已实现功能）
   const featureFlags = [
     { k: 'sharePassword', l: '分享密码保护' },
-    { k: 'shareStats', l: '分享访问统计' },
+    { k: 'shareExpiry', l: '分享有效期设置' },
     { k: 'shareRating', l: '分享评分' },
-    { k: 'shareViews', l: '分享浏览统计' },
   ];
 
   // 无区分度的功能性无限项（所有 tier 均为 999999），不在管理后台展示
@@ -264,17 +258,7 @@ export default function TierManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {/* 价格 */}
-                <tr className="border-b border-gray-50">
-                  <td className="px-4 py-2.5 text-xs text-gray-600 font-medium">月付价格</td>
-                  {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
-                    <td key={c.id} className="px-4 py-2.5 text-xs text-center text-gray-500">
-                      {market === 'china'
-                        ? `¥${(((c.pricingConfig as any)?.monthly?.cny ?? 0) / 100).toFixed(2)}`
-                        : `$${(((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100).toFixed(2)}`}
-                    </td>
-                  ))}
-                </tr>
+                {/* v4.1: 仅年付，不再展示月付价格行 */}
                 <tr className="border-b border-gray-50">
                   <td className="px-4 py-2.5 text-xs text-gray-600 font-medium">年付价格</td>
                   {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
@@ -459,25 +443,16 @@ export default function TierManagementPage() {
               {/* 价格 */}
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-2">
-                  价格配置 ({market === 'china' ? '¥ / 元' : '$ / 美分'})
+                  年付价格 ({market === 'china' ? '¥ / 元' : '$ / 美分'})
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-0.5">月付 {market === 'china' ? 'CNY' : 'USD'}</label>
-                    <input type="number" value={
-                      market === 'china'
-                        ? (form.pricingConfig as any)?.monthly?.cny ?? 0
-                        : (form.pricingConfig as any)?.monthly?.usd ?? 0
-                    } onChange={e => up('monthly', e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-amber-400" />
-                  </div>
+                <div className="grid grid-cols-1 gap-2">
                   <div>
                     <label className="block text-[10px] text-gray-400 mb-0.5">年付 {market === 'china' ? 'CNY' : 'USD'}</label>
                     <input type="number" value={
                       market === 'china'
                         ? (form.pricingConfig as any)?.yearly?.cny ?? 0
                         : (form.pricingConfig as any)?.yearly?.usd ?? 0
-                    } onChange={e => up('yearly', e.target.value)}
+                    } onChange={e => up(e.target.value)}
                       className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-amber-400" />
                   </div>
                 </div>

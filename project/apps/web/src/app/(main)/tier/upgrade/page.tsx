@@ -86,8 +86,12 @@ function getLimitKeys(allTiers: TierConfig[]) {
   return sorted;
 }
 
-// 要展示的特权开关（boolean 字段）- 与后台套餐对比保持一致
-const featureFlagKeys = ['sharePassword', 'shareStats', 'shareRating', 'shareViews'];
+// v4.1: 特权开关只展示已实现功能
+//   - sharePassword: 分享密码保护（已实现，shares.ts:144）
+//   - shareExpiry:   分享有效期设置（已实现，shares.ts:147/484）
+//   - shareRating:   分享时附带评分（已实现，shares.ts:152）
+// 删除未实现的 shareStats/shareViews (重复/未实现)
+const featureFlagKeys = ['sharePassword', 'shareRating'];
 
 function getFeatureFlags(tier: TierConfig) {
   return featureFlagKeys.map(key => ({
@@ -124,7 +128,8 @@ function TierUpgradePageContent() {
   const { t, locale } = useI18n();
   const { showAlert } = useToast();
   const router = useRouter();
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  // v4.1: 仅年付
+  const billingCycle = 'yearly' as const;
   const [payingTier, setPayingTier] = useState<string | null>(null);
   const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
   const [marketLoading, setMarketLoading] = useState(true);
@@ -251,58 +256,7 @@ function TierUpgradePageContent() {
     document.body.appendChild(script);
   }, [paypalClientId, marketConfig?.paymentProviders.paypal]);
 
-  // 微信支付
-  function WechatPayButton({ tierKey }: { tierKey: string }) {
-    const [loading, setLoading] = useState(false);
-    const [qrCode, setQrCode] = useState<string | null>(null);
-
-    const handlePay = async () => {
-      setLoading(true);
-      try {
-        const res = await api.post('/payments/wechat/create-order', {
-          tier: tierKey,
-          billingCycle,
-        });
-        const { orderId, extra } = res.data?.data || {};
-        if (extra?.codeUrl) {
-          setQrCode(extra.codeUrl);
-        }
-      } catch (err: any) {
-        showAlert(err.response?.data?.message || t('payment.error'), 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    return (
-      <>
-        <button
-          onClick={handlePay}
-          disabled={loading}
-          className="w-full py-2.5 rounded-lg text-sm font-medium bg-[#07C160] text-white hover:bg-[#06ad56] flex items-center justify-center gap-2 transition-colors"
-        >
-          {loading ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.045c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.01-.27-.027-.407-.03zm-2.53 3.274c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.969-.982z"/>
-              </svg>
-              微信支付
-            </>
-          )}
-        </button>
-        {qrCode && (
-          <div className="mt-3 p-4 bg-white rounded-lg border border-chest-200">
-            <p className="text-sm text-center text-taupe mb-2">请使用微信扫码支付</p>
-            {/* TODO: 使用 qrcode 库生成二维码 */}
-            <p className="text-xs text-center text-taupe/60 break-all">{qrCode}</p>
-          </div>
-        )}
-      </>
-    );
-  }
-
+  // v4.1: 删除微信支付按钮（web 端未接入微信支付）
   // 支付宝支付
   function AlipayButton({ tierKey }: { tierKey: string }) {
     const [loading, setLoading] = useState(false);
@@ -482,29 +436,7 @@ function TierUpgradePageContent() {
           </div>
         </div>
 
-        {/* 计费周期切换 */}
-        <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => setBillingCycle('monthly')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              billingCycle === 'monthly'
-                ? 'bg-amber-400 text-chest-500'
-                : 'bg-parchment/10 dark:bg-chest-700/40 text-charcoal dark:text-parchment hover:bg-parchment/20'
-            }`}
-          >
-            {t('tier.monthly')}
-          </button>
-          <button
-            onClick={() => setBillingCycle('yearly')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              billingCycle === 'yearly'
-                ? 'bg-amber-400 text-chest-500'
-                : 'bg-parchment/10 dark:bg-chest-700/40 text-charcoal dark:text-parchment hover:bg-parchment/20'
-            }`}
-          >
-            {t('tier.yearly')}
-          </button>
-        </div>
+        {/* v4.1: 仅年付，已隐藏月付/年付切换 */}
 
         {/* 套餐卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
@@ -633,9 +565,7 @@ function TierUpgradePageContent() {
                       {!marketLoading && marketConfig?.paymentProviders.paypal && (
                         <PayPalCheckoutButton tierKey={tier.key} />
                       )}
-                      {!marketLoading && marketConfig?.paymentProviders.wechat_pay && (
-                        <WechatPayButton tierKey={tier.key} />
-                      )}
+                      {/* v4.1: 删除微信支付入口（web 端未接入微信支付） */}
                       {!marketLoading && marketConfig?.paymentProviders.alipay && (
                         <AlipayButton tierKey={tier.key} />
                       )}
