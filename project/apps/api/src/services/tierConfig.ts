@@ -139,14 +139,13 @@ function rowToTierConfig(row: {
   // v4.1: 防御性过滤 monthly（历史 v3.x 数据库记录可能仍含 monthly 字段）
   //       已迁移的数据库不会含 monthly，但代码层做最后一道防线
   const rawPricing = (row.pricingConfig as PlanPricing | null) || null
-  const cleanPricing: PlanPricing | null = rawPricing
-    ? ({
-        yearly: rawPricing.yearly,
-        // 显式丢弃 monthly 字段（v4.1 起不再支持）
-        ...(rawPricing as Record<string, unknown>),
-        monthly: undefined,
-      } as PlanPricing)
-    : null
+  let cleanPricing: PlanPricing | null = null
+  if (rawPricing) {
+    // 显式丢弃 monthly 字段（v4.1 起不再支持）
+    const { monthly: _omit, ...rest } = rawPricing as PlanPricing & { monthly?: unknown }
+    void _omit
+    cleanPricing = rest as PlanPricing
+  }
 
   return {
     ...row,
