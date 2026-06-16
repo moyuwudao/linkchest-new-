@@ -52,9 +52,21 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 function getInitialLocale(): SupportedLocale {
-  if (typeof window === 'undefined') return 'en';
+  // 优先从 cookie 读取（SSR/CSR 都能访问，避免 hydration 闪烁）
+  if (typeof document !== 'undefined') {
+    const cookieLocale = getCookieLocale();
+    if (cookieLocale) return cookieLocale;
+  }
 
-  // 国内域名（.cn 结尾）默认中文
+  if (typeof window === 'undefined') {
+    // SSR 阶段：服务端没有 window.document，但也没有同步访问 cookie 的接口
+    // 服务端返回 'en' 作为占位，客户端 hydration 时会立即校正为正确语言
+    // 校正发生在 useState 初始值求值时（同步），不会引发 hydration mismatch 警告
+    return 'en';
+  }
+
+  // 客户端：优先用 document.cookie（在 useState 初始化时已检查过）
+  // 其次根据域名判断
   const hostname = window.location.hostname.toLowerCase();
   if (hostname === 'linkchest.cn' || hostname.endsWith('.linkchest.cn')) {
     return 'zh';
@@ -74,8 +86,24 @@ function getInitialLocale(): SupportedLocale {
   return detectSystemLocale();
 }
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const initialLocale = useMemo(() => getInitialLocale(), []);
+/** 从 cookie 读取语言（避免 SSR/CSR hydration 不一致） */
+function getCookieLocale(): SupportedLocale | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|;\s*)linkchest-locale=([^;]+)/);
+  if (match) {
+    const v = decodeURIComponent(match[1]);
+    if (isValidLocale(v)) return v;
+  }
+  return null;
+}
+
+export function I18nProvider({ children, initialLocale: serverLocale }: { children: ReactNode; initialLocale?: SupportedLocale }) {
+  // 优先使用服务端传入的语言（解决 SSR/CSR hydration 不一致）
+  // 其次回退到客户端同步检测
+  const initialLocale = useMemo(() => {
+    if (serverLocale) return serverLocale;
+    return getInitialLocale();
+  }, [serverLocale]);
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
   // 同步预加载初始语言和英文 fallback，彻底消除首屏 key 闪烁
   const [translations, setTranslations] = useState<Record<SupportedLocale, TranslationMap | null>>(() => {
@@ -92,6 +120,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = locale;
     localStorage.setItem('linkchest-locale', locale);
+    // 同时写 cookie（1 年），让服务端 SSR 时也能读到正确语言
+    document.cookie = `linkchest-locale=${locale}; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
   }, [locale]);
 
   const setLocale = useCallback(async (newLocale: SupportedLocale) => {
@@ -105,6 +135,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
     setLocaleState(newLocale);
     localStorage.setItem('linkchest-locale', newLocale);
+    document.cookie = `linkchest-locale=${newLocale}; max-age=${60 * 60 * 24 * 365}; path=/; SameSite=Lax`;
     document.documentElement.lang = newLocale;
   }, [locale, translations]);
 

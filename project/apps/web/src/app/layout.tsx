@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from 'next';
+import { cookies, headers } from 'next/headers';
+import { isValidLocale, type SupportedLocale } from '@linkchest/i18n';
 import './globals.css';
 import { Providers } from './providers';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
@@ -56,13 +58,34 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+/** 在服务端解析正确的初始语言，避免 SSR/CSR 不一致 */
+function resolveServerInitialLocale(): SupportedLocale {
+  // 1. 优先读 cookie（用户已设置过的语言）
+  try {
+    const c = cookies().get('linkchest-locale')?.value;
+    if (c && isValidLocale(c)) return c;
+  } catch {
+    // cookies() 在某些环境下可能不可用
+  }
+  // 2. 根据 host 判断
+  try {
+    const host = (headers().get('host') || headers().get('x-forwarded-host') || '').toLowerCase();
+    if (host === 'linkchest.cn' || host.endsWith('.linkchest.cn')) return 'zh';
+  } catch {
+    // headers() 不可用
+  }
+  // 3. 默认英文
+  return 'en';
+}
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const initialLocale = resolveServerInitialLocale();
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={initialLocale} suppressHydrationWarning>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
@@ -72,7 +95,7 @@ export default function RootLayout({
         <FontLoader />
       </head>
       <body className="font-sans antialiased">
-        <Providers>{children}</Providers>
+        <Providers initialLocale={initialLocale}>{children}</Providers>
         <PwaInstallBanner />
       {/* impeccable-live-start */}
 <script src="http://localhost:8400/live.js"></script>

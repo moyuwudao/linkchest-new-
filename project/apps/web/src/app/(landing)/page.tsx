@@ -120,7 +120,7 @@ function PlatformItem({
 
 export default function LandingPage() {
   const router = useRouter();
-  const { t, locale, setLocale } = useI18n();
+  const { t, locale } = useI18n();
   const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
 
   useEffect(() => {
@@ -130,18 +130,11 @@ export default function LandingPage() {
       return;
     }
 
-    // 获取市场配置
+    // 获取市场配置（仅用于显示国内/海外差异化 UI）
     async function fetchMarketConfig() {
       try {
         const config = await getMarketConfig();
         setMarketConfig(config);
-        // 根据域名设置默认语言
-        const isChinaDomain = window.location.hostname.includes('linkchest.cn');
-        if (isChinaDomain && locale !== 'zh') {
-          setLocale('zh');
-        } else if (!isChinaDomain && locale !== 'en') {
-          setLocale('en');
-        }
       } catch {
         // 忽略错误
       }

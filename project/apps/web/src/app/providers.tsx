@@ -7,6 +7,7 @@ import { useState, useEffect, ReactNode } from 'react';
 import { fetchPlatforms, updatePlatformNames } from '@/lib/platforms';
 import { ToastProvider, useToast } from '@/components/Toast';
 import { I18nProvider, useI18n } from '@/lib/i18n';
+import { type SupportedLocale } from '@linkchest/i18n';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // ChunkLoadError 自动恢复：部署新版本后，用户浏览器缓存的旧 chunk 会 404
@@ -68,7 +69,7 @@ const ssrPersister = {
 };
 const persister = browserPersister || ssrPersister;
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children, initialLocale }: { children: ReactNode; initialLocale?: SupportedLocale }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -133,7 +134,7 @@ export function Providers({ children }: { children: ReactNode }) {
         },
       }}
     >
-      <I18nProvider>
+      <I18nProvider initialLocale={initialLocale}>
         <ToastProvider>
           <ErrorBoundary>
             <QuotaToastListener />
