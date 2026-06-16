@@ -187,7 +187,7 @@ export const TIER_DISPLAY_NAMES: Record<UserTier, { nameZh: string; nameEn: stri
 
 // ===== 定价配置（价格单位：美元美分，避免浮点精度问题） =====
 // v4.1: 仅支持年付（¥98）。BillingCycle 改为 'yearly' 单值，TS 编译时强制。
-//       后续如需支持月付，再改回 'monthly' | 'yearly'
+//       后续如需支持月付，再改回 'monthly' | 'yearly'，并把 monthly 字段加回 PlanPricing
 export type BillingCycle = 'yearly'
 
 export interface PlanPrice {
@@ -196,7 +196,8 @@ export interface PlanPrice {
 }
 
 export interface PlanPricing {
-  monthly: PlanPrice
+  // v4.1: monthly 已删除（仅年付）。历史数据库记录可能仍含 monthly，
+  //       调用方需兼容（见 services/tierConfig.ts 的字段过滤）
   yearly: PlanPrice
 }
 
@@ -204,16 +205,15 @@ export interface PlanPricing {
 // 国内市场：价格单位为人民币分（cny），国内市场必须配置 cny，缺失时显示为 $0 是错误的
 // 海外市场：价格单位为美元美分（usd）
 // cny 与 usd 同步设置，避免任一市场显示为空或单位错误
+// v4.1: heavy 仅年付 ¥98/$14.99；super 内部保留（企业版），UI 不展示
 export const PRICING_CONFIG: Record<Exclude<UserTier, 'medium'>, PlanPricing> = {
   heavy: {
-    // 国内：¥19/月、¥199/年（8折）；海外：$2.99/月、$28.71/年
-    monthly: { usd: 299, cny: 1990 },
-    yearly:  { usd: 2871, cny: 19900 },
+    // 国内：¥98/年；海外：$14.99/年
+    yearly: { usd: 1499, cny: 9800 },
   },
   super: {
-    // 国内：¥39/月、¥399/年（8折）；海外：$5.99/月、$57.51/年
-    monthly: { usd: 599, cny: 3990 },
-    yearly:  { usd: 5751, cny: 39900 },
+    // 国内：¥199/年；海外：$28.71/年（企业版，UI 不展示）
+    yearly: { usd: 2871, cny: 19900 },
   },
 }
 
