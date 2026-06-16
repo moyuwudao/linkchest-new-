@@ -90,15 +90,27 @@ export interface QuotaLimits {
   earlyAccess: boolean
 }
 
-// ===== 配额配置（v3.0）=====
+// ===== 配额配置（v4.0 - 简化为 2 档套餐）=====
 // 核心原则：非服务器瓶颈资源设极高上限（999,999 = 功能性无限）
-// 分级限制聚焦：分享数量、单次分享容量、日导入条数
+// v4.0: 简化为 2 档套餐（medium=免费, heavy=付费）
+//       super 保留内部数据兼容，UI 不展示（未来扩展/企业版使用）
 export const QUOTA_CONFIG: Record<UserTier, QuotaLimits> = {
-  // 基础版：体验核心功能不设限，分享/导入做收敛引导升级
-  medium: { collections: 999999, tags: 999999, lists: 999999, shares: 10, shareItems: 999999, coverImages: 999999, coverImagesDaily: 5, maxItemsPerShare: 100, dailyImportLimit: 200, metadataDailyLimit: 30, trashRetentionDays: 7, sharePassword: false, shareStats: false, shareExpiry: false, shareRating: false, customShareCover: false, shareLayout: false, batchOps: false, exportPdf: false, prioritySupport: false, earlyAccess: false },
-  // 专业版：分享和单次容量大幅提升，导入日配额够用
-  heavy:  { collections: 999999, tags: 999999, lists: 999999, shares: 50, shareItems: 999999, coverImages: 999999, coverImagesDaily: 20, maxItemsPerShare: 300, dailyImportLimit: 1000, metadataDailyLimit: 200, trashRetentionDays: 30, sharePassword: true, shareStats: true, shareExpiry: true, shareRating: true, customShareCover: true, shareLayout: true, batchOps: true, exportPdf: false, prioritySupport: false, earlyAccess: false },
-  // 旗舰版：所有开放类资源功能性无限，分享/导入日配额最高
+  // 免费版（medium）：体验核心功能不设限，分享/导入做收敛引导升级
+  //  - 每日 5 个封面（服务器资源最贵）
+  //  - 每日 30 次元数据抓取（防滥用）
+  //  - 每日 30 个导入（轻度使用足够）
+  //  - 最多 5 个分享（团队协作受限，引导升级）
+  //  - 分享功能：基础
+  medium: { collections: 999999, tags: 999999, lists: 999999, shares: 5, shareItems: 999999, coverImages: 999999, coverImagesDaily: 5, maxItemsPerShare: 50, dailyImportLimit: 30, metadataDailyLimit: 30, trashRetentionDays: 7, sharePassword: false, shareStats: false, shareExpiry: false, shareRating: false, customShareCover: false, shareLayout: false, batchOps: false, exportPdf: false, prioritySupport: false, earlyAccess: false },
+  // 付费版（heavy）：覆盖 95% 重度用户
+  //  - 每日 80 个封面（每月 2400 个新收藏，覆盖几乎所有使用场景）
+  //  - 每日 200 次元数据抓取
+  //  - 每日 500 个导入（实际不可能用满）
+  //  - 最多 100 个分享
+  //  - 单次分享 500 项
+  //  - 分享功能：全部解锁
+  heavy:  { collections: 999999, tags: 999999, lists: 999999, shares: 100, shareItems: 999999, coverImages: 999999, coverImagesDaily: 80, maxItemsPerShare: 500, dailyImportLimit: 500, metadataDailyLimit: 200, trashRetentionDays: 30, sharePassword: true, shareStats: true, shareExpiry: true, shareRating: true, customShareCover: true, shareLayout: true, batchOps: true, exportPdf: true, prioritySupport: true, earlyAccess: true },
+  // 旗舰版（super）：保留内部数据兼容，UI 不展示（未来扩展/企业版使用）
   super:  { collections: 999999, tags: 999999, lists: 999999, shares: 300, shareItems: 999999, coverImages: 999999, coverImagesDaily: 100, maxItemsPerShare: 1000, dailyImportLimit: 5000, metadataDailyLimit: 500, trashRetentionDays: 90, sharePassword: true, shareStats: true, shareExpiry: true, shareRating: true, customShareCover: true, shareLayout: true, batchOps: true, exportPdf: true, prioritySupport: true, earlyAccess: true },
 }
 
@@ -184,9 +196,10 @@ export const METADATA_CONFIG = {
 
 // ===== 套餐品牌名映射 =====
 export const TIER_DISPLAY_NAMES: Record<UserTier, { nameZh: string; nameEn: string }> = {
-  medium: { nameZh: '基础版', nameEn: 'Free' },
+  medium: { nameZh: '免费版', nameEn: 'Free' },
   heavy:  { nameZh: '专业版', nameEn: 'Pro' },
-  super:  { nameZh: '旗舰版', nameEn: 'Ultimate' },
+  // 内部保留名称（UI 不展示，未来企业版扩展用）
+  super:  { nameZh: '企业版', nameEn: 'Enterprise' },
 }
 
 // ===== 定价配置（价格单位：美元美分，避免浮点精度问题） =====

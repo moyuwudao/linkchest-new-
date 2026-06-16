@@ -458,8 +458,11 @@ function TierUpgradePageContent() {
   }
 
   const currentLang = locale === 'zh' ? 'nameZh' : 'nameEn';
+  // v4.0: UI 只展示 2 档套餐（免费 + 付费）
+  //       super 保留内部数据兼容，admin 后台可继续管理
+  const VISIBLE_TIER_KEYS = new Set(['medium', 'heavy']);
   const sortedTiers = data.allTiers
-    .filter((t) => t.isActive)
+    .filter((t) => t.isActive && VISIBLE_TIER_KEYS.has(t.key))
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
@@ -504,7 +507,7 @@ function TierUpgradePageContent() {
         </div>
 
         {/* 套餐卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
           {sortedTiers.map((tier) => {
             const isCurrent = tier.key === data.tier;
             const priceInfo = getPrice(tier);
@@ -554,7 +557,7 @@ function TierUpgradePageContent() {
 
                 {/* 配额列表 */}
                 <div className="px-5 pb-3 space-y-2">
-                  {getLimitKeys(data.allTiers).map((key) => {
+                  {getLimitKeys(sortedTiers).map((key) => {
                     const Icon = limitIcons[key] || Bookmark;
                     const val = tier.limits?.[key] ?? '-';
                     const labelMap: Record<string, string> = {
