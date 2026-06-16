@@ -121,13 +121,10 @@ function PlatformItem({
 export default function LandingPage() {
   const router = useRouter();
   const { t, locale, setLocale } = useI18n();
-  const [isClient, setIsClient] = useState(false);
   const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
 
   useEffect(() => {
-    setIsClient(true);
-
-    // 已登录用户直接跳转
+    // 已登录用户直接跳转（不显示转圈，直接静默跳转）
     if (isLoggedIn()) {
       router.replace('/collections');
       return;
@@ -151,15 +148,6 @@ export default function LandingPage() {
     }
     fetchMarketConfig();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // 客户端 hydration 完成前显示加载状态
-  if (!isClient) {
-    return (
-      <div className="flex h-screen bg-paper dark:bg-ink items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-chest-500"></div>
-      </div>
-    );
-  }
 
   const isChina = marketConfig?.market === 'china';
   const isZh = locale === 'zh';

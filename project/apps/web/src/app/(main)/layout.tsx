@@ -16,11 +16,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  // SSR/CSR 都会渲染页面布局（避免不必要的 hydration 转圈）
+  // 未登录用户通过 useEffect 静默跳转，不显示空白
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
     if (!isLoggedIn()) {
+      setIsRedirecting(true);
       router.replace('/login');
       return;
     }
@@ -34,15 +36,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       setShowOnboarding(true);
     }
   }, [router]);
-
-  // 在客户端 hydration 完成前，显示加载状态，避免误判登录状态导致跳转循环
-  if (!isClient) {
-    return (
-      <div className="flex h-screen bg-paper dark:bg-ink items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-chest-500"></div>
-      </div>
-    );
-  }
 
   const handleOnboardingComplete = (dismissForever?: boolean) => {
     setShowOnboarding(false);
@@ -62,6 +55,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
+    <>
+      {isRedirecting ? null : (
     <div className="flex h-screen bg-paper dark:bg-ink overflow-hidden">
       {/* Desktop Sidebar */}
       <div
@@ -120,5 +115,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <OnboardingModal onComplete={handleOnboardingComplete} />
       )}
     </div>
+      )}
+    </>
   );
 }
