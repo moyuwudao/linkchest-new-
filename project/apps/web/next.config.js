@@ -10,20 +10,20 @@ try {
     fallbacks: { document: '/', image: '/favicon.svg' },
     workboxOptions: {
       runtimeCaching: [
-        // HTML 页面：NetworkFirst，离线时从缓存读取，大幅加速重新打开
+        // HTML 页面：NetworkFirst（首屏从网络拉取保证新鲜），失败/慢时用本地缓存
         {
           urlPattern: /\/($|\?|#)/,
           handler: 'NetworkFirst',
           options: {
             cacheName: 'linkchest-pages',
-            expiration: { maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 },
-            networkTimeoutSeconds: 3,
+            expiration: { maxEntries: 64, maxAgeSeconds: 60 * 60 * 24 * 7 },
+            networkTimeoutSeconds: 5,
           },
         },
         { urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i, handler: 'CacheFirst', options: { cacheName: 'google-fonts-cache', expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 } } },
         { urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i, handler: 'StaleWhileRevalidate', options: { cacheName: 'google-fonts-stylesheets', expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 } } },
-        // Next.js 静态资源：不缓存，确保代码更新立即生效
-        { urlPattern: /\/_next\/static\/.*/i, handler: 'NetworkFirst', options: { cacheName: 'next-static-assets', expiration: { maxEntries: 64, maxAgeSeconds: 60 * 60 } } },
+        // Next.js 静态资源：文件名带 hash 可永久缓存，CacheFirst 命中本地缓存避免重复拉取海外服务器
+        { urlPattern: /\/_next\/static\/.*/i, handler: 'CacheFirst', options: { cacheName: 'next-static-assets', expiration: { maxEntries: 128, maxAgeSeconds: 60 * 60 * 24 * 365 } } },
         { urlPattern: /\/_next\/image\?url=.*/i, handler: 'StaleWhileRevalidate', options: { cacheName: 'next-image-cache', expiration: { maxEntries: 128, maxAgeSeconds: 60 * 60 * 24 * 7 } } },
         // COS 封面图片缓存：CacheFirst 优先读本地，未命中再请求，大幅降低 COS 出流量
         {
@@ -121,7 +121,15 @@ const nextConfig = {
       {
         source: '/_next/static/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=3600, must-revalidate' },
+          // Next.js 静态资源文件名带 hash，内容永远不会变，缓存 1 年 + immutable
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/_next/image:path*',
+        headers: [
+          // Next.js 图片优化产物，缓存 30 天
+          { key: 'Cache-Control', value: 'public, max-age=2592000, must-revalidate' },
         ],
       },
     ];
