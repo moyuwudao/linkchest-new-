@@ -1158,6 +1158,10 @@ router.post('/wechat', async (req, res) => {
       })
     }
 
+    if (!user) {
+      return errorResponse(res, 500, CommonErrorCodes.SERVER_ERROR, '用户数据异常')
+    }
+
     const token = jwt.sign(
       { userId: user.id },
       JWT_SECRET,

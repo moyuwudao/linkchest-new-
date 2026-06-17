@@ -116,12 +116,12 @@ router.post('/:id/restore', authenticate, async (req: AuthenticatedRequest, res)
         INVALID_JSON: 400,
         INVALID_PAYLOAD: 400,
       }
-      const codeMap: Record<string, string> = {
-        NOT_FOUND: 'BACKUP_NOT_FOUND',
-        UNSUPPORTED_FORMAT: 'UNSUPPORTED_FORMAT',
-        COS_DOWNLOAD_FAILED: 'STORAGE_UNAVAILABLE',
-        INVALID_JSON: 'INVALID_BACKUP_FILE',
-        INVALID_PAYLOAD: 'INVALID_BACKUP_FILE',
+      const codeMap: Record<string, CommonErrorCodes> = {
+        NOT_FOUND: CommonErrorCodes.NOT_FOUND,
+        UNSUPPORTED_FORMAT: CommonErrorCodes.VALIDATION_FAILED,
+        COS_DOWNLOAD_FAILED: CommonErrorCodes.SERVER_ERROR,
+        INVALID_JSON: CommonErrorCodes.VALIDATION_FAILED,
+        INVALID_PAYLOAD: CommonErrorCodes.VALIDATION_FAILED,
       }
       return errorResponse(
         res,
