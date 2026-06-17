@@ -169,11 +169,11 @@ export default function TierManagementPage() {
     { k: 'trashRetentionDays', l: '回收站保留天数' },
   ];
 
-  // 功能开关型配置（v4.1: 仅保留已实现功能）
+  // 功能开关型配置（v4.2: 分享增强统一展示，新增重复检测/自动备份）
   const featureFlags = [
-    { k: 'sharePassword', l: '分享密码保护' },
-    { k: 'shareExpiry', l: '分享有效期设置' },
-    { k: 'shareRating', l: '分享评分' },
+    { k: 'sharePassword', l: '分享增强' },
+    { k: 'duplicateCheck', l: '重复检测' },
+    { k: 'autoBackup', l: '自动备份' },
   ];
 
   // 无区分度的功能性无限项（所有 tier 均为 999999），不在管理后台展示

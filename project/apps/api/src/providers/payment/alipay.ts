@@ -104,7 +104,8 @@ export class AlipayProvider implements PaymentProvider {
       total_amount: (amountCny / 100).toFixed(2),
       subject: `LinkChest ${tier} ${billingCycle}`,
       // APP 支付 product_code 必须为 QUICK_MSECURITY_PAY
-      product_code: 'QUICK_MSECURITY_PAY',
+      // Web 支付 product_code 为 FAST_INSTANT_TRADE_PAY
+      product_code: 'FAST_INSTANT_TRADE_PAY',
       body: JSON.stringify({ userId, tier, billingCycle }),
     }
 

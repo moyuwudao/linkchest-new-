@@ -86,12 +86,8 @@ function getLimitKeys(allTiers: TierConfig[]) {
   return sorted;
 }
 
-// v4.1: 特权开关只展示已实现功能
-//   - sharePassword: 分享密码保护（已实现，shares.ts:144）
-//   - shareExpiry:   分享有效期设置（已实现，shares.ts:147/484）
-//   - shareRating:   分享时附带评分（已实现，shares.ts:152）
-// 删除未实现的 shareStats/shareViews (重复/未实现)
-const featureFlagKeys = ['sharePassword', 'shareRating'];
+// v4.2: 特权开关展示分享增强、重复检测、自动备份
+const featureFlagKeys = ['sharePassword', 'duplicateCheck', 'autoBackup'];
 
 function getFeatureFlags(tier: TierConfig) {
   return featureFlagKeys.map(key => ({

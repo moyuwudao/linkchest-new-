@@ -78,9 +78,11 @@ export interface QuotaLimits {
   metadataDailyLimit: number // 元数据日抓取上限
   trashRetentionDays: number // 回收站保留天数
   // 功能开关型（true=开启，false=关闭）- 仅保留已实现的功能
-  sharePassword: boolean     // 分享密码保护
-  shareExpiry: boolean       // 分享有效期设置
-  shareRating: boolean       // 分享时附带评分
+  sharePassword: boolean     // 分享密码保护（分享增强）
+  shareExpiry: boolean       // 分享有效期设置（分享增强）
+  shareRating: boolean       // 分享时附带评分（分享增强）
+  duplicateCheck: boolean     // 重复检测
+  autoBackup: boolean        // 自动备份
 }
 
 // ===== 配额配置（v4.1 - 仅年付，移除未实现功能字段）=====
@@ -90,11 +92,11 @@ export interface QuotaLimits {
 //       super 保留内部数据兼容，UI 不展示（未来扩展/企业版使用）
 export const QUOTA_CONFIG: Record<UserTier, QuotaLimits> = {
   // 免费版（medium）
-  medium: { collections: 999999, tags: 999999, lists: 999999, shares: 5, shareItems: 999999, coverImages: 999999, coverImagesDaily: 5, maxItemsPerShare: 50, dailyImportLimit: 30, metadataDailyLimit: 30, trashRetentionDays: 7, sharePassword: false, shareExpiry: false, shareRating: false },
+  medium: { collections: 999999, tags: 999999, lists: 999999, shares: 5, shareItems: 999999, coverImages: 999999, coverImagesDaily: 5, maxItemsPerShare: 50, dailyImportLimit: 15, metadataDailyLimit: 30, trashRetentionDays: 7, sharePassword: false, shareExpiry: false, shareRating: false, duplicateCheck: false, autoBackup: false },
   // 付费版（heavy）¥98/年
-  heavy:  { collections: 999999, tags: 999999, lists: 999999, shares: 100, shareItems: 999999, coverImages: 999999, coverImagesDaily: 80, maxItemsPerShare: 500, dailyImportLimit: 500, metadataDailyLimit: 200, trashRetentionDays: 30, sharePassword: true, shareExpiry: true, shareRating: true },
+  heavy:  { collections: 999999, tags: 999999, lists: 999999, shares: 100, shareItems: 999999, coverImages: 999999, coverImagesDaily: 80, maxItemsPerShare: 200, dailyImportLimit: 100, metadataDailyLimit: 200, trashRetentionDays: 30, sharePassword: true, shareExpiry: true, shareRating: true, duplicateCheck: true, autoBackup: true },
   // 旗舰版（super）：保留内部数据兼容，UI 不展示（未来扩展/企业版使用）
-  super:  { collections: 999999, tags: 999999, lists: 999999, shares: 300, shareItems: 999999, coverImages: 999999, coverImagesDaily: 100, maxItemsPerShare: 1000, dailyImportLimit: 5000, metadataDailyLimit: 500, trashRetentionDays: 90, sharePassword: true, shareExpiry: true, shareRating: true },
+  super:  { collections: 999999, tags: 999999, lists: 999999, shares: 300, shareItems: 999999, coverImages: 999999, coverImagesDaily: 100, maxItemsPerShare: 1000, dailyImportLimit: 5000, metadataDailyLimit: 500, trashRetentionDays: 90, sharePassword: true, shareExpiry: true, shareRating: true, duplicateCheck: true, autoBackup: true },
 }
 
 // ===== 头像处理配置 =====
@@ -180,7 +182,7 @@ export const METADATA_CONFIG = {
 // ===== 套餐品牌名映射 =====
 export const TIER_DISPLAY_NAMES: Record<UserTier, { nameZh: string; nameEn: string }> = {
   medium: { nameZh: '免费版', nameEn: 'Free' },
-  heavy:  { nameZh: '专业版', nameEn: 'Pro' },
+  heavy:  { nameZh: '进阶版', nameEn: 'Pro' },
   // 内部保留名称（UI 不展示，未来企业版扩展用）
   super:  { nameZh: '企业版', nameEn: 'Enterprise' },
 }

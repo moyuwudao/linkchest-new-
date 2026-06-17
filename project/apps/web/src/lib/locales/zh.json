@@ -472,13 +472,16 @@
     "backToTier": "返回等级详情",
     "expires": "到期",
     "superExpires": "企业版到期",
-    "heavyExpires": "专业版到期",
+    "heavyExpires": "进阶版到期",
     "benefitBatchOps": "批量操作",
     "benefitExportPdf": "导出 PDF",
     "benefitEarlyAccess": "新功能优先体验",
     "benefitShareLayout": "分享布局",
     "benefitPrioritySupport": "优先技术支持",
-    "benefitCustomShareCover": "自定义分享封面"
+    "benefitCustomShareCover": "自定义分享封面",
+    "sharePassword": "分享增强",
+    "duplicateCheck": "重复检测",
+    "autoBackup": "自动备份"
   },
   "payment": {
     "success": "支付成功！套餐已升级",
