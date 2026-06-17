@@ -17,7 +17,7 @@ import {
   MAX_LOGIN_ATTEMPTS,
   ACCOUNT_LOCK_DURATION_MINUTES,
 } from '../lib/constants'
-import { AuthErrorCodes, AuthErrorCode, errorResponse } from '../lib/errorCodes'
+import { AuthErrorCodes, AuthErrorCode, CommonErrorCodes, errorResponse } from '../lib/errorCodes'
 import { authenticate, AuthenticatedRequest } from '../middleware/auth'
 import { sendTemplateEmail, sendVerificationCode } from '../services/ses'
 import { recordUserRegistered } from '../services/prom-metrics'
@@ -1062,7 +1062,7 @@ router.post('/wechat', async (req, res) => {
     const picture = result.avatar
 
     // 优先使用 unionid 查找用户（同一微信用户在不同应用中 unionid 相同）
-    let user = null
+    let user: Awaited<ReturnType<typeof prisma.user.findFirst>> = null
     if (unionId) {
       user = await prisma.user.findFirst({ where: { wechatUnionId: unionId } })
     }
@@ -1163,24 +1163,25 @@ router.post('/wechat', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user.id },
+      { userId: (user as NonNullable<typeof user>).id },
       JWT_SECRET,
       { expiresIn: '7d' }
     )
 
+    const safeUser = user as NonNullable<typeof user>
     res.json({
       token,
       user: {
-        id: user.id,
-        phone: user.phone,
-        email: user.email,
-        username: user.username,
-        nickname: user.nickname,
-        avatar: user.avatar,
-        hasPassword: !!user.passwordHash,
-        authSource: user.authSource,
-        googleId: user.googleId,
-        userTier: user.userTier,
+        id: safeUser.id,
+        phone: safeUser.phone,
+        email: safeUser.email,
+        username: safeUser.username,
+        nickname: safeUser.nickname,
+        avatar: safeUser.avatar,
+        hasPassword: !!safeUser.passwordHash,
+        authSource: safeUser.authSource,
+        googleId: safeUser.googleId,
+        userTier: safeUser.userTier,
       },
     })
   } catch (error: unknown) {

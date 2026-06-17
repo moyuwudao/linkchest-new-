@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authenticate, AuthenticatedRequest } from '../middleware/auth'
-import { CommonErrorCodes, errorResponse } from '../lib/errorCodes'
+import { CommonErrorCodes, CommonErrorCode, errorResponse } from '../lib/errorCodes'
 import logger from '../lib/logger'
 import {
   listUserBackups,
@@ -116,7 +116,7 @@ router.post('/:id/restore', authenticate, async (req: AuthenticatedRequest, res)
         INVALID_JSON: 400,
         INVALID_PAYLOAD: 400,
       }
-      const codeMap: Record<string, CommonErrorCodes> = {
+      const codeMap: Record<string, CommonErrorCode> = {
         NOT_FOUND: CommonErrorCodes.NOT_FOUND,
         UNSUPPORTED_FORMAT: CommonErrorCodes.VALIDATION_FAILED,
         COS_DOWNLOAD_FAILED: CommonErrorCodes.SERVER_ERROR,
