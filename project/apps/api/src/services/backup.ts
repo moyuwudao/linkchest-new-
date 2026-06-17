@@ -168,7 +168,7 @@ export async function executeBackup(
     })
 
     logger.info({ userId, source, count: record.count, key: cosKey }, '✅ 备份完成')
-    return { ok: true, record: record as BackupRecord }
+    return { ok: true, record: record as unknown as BackupRecord }
   } catch (error) {
     logger.error(
       { err: error instanceof Error ? error.message : String(error), userId, source },
