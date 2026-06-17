@@ -404,9 +404,9 @@ export async function restoreBackup(backupId: string, userId: string): Promise<{
       const tagNameToId = new Map<string, string>()
       const existingTags = await tx.tag.findMany({
         where: { userId },
-        select: { id: true, name: true },
+        select: { id: true, nameCn: true },
       })
-      existingTags.forEach((t) => tagNameToId.set(t.name, t.id))
+      existingTags.forEach((t) => tagNameToId.set(t.nameCn, t.id))
 
       const listNameToId = new Map<string, string>()
       const existingLists = await tx.list.findMany({
@@ -422,10 +422,10 @@ export async function restoreBackup(backupId: string, userId: string): Promise<{
           const name = t.name.trim()
           if (tagNameToId.has(name)) continue
           const created = await tx.tag.create({
-            data: { userId, name },
-            select: { id: true, name: true },
+            data: { userId, nameCn: name, nameEn: name },
+            select: { id: true, nameCn: true },
           })
-          tagNameToId.set(created.name, created.id)
+          tagNameToId.set(created.nameCn, created.id)
           tagsCreated++
         }
       }
@@ -467,8 +467,8 @@ export async function restoreBackup(backupId: string, userId: string): Promise<{
         const tagConnect: { id: string }[] = []
         if (Array.isArray(c.tags)) {
           for (const t of c.tags) {
-            if (!t || typeof t.name !== 'string') continue
-            const id = tagNameToId.get(t.name.trim())
+            if (!t || typeof t.nameCn !== 'string') continue
+            const id = tagNameToId.get(t.nameCn.trim())
             if (id) tagConnect.push({ id })
           }
         }
@@ -488,13 +488,12 @@ export async function restoreBackup(backupId: string, userId: string): Promise<{
             userId,
             url,
             title: typeof c.title === 'string' && c.title.trim() ? c.title.trim() : url,
-            note: typeof c.description === 'string' ? c.description : null,
+            note: typeof c.note === 'string' ? c.note : (typeof c.description === 'string' ? c.description : null),
             platform: typeof c.platform === 'string' ? c.platform : null,
             coverImage: typeof c.coverImage === 'string' ? c.coverImage : null,
             coverStrategy:
               typeof c.coverStrategy === 'string' ? c.coverStrategy : 'auto',
             pageType: typeof c.pageType === 'string' ? c.pageType : 'detail',
-            note: typeof c.note === 'string' ? c.note : null,
             tags: { connect: tagConnect },
             lists: { connect: listConnect },
           },
