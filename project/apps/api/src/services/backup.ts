@@ -488,7 +488,7 @@ export async function restoreBackup(backupId: string, userId: string): Promise<{
             userId,
             url,
             title: typeof c.title === 'string' && c.title.trim() ? c.title.trim() : url,
-            description: typeof c.description === 'string' ? c.description : null,
+            note: typeof c.description === 'string' ? c.description : null,
             platform: typeof c.platform === 'string' ? c.platform : null,
             coverImage: typeof c.coverImage === 'string' ? c.coverImage : null,
             coverStrategy:

@@ -3,6 +3,7 @@ import prisma from '../lib/prisma'
 import { Prisma } from '@prisma/client'
 import { fetchUrlMetadata } from './metadata'
 import { getRedisClient, getRedisSubscriber, isRedisAvailable, recordRedisFailure } from '../lib/redis'
+import type { Redis } from 'ioredis'
 import { METADATA_MAX_CONCURRENT } from '../lib/constants'
 import logger from '../lib/logger'
 
