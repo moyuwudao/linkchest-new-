@@ -404,9 +404,9 @@ export async function restoreBackup(backupId: string, userId: string): Promise<{
       const tagNameToId = new Map<string, string>()
       const existingTags = await tx.tag.findMany({
         where: { userId },
-        select: { id: true, nameCn: true },
+        select: { id: true, name: true },
       })
-      existingTags.forEach((t) => tagNameToId.set(t.nameCn, t.id))
+      existingTags.forEach((t) => tagNameToId.set(t.name, t.id))
 
       const listNameToId = new Map<string, string>()
       const existingLists = await tx.list.findMany({
@@ -422,10 +422,10 @@ export async function restoreBackup(backupId: string, userId: string): Promise<{
           const name = t.name.trim()
           if (tagNameToId.has(name)) continue
           const created = await tx.tag.create({
-            data: { userId, nameCn: name, nameEn: name },
-            select: { id: true, nameCn: true },
+            data: { userId, name, nameCn: name, nameEn: name },
+            select: { id: true, name: true },
           })
-          tagNameToId.set(created.nameCn, created.id)
+          tagNameToId.set(created.name, created.id)
           tagsCreated++
         }
       }
@@ -467,8 +467,8 @@ export async function restoreBackup(backupId: string, userId: string): Promise<{
         const tagConnect: { id: string }[] = []
         if (Array.isArray(c.tags)) {
           for (const t of c.tags) {
-            if (!t || typeof t.nameCn !== 'string') continue
-            const id = tagNameToId.get(t.nameCn.trim())
+            if (!t || typeof t.name !== 'string') continue
+            const id = tagNameToId.get(t.name.trim())
             if (id) tagConnect.push({ id })
           }
         }
