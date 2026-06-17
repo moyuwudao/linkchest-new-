@@ -17,8 +17,8 @@ const BACKUP_KEEP_MAX = 4
 export interface BackupRecord {
   id: string
   userId: string
-  source: BackupSource
-  format: BackupFormat
+  source: string
+  format: string
   filename: string
   cosKey: string
   size: number
