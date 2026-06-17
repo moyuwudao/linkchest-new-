@@ -124,8 +124,8 @@ function TierUpgradePageContent() {
   const { t, locale } = useI18n();
   const { showAlert } = useToast();
   const router = useRouter();
-  // v4.1: 仅年付
-  const billingCycle = 'yearly' as const;
+  // v4.2: 恢复月付+年付切换
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [payingTier, setPayingTier] = useState<string | null>(null);
   const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
   const [marketLoading, setMarketLoading] = useState(true);
@@ -182,9 +182,9 @@ function TierUpgradePageContent() {
     return map[tier] || 'border-gray-200 dark:border-gray-700';
   }
 
-  function getPrice(tier: TierConfig) {
+  function getPrice(tier: TierConfig, cycle?: 'monthly' | 'yearly') {
     const config = (tier.pricing || {}) as Record<string, { usd?: number; cny?: number }>;
-    const cycleConfig = config[billingCycle];
+    const cycleConfig = config[cycle || billingCycle];
     const isChina = marketConfig?.market === 'china';
 
     if (isChina) {
@@ -194,7 +194,7 @@ function TierUpgradePageContent() {
         // cny 是「分」单位，需要除以 100 转为元
         const yuan = cnyPrice / 100;
         // 整数元显示（如 19），小数显示（如 19.9）
-        return { price: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', period: t(`tier.${billingCycle}`) };
+        return { price: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', period: t(`tier.${cycle || billingCycle}`) };
       }
       // 兜底：cny 缺失时，警示用户（避免显示美元或 0）
       return null;
@@ -203,7 +203,7 @@ function TierUpgradePageContent() {
       const price = cycleConfig?.usd;
       if (typeof price === 'number' && price > 0) {
         const displayPrice = (price / 100).toFixed(2);
-        return { price: displayPrice, symbol: '$', period: t(`tier.${billingCycle}`) };
+        return { price: displayPrice, symbol: '$', period: t(`tier.${cycle || billingCycle}`) };
       }
     }
 
@@ -432,7 +432,23 @@ function TierUpgradePageContent() {
           </div>
         </div>
 
-        {/* v4.1: 仅年付，已隐藏月付/年付切换 */}
+        {/* v4.2: 恢复月付/年付切换 */}
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-1 p-1 bg-parchment/20 dark:bg-chest-700/40 rounded-lg">
+            <button
+              onClick={() => setBillingCycle('monthly')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${billingCycle === 'monthly' ? 'bg-white dark:bg-chest-600 text-charcoal dark:text-parchment shadow-sm' : 'text-taupe dark:text-parchment/60 hover:text-charcoal dark:hover:text-parchment'}`}
+            >
+              {t('tier.monthly') || '月付'}
+            </button>
+            <button
+              onClick={() => setBillingCycle('yearly')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${billingCycle === 'yearly' ? 'bg-white dark:bg-chest-600 text-charcoal dark:text-parchment shadow-sm' : 'text-taupe dark:text-parchment/60 hover:text-charcoal dark:hover:text-parchment'}`}
+            >
+              {t('tier.yearly') || '年付'}
+            </button>
+          </div>
+        </div>
 
         {/* 套餐卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">

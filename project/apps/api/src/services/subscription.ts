@@ -24,12 +24,13 @@ export async function getSubscriptionPlans() {
       }
 
       if (tier === 'medium') {
-        // v4.1: 仅年付。medium 永远是 0
-        plan.price = { yearly: 0 }
+        // v4.2: 恢复月付+年付。medium 永远是 0
+        plan.price = { monthly: 0, yearly: 0 }
       } else {
         const pricing = await getTierPricing(tier)
-        // v4.1: monthly 字段已从 PlanPricing 中移除，price 仅含 yearly
+        // v4.2: 恢复 monthly 字段
         plan.price = {
+          monthly: { cny: pricing.monthly.cny, usd: pricing.monthly.usd },
           yearly: { cny: pricing.yearly.cny, usd: pricing.yearly.usd },
         }
       }

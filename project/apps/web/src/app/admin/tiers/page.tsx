@@ -26,14 +26,14 @@ interface TierStats {
 
 const emptyForm: TierConfigInput = {
   key: '', nameZh: '', nameEn: '', description: '', sortOrder: 0, isActive: true,
-  // v4.1: 仅保留已实现功能
+  // v4.2: 保留已实现功能
   quotaConfig: {
     collections: 999999, tags: 999999, lists: 999999, shares: 5, shareItems: 999999, coverImages: 999999,
     coverImagesDaily: 5, maxItemsPerShare: 50, dailyImportLimit: 30, metadataDailyLimit: 30, trashRetentionDays: 7,
-    sharePassword: 0, shareExpiry: 0, shareRating: 0,
+    sharePassword: 0, shareExpiry: 0, shareRating: 0, duplicateCheck: 0, autoBackup: 0,
   },
-  // v4.1: 仅年付
-  pricingConfig: { yearly: { usd: 0, cny: 0 } }, benefits: [],
+  // v4.2: 恢复月付+年付
+  pricingConfig: { monthly: { usd: 0, cny: 0 }, yearly: { usd: 0, cny: 0 } }, benefits: [],
 };
 
 export default function TierManagementPage() {
@@ -141,15 +141,31 @@ export default function TierManagementPage() {
   }
   function removeBenefit(i: number) { setForm(p => ({ ...p, benefits: (p.benefits || []).filter((_, idx) => idx !== i) })); }
   function uq(k: string, v: string) { const n = v === '' ? 0 : parseInt(v, 10); setForm(p => ({ ...p, quotaConfig: { ...p.quotaConfig, [k]: isNaN(n) ? 0 : n } })); }
-  function toggleFeature(k: string) { setForm(p => ({ ...p, quotaConfig: { ...p.quotaConfig, [k]: (p.quotaConfig[k] ?? 0) ? 0 : 1 } })); }
-  function up(v: string) {
+  // v4.2: 分享增强同时控制 sharePassword/shareExpiry/shareRating 三个字段
+  function toggleFeature(k: string) {
+    if (k === 'sharePassword') {
+      const newValue = (form.quotaConfig.sharePassword ?? 0) ? 0 : 1;
+      setForm(p => ({
+        ...p,
+        quotaConfig: {
+          ...p.quotaConfig,
+          sharePassword: newValue,
+          shareExpiry: newValue,
+          shareRating: newValue,
+        },
+      }));
+    } else {
+      setForm(p => ({ ...p, quotaConfig: { ...p.quotaConfig, [k]: (p.quotaConfig[k] ?? 0) ? 0 : 1 } }));
+    }
+  }
+  // v4.2: 恢复月付+年付价格处理
+  function up(cycle: 'monthly' | 'yearly', v: string) {
     const n = v === '' ? 0 : parseInt(v, 10);
-    // v4.1: 仅年付
     const field = market === 'china' ? 'cny' : 'usd';
     setForm(p => {
-      const pc: any = JSON.parse(JSON.stringify(p.pricingConfig || { yearly: { usd: 0, cny: 0 } }));
-      if (!pc.yearly) pc.yearly = { usd: 0, cny: 0 };
-      pc.yearly[field] = isNaN(n) ? 0 : n;
+      const pc: any = JSON.parse(JSON.stringify(p.pricingConfig || { monthly: { usd: 0, cny: 0 }, yearly: { usd: 0, cny: 0 } }));
+      if (!pc[cycle]) pc[cycle] = { usd: 0, cny: 0 };
+      pc[cycle][field] = isNaN(n) ? 0 : n;
       return { ...p, pricingConfig: pc };
     });
   }
@@ -258,7 +274,17 @@ export default function TierManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {/* v4.1: 仅年付，不再展示月付价格行 */}
+                {/* v4.2: 恢复月付+年付价格展示 */}
+                <tr className="border-b border-gray-50">
+                  <td className="px-4 py-2.5 text-xs text-gray-600 font-medium">月付价格</td>
+                  {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
+                    <td key={c.id} className="px-4 py-2.5 text-xs text-center text-gray-500">
+                      {market === 'china'
+                        ? `¥${(((c.pricingConfig as any)?.monthly?.cny ?? 0) / 100).toFixed(2)}`
+                        : `$${(((c.pricingConfig as any)?.monthly?.usd ?? 0) / 100).toFixed(2)}`}
+                    </td>
+                  ))}
+                </tr>
                 <tr className="border-b border-gray-50">
                   <td className="px-4 py-2.5 text-xs text-gray-600 font-medium">年付价格</td>
                   {configs.sort((a, b) => a.sortOrder - b.sortOrder).map(c => (
@@ -443,16 +469,25 @@ export default function TierManagementPage() {
               {/* 价格 */}
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-2">
-                  年付价格 ({market === 'china' ? '¥ / 元' : '$ / 美分'})
+                  价格配置 ({market === 'china' ? '¥ / 元' : '$ / 美分'})
                 </label>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-0.5">月付 {market === 'china' ? 'CNY' : 'USD'}</label>
+                    <input type="number" value={
+                      market === 'china'
+                        ? (form.pricingConfig as any)?.monthly?.cny ?? 0
+                        : (form.pricingConfig as any)?.monthly?.usd ?? 0
+                    } onChange={e => up('monthly', e.target.value)}
+                      className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-amber-400" />
+                  </div>
                   <div>
                     <label className="block text-[10px] text-gray-400 mb-0.5">年付 {market === 'china' ? 'CNY' : 'USD'}</label>
                     <input type="number" value={
                       market === 'china'
                         ? (form.pricingConfig as any)?.yearly?.cny ?? 0
                         : (form.pricingConfig as any)?.yearly?.usd ?? 0
-                    } onChange={e => up(e.target.value)}
+                    } onChange={e => up('yearly', e.target.value)}
                       className="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:border-amber-400" />
                   </div>
                 </div>
