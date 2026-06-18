@@ -316,15 +316,16 @@ export default function CollectionFormScreen() {
         setDuplicateWarning(null);
       }
 
-      // 🔄 兜底：抖音/小红书等反爬平台拿到 title 但 coverImage 为空时
-      // 主动用解析后的真实URL调 /parse-url 走 Puppeteer 通道补全封面
-      // 后端 iesdouyin.com/share/video/ 中转页改写为 www.douyin.com/video/ 真实页后已能拿到封面
-      // 此兜底仅在后端未及时更新或缓存命中失败时生效
+      // 🔄 多通道兜底：抖音/小红书/快手等反爬平台
+      // 1) /parse-url 走 fetchUrlMetadata（后端 fast path + Puppeteer）
+      // 2) /fetch-url 走桌面 Chrome UA 拿 OG tags（最后兜底）
+      // 注：后端已修复缓存污染（不再缓存"抖音"+null封面），但抖音风控严格时仍可能拿不到
       const finalUrl = data.url || inputStr.trim();
       const platformKey = data.platform || '';
       const needsCoverFallback = !data.coverImage && data.title && finalUrl &&
         ['douyin', 'xiaohongshu', 'kuaishou'].includes(platformKey);
       if (needsCoverFallback) {
+        // 兜底 1：/parse-url（Puppeteer 通道）
         try {
           setParsePhase(t('add.parsingShareText') || '正在补全封面...');
           const fallbackResp = await api.post('/collections/parse-url', { url: finalUrl }, { timeout: 15000 });
@@ -334,7 +335,22 @@ export default function CollectionFormScreen() {
             setCoverStrategy('url');
           }
         } catch {
-          // 兜底失败不影响主流程，后台异步补全会处理
+          // 兜底失败不影响主流程
+        }
+        // 兜底 2：/fetch-url（桌面 Chrome UA 拿 OG tags）
+        // 抖音对 iPhone UA 反爬严格，对桌面 Chrome UA 命中率显著更高
+        if (!coverImage) {
+          try {
+            const ogResp = await api.post('/collections/fetch-url', { url: finalUrl }, { timeout: 10000 });
+            const og = ogResp.data?.data;
+            if (og?.coverImage) {
+              setCoverImage(og.coverImage);
+              setCoverStrategy('url');
+            }
+            if (og?.title && !title) setTitle(og.title);
+          } catch {
+            // 兜底失败不影响主流程，后台异步补全会处理
+          }
         }
       }
     } catch (error: any) {

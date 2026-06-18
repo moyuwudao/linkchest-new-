@@ -1181,6 +1181,44 @@ async function persistCoverToCos(coverUrl: string, sourceUrl: string): Promise<s
 
 // ===== 最终化元数据（缓存 + 平台降级） =====
 
+/**
+ * 平台站点名识别
+ * 用于判断 final metadata 是否仅是平台降级数据（不应当缓存）
+ */
+const PLATFORM_SITE_NAMES: Record<string, string[]> = {
+  douyin: ['抖音', 'Douyin', 'douyin'],
+  xiaohongshu: ['小红书', 'Xiaohongshu', 'xiaohongshu', 'rednote', '小红书 - 你的生活兴趣社区', '小红书_沪ICP备'],
+  kuaishou: ['快手', 'Kuaishou', 'kuaishou'],
+  weibo: ['微博', 'Weibo', 'weibo', '微博，随时随地发现新鲜事'],
+  bilibili: ['哔哩哔哩', 'bilibili', '( ゜- ゜)つロ 乾杯~', ' ( ゜- ゜)つロ 乾杯~ - bilibili'],
+  wechat: ['微信', 'WeChat'],
+  zhihu: ['知乎', 'Zhihu', 'zhihu', '知乎 - 有问题，就会有答案'],
+  youtube: ['YouTube', 'youtube'],
+  tiktok: ['TikTok', 'tiktok'],
+  twitter: ['X', 'Twitter'],
+  facebook: ['Facebook', 'facebook'],
+  instagram: ['Instagram', 'instagram'],
+  reddit: ['Reddit', 'reddit'],
+  pinterest: ['Pinterest', 'pinterest'],
+}
+
+/**
+ * 判断 metadata 是否是纯降级数据（无真实 coverImage 且 title 只是平台站点名）
+ * 这种情况必须不入缓存，避免污染后续所有解析请求
+ */
+function isFallbackOnlyMetadata(metadata: UrlMetadata, platformKey: string): boolean {
+  // 有真实封面 = 真实数据，缓存
+  if (metadata.coverImage) return false
+  // 有真实 description 且不是 fallback 的，也算真实数据
+  if (metadata.description && metadata.description.length > 10) return false
+  // 无 coverImage 时，title 必须是平台站点名才算降级
+  if (!metadata.title) return false
+  const siteNames = PLATFORM_SITE_NAMES[platformKey] || []
+  const t = metadata.title.trim()
+  // 完全匹配平台站点名（允许带前后空格或破折号）
+  return siteNames.some(name => t === name || t.endsWith(`- ${name}`) || t.endsWith(`- ${name} -`) || t.endsWith(` | ${name}`) || t === `${name} -`)
+}
+
 async function finalizeMetadata(
   url: string,
   metadata: UrlMetadata,
@@ -1205,7 +1243,20 @@ async function finalizeMetadata(
     metadata.title = cleanTitle(metadata.title)
   }
 
-  // 缓存
+  // ⚠️ 关键修复：避免缓存污染
+  // 纯降级数据（无封面 + title 是平台站点名）不入缓存
+  // 让下次请求重新走 HTTP/Puppeteer 真实通道
+  const isFallbackOnly = isFallbackOnlyMetadata(metadata, platformKey)
+  if (isFallbackOnly) {
+    logger.warn(
+      { url, platform: platformKey, title: metadata.title },
+      '[metadata] 跳过缓存：纯降级数据，下次重试'
+    )
+    metadataStats.failed++
+    return { title: null, coverImage: null, favicon: null, description: null }
+  }
+
+  // 缓存有效数据
   if (metadata.title || metadata.coverImage) {
     lruCache.set(url, metadata)
     setCachedMetadata(url, metadata).catch(() => {})
@@ -1467,24 +1518,36 @@ async function fetchXiaohongshuHttp(url: string, signal?: AbortSignal): Promise<
 
 /**
  * 抖音 HTTP 直拉通道（备份）
- * - 公网内容，无需 Cookie
+ * - 桌面 Chrome UA 命中率显著高于 iPhone UA（抖音对移动 UA 反爬更严）
  * - 解析 HTML 中的 RENDER_DATA（URL 编码的 JSON）
  * - 数据结构: data.app.videoDetail / data.app.awemeDetail
  * - 兜底: og:image / og:title
  */
 async function fetchDouyinHttp(url: string, signal?: AbortSignal): Promise<UrlMetadata | null> {
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 12000)
+  // 关键：fast path 总共等 3.5s（阶段1 2s + 阶段2 1.5s），HTTP 通道必须在这期间完成
+  // 否则 fast path 返回 null，HTTP 通道结果会被 Promise.race 抛弃（不写入缓存）
+  const timeout = setTimeout(() => controller.abort(), 3500)
   if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true })
 
   try {
-    // 抖音桌面端走移动端 UA 成功率更高（PC 端经常有挑战）
+    // 关键：使用桌面 Chrome UA + 桌面 Chrome 浏览器（抖音对移动 UA 强反爬）
+    // 桌面 Mac/Windows Chrome UA 命中 OG tags 和 RENDER_DATA 成功率显著更高
+    const DESKTOP_CHROME_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     const response = await fetch(url, {
       headers: {
-        'User-Agent': MOBILE_USER_AGENT,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'User-Agent': DESKTOP_CHROME_UA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        // Referer 模拟从抖音站内跳转，提高信任度
         'Referer': 'https://www.douyin.com/',
+        'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"macOS"',
+        'sec-fetch-dest': 'document',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-site': 'same-origin',
+        'Upgrade-Insecure-Requests': '1',
       },
       signal: controller.signal,
       redirect: 'follow',
