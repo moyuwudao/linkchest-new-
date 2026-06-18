@@ -20,6 +20,7 @@ import { ErrorCodeToI18nKey } from '../lib/errorCodes';
 import { logEvent } from '../lib/analytics';
 import CoverEditor from '../components/CoverEditor';
 import StarRating from '../components/StarRating';
+import LazyImage from '../components/LazyImage';
 import { PAGE_TYPES, DEFAULT_PAGE_TYPE, getPageTypeConfig } from '../lib/pageTypes';
 // import { moderateCollectionLocal } from '../lib/contentModeration'; // 2026-06-10: 取消预过滤
 
@@ -109,6 +110,8 @@ export default function CollectionFormScreen() {
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState('');
   const [parsePhase, setParsePhase] = useState('');
+  const [skipEnqueued, setSkipEnqueued] = useState(false);
+  const [skipParsing, setSkipParsing] = useState(false);
 
   const [duplicateWarning, setDuplicateWarning] = useState<any>(null);
   const [titleDuplicateWarning, setTitleDuplicateWarning] = useState<any>(null);
@@ -250,6 +253,8 @@ export default function CollectionFormScreen() {
         setNote('');
         setParseError('');
         setDuplicateWarning(null);
+        setSkipEnqueued(false);
+        setSkipParsing(false);
         parseUrl(focusedUrl);
       }
     }, [route.params?.url, route.params?.title])
@@ -362,6 +367,49 @@ export default function CollectionFormScreen() {
     }
   }, [t, isEdit]);
 
+  // 稍后解析：入队后台解析，立即创建草稿收藏并跳转
+  // 与 WEB 端行为一致：调用 /collections/enqueue-metadata
+  // 10-30 秒内自动补全 title/cover
+  const handleSkipParse = useCallback(async () => {
+    const targetUrl = url.trim();
+    if (!targetUrl) return;
+
+    // 立即结束前端解析状态
+    setParsing(false);
+    setParsePhase('');
+    setParseError('');
+    setSkipEnqueued(true);
+    setSkipParsing(true);
+
+    try {
+      // 调用独立入队端点：立即创建草稿收藏 + 入队后台解析
+      await api.post('/collections/enqueue-metadata', {
+        url: targetUrl,
+        listIds: selectedList ? [selectedList] : [],
+      });
+
+      // 强制刷新收藏列表 + 配额（refetchQueries 立即重新获取）
+      try {
+        await queryClient.refetchQueries({ queryKey: ['collections'] });
+      } catch { /* ignore */ }
+      queryClient.invalidateQueries({ queryKey: ['quota'] });
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+
+      // 提示用户已入队后台解析，返回上一页
+      Alert.alert(
+        t('common.success'),
+        t('add.skippedParse'),
+        [{ text: t('common.confirm'), onPress: () => navigation.goBack() }],
+        { cancelable: false }
+      );
+    } catch (err) {
+      console.error('[CollectionForm] 后台解析入队失败:', err);
+      setParseError(t('add.skipParseFailed'));
+      setSkipEnqueued(false);
+      setSkipParsing(false);
+    }
+  }, [url, selectedList, queryClient, t, navigation]);
+
   // 创建收藏
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/collections', data),
@@ -471,6 +519,12 @@ export default function CollectionFormScreen() {
   };
 
   const handleSave = () => {
+    // 如果已经通过"稍后解析"入队创建了收藏，不再重复创建
+    if (skipEnqueued) {
+      navigation.goBack();
+      return;
+    }
+
     if (quotaExceeded) {
       Alert.alert(t('common.hint'), t('error.quotaExceeded'));
       return;
@@ -497,9 +551,14 @@ export default function CollectionFormScreen() {
       finalUrl = 'https://' + finalUrl;
     }
 
+    // 标题为空时使用占位（数据库非空约束），后端会异步补全
+    const finalTitle = title.trim() || (finalUrl.length > 60 ? finalUrl.substring(0, 60) + '...' : finalUrl);
+
     const data: any = {
       url: finalUrl,
-      title: title.trim(),
+      title: finalTitle,
+      // 与 WEB 端保持一致：coverImage 显式传 null（允许后端异步补全）
+      coverImage: coverImage && coverImage.trim() ? coverImage.trim() : null,
       platform,
       tagIds: selectedTags,
       listIds: [selectedList],
@@ -507,7 +566,6 @@ export default function CollectionFormScreen() {
       coverStrategy,
     };
 
-    if (coverImage && coverImage.trim()) data.coverImage = coverImage.trim();
     if (note && note.trim()) data.note = note.trim();
     if (isEdit && rating !== null && rating !== undefined) data.rating = rating;
 
@@ -626,13 +684,13 @@ export default function CollectionFormScreen() {
               placeholder={t('edit.pasteLinkOrShareText')}
               placeholderTextColor={colors.textTertiary}
               value={url}
-              onChangeText={(text) => { setUrl(text); setParseError(''); setDuplicateWarning(null); }}
+              onChangeText={(text) => { setUrl(text); setParseError(''); setDuplicateWarning(null); setSkipEnqueued(false); setSkipParsing(false); }}
               autoCapitalize="none"
               autoCorrect={false}
             />
             {url.length > 0 && (
               <TouchableOpacity
-                onPress={() => { setUrl(''); setTitle(''); setCoverImage(''); setPlatform('other'); setParseError(''); setDuplicateWarning(null); }}
+                onPress={() => { setUrl(''); setTitle(''); setCoverImage(''); setPlatform('other'); setParseError(''); setDuplicateWarning(null); setSkipEnqueued(false); setSkipParsing(false); }}
                 style={{ position: 'absolute', right: 8, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', width: 28 }}
               >
                 <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
@@ -654,7 +712,29 @@ export default function CollectionFormScreen() {
         {parsing && (
           <View style={{ marginTop: 8, padding: 10, backgroundColor: colors.primaryBg, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={{ fontSize: 14, color: colors.primary }}>{parsePhase || t('common.loading')}</Text>
+            <Text style={{ fontSize: 14, color: colors.primary, flex: 1 }}>{parsePhase || t('common.loading')}</Text>
+          </View>
+        )}
+        {/* 解析进行中：显示"稍后解析"按钮 — 入队后台解析，立即创建收藏并返回 */}
+        {parsing && (
+          <TouchableOpacity
+            onPress={handleSkipParse}
+            disabled={skipParsing}
+            style={{ marginTop: 6, alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 2 }}
+            activeOpacity={0.6}
+          >
+            <Text style={{ fontSize: 13, color: colors.textSecondary, textDecorationLine: 'underline' }}>
+              {skipParsing ? t('common.loading') : t('add.skipParse')}
+            </Text>
+          </TouchableOpacity>
+        )}
+        {/* 已入队后台解析：显示提示 */}
+        {skipEnqueued && !parsing && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6, paddingLeft: 10, borderLeftWidth: 3, borderLeftColor: '#10B981', paddingVertical: 4 }}>
+            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+            <Text style={{ fontSize: 13, fontWeight: '500', color: '#10B981', flex: 1 }}>
+              {t('add.skippedParse')}
+            </Text>
           </View>
         )}
         {parseError ? (
@@ -703,6 +783,75 @@ export default function CollectionFormScreen() {
           </Text>
         </View>
       </View>
+
+      {/* 主封面预览 - 大图展示当前封面
+          - 有 coverImage：显示图片
+          - coverStrategy='brand'（渐变）：显示平台色 + 标题占位
+          - 其他（解析未拿到）：显示"封面待同步" */}
+      {!isEdit && (title.trim() || coverImage) && (
+        <View style={{ backgroundColor: colors.card, padding: 16, marginBottom: 8 }}>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 }}>
+            {t('add.mainCoverPreview')}
+          </Text>
+          <View
+            style={{
+              width: '100%',
+              aspectRatio: 3 / 4,
+              maxHeight: 240,
+              borderRadius: 8,
+              overflow: 'hidden',
+              backgroundColor: colors.inputBg,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            {coverImage && coverImage.trim() ? (
+              <LazyImage uri={coverImage.trim()} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+            ) : coverStrategy === 'brand' ? (
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: platformColor || colors.primary,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: 20,
+                }}
+              >
+                <Ionicons name="color-palette-outline" size={32} color="rgba(255,255,255,0.6)" />
+                {title.trim() ? (
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '600',
+                      color: '#ffffff',
+                      textAlign: 'center',
+                      marginTop: 8,
+                      textShadowColor: 'rgba(0,0,0,0.3)',
+                      textShadowOffset: { width: 0, height: 1 },
+                      textShadowRadius: 2,
+                    }}
+                    numberOfLines={2}
+                  >
+                    {title.trim()}
+                  </Text>
+                ) : null}
+              </View>
+            ) : (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Ionicons name="image-outline" size={36} color={colors.textTertiary} />
+                <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 10, textAlign: 'center' }}>
+                  {t('add.coverPendingSync')}
+                </Text>
+                {title.trim() ? (
+                  <Text style={{ fontSize: 11, color: colors.textTertiary, marginTop: 4, textAlign: 'center' }} numberOfLines={1}>
+                    {title.trim()}
+                  </Text>
+                ) : null}
+              </View>
+            )}
+          </View>
+        </View>
+      )}
 
       {/* 封面 */}
       <CoverEditor

@@ -107,18 +107,6 @@ export default function AccountSettingsScreen() {
     }
   }, [queryClient, setUser]);
 
-  function formatPrice(pricing: any): string {
-    if (!pricing || typeof pricing !== 'object') return t('tier.free');
-    const monthly = pricing.monthly;
-    if (monthly && typeof monthly === 'object' && 'usd' in monthly) {
-      const usd = monthly.usd;
-      if (typeof usd === 'number' && usd > 0) {
-        return `$${(usd / 100).toFixed(2)}${t('tier.perMonth')}`;
-      }
-    }
-    return t('tier.free');
-  }
-
   const tierColor = (k: string) => ({ medium: '#8A8175', heavy: '#1B2A4A', super: '#C8956C' }[k] || colors.primary);
 
   React.useEffect(() => {
@@ -496,34 +484,7 @@ export default function AccountSettingsScreen() {
           </View>
         )}
 
-        {tierData && (
-          <View style={{ backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-              <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: tierColor('heavy'), justifyContent: 'center', alignItems: 'center', marginRight: 8 }}>
-                <Ionicons name="trophy-outline" size={14} color="#fff" />
-              </View>
-              <Text style={{ fontSize: 14, color: colors.text }}>{t('tier.pro')}</Text>
-              <Text style={{ fontSize: 13, color: colors.warning, marginLeft: 'auto' }}>
-                {tierData.heavyExpiresAt
-                  ? t('tier.expiresAt', { date: new Date(tierData.heavyExpiresAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US') })
-                  : t('tier.notSubscribed')}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: tierColor('super'), justifyContent: 'center', alignItems: 'center', marginRight: 8 }}>
-                <Ionicons name="trophy-outline" size={14} color="#fff" />
-              </View>
-              <Text style={{ fontSize: 14, color: colors.text }}>{t('tier.super')}</Text>
-              <Text style={{ fontSize: 13, color: colors.warning, marginLeft: 'auto' }}>
-                {tierData.superExpiresAt
-                  ? t('tier.expiresAt', { date: new Date(tierData.superExpiresAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US') })
-                  : t('tier.notSubscribed')}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* 当前套餐 */}
+        {/* 当前套餐 - 仅显示进阶版到期时间 */}
         {tierLoading ? (
           <View style={{ backgroundColor: colors.card, paddingVertical: 16, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: 8 }}>
             <ActivityIndicator size="small" color={colors.primary} />
@@ -537,9 +498,10 @@ export default function AccountSettingsScreen() {
               <Ionicons name="trophy-outline" size={20} color="#fff" />
             </View>
             <View style={{ flex: 1 }}>
-              {tierData.superExpiresAt || tierData.heavyExpiresAt || tierData.subscription?.expiresAt ? (
+              {/* 仅显示进阶版(heavy)到期时间，如未升级则不显示 */}
+              {tierData.tier === 'heavy' && tierData.heavyExpiresAt ? (
                 <Text style={{ fontSize: 12, color: colors.warning, marginBottom: 2 }}>
-                  {t('tier.expiresAt', { date: new Date(tierData.superExpiresAt || tierData.heavyExpiresAt || tierData.subscription?.expiresAt!).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')})}
+                  {t('tier.expiresAt', { date: new Date(tierData.heavyExpiresAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US') })}
                 </Text>
               ) : null}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>

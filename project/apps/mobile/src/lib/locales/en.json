@@ -677,7 +677,13 @@
     "quickSelectPlatform": "Quick Select Platform",
     "viewMorePlatforms": "View More Platforms",
     "collapseMorePlatforms": "Collapse More Platforms",
-    "levelPlatforms": "-Tier Platforms"
+    "levelPlatforms": "Tier Platforms",
+    "skipParse": "Parse Later",
+    "skippedParse": "Queued for background parsing, title and cover will be auto-filled in 10-30 seconds",
+    "skipParseFailed": "Failed to enqueue background parsing",
+    "coverPendingSync": "Cover pending sync",
+    "coverLoadingFailed": "Cover failed to load, tap to re-parse",
+    "mainCoverPreview": "Cover Preview"
   },
   "settings": {
     "ecommerce": "E-commerce",
@@ -873,6 +879,8 @@
     "shareStats": "Share View Stats",
     "shareRating": "Share Rating",
     "shareViews": "View Share Details",
+    "duplicateCheck": "Duplicate Detection",
+    "autoBackup": "Auto Backup",
     "benefitBatchOps": "Batch Operations",
     "benefitExportPdf": "Export to PDF",
     "benefitEarlyAccess": "Early Access to New Features",

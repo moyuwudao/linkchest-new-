@@ -659,7 +659,13 @@
     "quickSelectPlatform": "クイック選択プラットフォーム",
     "viewMorePlatforms": "もっと見る",
     "collapseMorePlatforms": "閉じる",
-    "levelPlatforms": "级プラットフォーム"
+    "levelPlatforms": "级プラットフォーム",
+    "skipParse": "後で解析",
+    "skippedParse": "バックグラウンド解析キューに追加されました。10-30秒以内にタイトルとカバーが自動入力されます",
+    "skipParseFailed": "バックグラウンド解析のエンキューに失敗しました",
+    "coverPendingSync": "カバー同期待ち",
+    "coverLoadingFailed": "カバーの読み込みに失敗しました、クリックして再解析",
+    "mainCoverPreview": "カバープレビュー"
   },
   "settings": {
     "ecommerce": "EC",

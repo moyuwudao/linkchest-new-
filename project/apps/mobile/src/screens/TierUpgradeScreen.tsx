@@ -42,10 +42,15 @@ const limitKeyMap: Record<string, string> = {
   trashRetentionDays: 'tier.trashRetentionDays',
 };
 
+// 需要从配额列表中完全隐藏的功能开关字段（包括已废弃的 shareExpiry）
+const hiddenQuotaKeys = new Set(['sharePassword', 'shareStats', 'shareRating', 'shareViews', 'shareExpiry']);
+
 function getLimitKeys(allTiers: Array<{ limits?: Record<string, number | boolean> }>) {
   const keys = Array.from(new Set(allTiers.flatMap(t => Object.keys(t.limits || {}))));
   // v3.0: 只展示有区分度的数值配额项，过滤掉 boolean 功能开关和功能性无限项
   const distinctKeys = keys.filter(k => {
+    // 排除已隐藏的功能开关字段
+    if (hiddenQuotaKeys.has(k)) return false;
     const values = allTiers.map(t => t.limits?.[k]).filter(v => v !== undefined);
     // 排除 boolean 类型的功能开关字段
     if (values.some(v => typeof v === 'boolean')) return false;
@@ -60,7 +65,7 @@ function getLimitKeys(allTiers: Array<{ limits?: Record<string, number | boolean
   ];
 }
 
-const featureFlagKeys = ['sharePassword', 'shareStats', 'shareRating', 'shareViews'];
+const featureFlagKeys = ['sharePassword', 'duplicateCheck', 'autoBackup'];
 
 function getFeatureFlags(tier: TierConfig) {
   return featureFlagKeys.map(key => ({
@@ -89,13 +94,36 @@ const benefitI18nMap: Record<string, string> = {
   '自定义分享封面': 'tier.benefitCustomShareCover',
 };
 
-const hiddenBenefitKeys = ['batchops', 'exportpdf', 'sharestats', 'earlyaccess', 'sharelayout', 'sharepassword', 'prioritysupport', 'customsharecover'];
+// 已在 feature flags 区域展示的功能，不在 benefits 中重复显示
+// 严格按管理后台配置显示：基础收藏与分类、基础分享、社区支持等不隐藏
+// 在 benefits 中需要隐藏的文本（仅当与 feature flags 区域重复时）
+const hiddenBenefitTexts = new Set([
+  '分享密码保护', 'Share password protection',
+  '重复检测', 'Duplicate detection', 'Duplicate check',
+  '自动备份', 'Auto backup', 'Automatic backup',
+]);
+
+// 旧的英文 key 匹配（向后兼容管理后台用英文 key 配置的情况）
+const hiddenBenefitKeys = ['batchops', 'exportpdf', 'sharestats', 'earlyaccess', 'sharelayout', 'sharepassword', 'prioritysupport', 'customsharecover', 'shareexpiry', 'sharerating', 'shareviews', 'duplicatecheck', 'autobackup'];
+
+/**
+ * 判断 benefit 是否应该显示
+ * 1. 原始文本不包含已废弃的英文 key
+ * 2. i18n 翻译后的文本不在隐藏列表中
+ */
+function isBenefitVisible(b: string): boolean {
+  if (!b) return false;
+  const lower = b.toLowerCase();
+  if (hiddenBenefitKeys.some(h => lower.includes(h))) return false;
+  if (hiddenBenefitTexts.has(b)) return false;
+  return true;
+}
 
 export default function TierUpgradeScreen({ navigation }: { navigation?: any }) {
   const { colors } = useThemeStore();
   const { t, locale } = useI18n();
-  // v4.1: 仅年付
-  const cycle = 'yearly' as const;
+  // v4.2: 恢复月付+年付切换
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [paying, setPaying] = useState(false);
 
   // 共享 tier-me 缓存（与 AccountSettingsScreen 共用，5 分钟内复用）
@@ -114,21 +142,21 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
   function fmtPrice(tier: TierConfig) {
     const p = tier.pricing || {};
     const isChina = isChinaMarket();
-    const yearlyConfig = p.yearly || {};
+    const cycleConfig = p[billingCycle] || {};
 
     if (isChina) {
-      // v4.1: 仅年付，读取 cny（人民币分），需要除以 100 转为元
-      const cnyPrice = yearlyConfig.cny;
+      // v4.2: 支持月付+年付，读取 cny（人民币分），需要除以 100 转为元
+      const cnyPrice = cycleConfig.cny;
       if (typeof cnyPrice === 'number' && cnyPrice > 0) {
         const yuan = cnyPrice / 100;
-        return { amt: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', per: t('tier.perYear') };
+        return { amt: Number.isInteger(yuan) ? yuan.toString() : yuan.toFixed(2), symbol: '¥', per: t(`tier.${billingCycle}`) };
       }
       // cny 缺失时不显示（避免显示美元或 0）
       return null;
     } else {
-      // v4.1: 仅年付
-      if (yearlyConfig.usd) {
-        return { amt: (yearlyConfig.usd / 100).toFixed(2), symbol: '$', per: t('tier.perYear') };
+      // v4.2: 支持月付+年付
+      if (cycleConfig.usd) {
+        return { amt: (cycleConfig.usd / 100).toFixed(2), symbol: '$', per: t(`tier.${billingCycle}`) };
       }
     }
     return null;
@@ -151,7 +179,7 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
       const priceText = `${formattedPrice.symbol}${formattedPrice.amt} / ${formattedPrice.per}`;
       navigation.navigate('AlipayPay', {
         tier: tierKey,
-        billingCycle: cycle,
+        billingCycle,
         tierName: tierKey, // 由 AlipayPayScreen 根据 i18n 翻译
         price: priceText,
       });
@@ -192,7 +220,27 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* v4.1: 仅年付，不再显示月付/年付切换 */}
+      {/* v4.2: 恢复月付/年付切换 */}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', padding: 12 }}>
+        <View style={{ flexDirection: 'row', gap: 4, padding: 4, backgroundColor: colors.borderLight, borderRadius: 10 }}>
+          <TouchableOpacity
+            onPress={() => setBillingCycle('monthly')}
+            style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: billingCycle === 'monthly' ? colors.card : 'transparent' }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: billingCycle === 'monthly' ? '600' : '400', color: billingCycle === 'monthly' ? colors.text : colors.textTertiary }}>
+              {t('tier.monthly') || '月付'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setBillingCycle('yearly')}
+            style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: billingCycle === 'yearly' ? colors.card : 'transparent' }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: billingCycle === 'yearly' ? '600' : '400', color: billingCycle === 'yearly' ? colors.text : colors.textTertiary }}>
+              {t('tier.yearly') || '年付'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {sorted.map(tier => {
         const isCurrent = tier.key === data.tier;
@@ -219,7 +267,7 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
                   <Text style={{ fontSize: 13, color: colors.textTertiary, marginLeft: 4 }}>{price.per}</Text>
                 </View>
               ) : (
-                <Text style={{ marginTop: 8, fontSize: 20, fontWeight: 'bold', color: colors.text }}>{t('tier.free')}</Text>
+                <Text style={{ marginTop: 8, fontSize: 20, fontWeight: 'bold', color: colors.text }}>{locale === 'zh' ? tier.nameZh : tier.nameEn}</Text>
               )}
               {expiresAt && (
                 <Text style={{ marginTop: 4, fontSize: 12, color: colors.warning }}>
@@ -265,12 +313,14 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
               </View>
             )}
 
-            {((tier.benefits || []).filter(b => !hiddenBenefitKeys.some(h => b.toLowerCase().includes(h))).length > 0) && (
+            {((tier.benefits || []).filter(isBenefitVisible).length > 0) && (
               <View style={{ marginBottom: 16 }}>
-                {(tier.benefits || []).filter(b => !hiddenBenefitKeys.some(h => b.toLowerCase().includes(h))).map((b, i) => {
+                {(tier.benefits || []).filter(isBenefitVisible).map((b, i) => {
                   const i18nKey = benefitI18nMap[b] || benefitI18nMap[b.toLowerCase()];
                   const displayText = i18nKey ? t(i18nKey) : b;
                   if (!displayText || displayText.trim() === '') return null;
+                  // 二次过滤：如果 i18n 翻译后的文本也在隐藏列表中（如 sharePassword、duplicateCheck），也跳过
+                  if (hiddenBenefitTexts.has(displayText)) return null;
                   return (
                     <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
                       <Ionicons name="checkmark-circle" size={16} color={colors.success} />
@@ -291,7 +341,7 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
               </TouchableOpacity>
             ) : (
               <View style={{ paddingVertical: 12, borderRadius: 10, backgroundColor: colors.secondaryBg, alignItems: 'center' }}>
-                <Text style={{ color: colors.textTertiary, fontWeight: '600' }}>{t('tier.free')}</Text>
+                <Text style={{ color: colors.textTertiary, fontWeight: '600' }}>{locale === 'zh' ? tier.nameZh : tier.nameEn}</Text>
               </View>
             )}
           </View>

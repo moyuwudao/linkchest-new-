@@ -181,7 +181,7 @@ export const METADATA_CONFIG = {
 
 // ===== 套餐品牌名映射 =====
 export const TIER_DISPLAY_NAMES: Record<UserTier, { nameZh: string; nameEn: string }> = {
-  medium: { nameZh: '免费版', nameEn: 'Free' },
+  medium: { nameZh: '普通版', nameEn: 'Free' },
   heavy:  { nameZh: '进阶版', nameEn: 'Pro' },
   // 内部保留名称（UI 不展示，未来企业版扩展用）
   super:  { nameZh: '企业版', nameEn: 'Enterprise' },

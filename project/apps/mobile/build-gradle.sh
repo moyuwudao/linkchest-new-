@@ -13,6 +13,9 @@
 # 调试：临时禁用 set -e 定位卡点（构建完成前不要 commit 这行）
 # set -e
 
+# 关键修复：启用 pipefail 和 errexit，确保构建失败立即退出
+set -euo pipefail
+
 cd /mnt/d/trae_projects/linkchest/project/apps/mobile/android
 export ANDROID_HOME=/opt/android-sdk
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
@@ -232,18 +235,22 @@ fi
 # 关键：清理所有 expo-* / react-native-* 原生模块的构建产物
 # 防止 WSL2 在 /mnt/d 上的 inode 缓存导致跨实例污染
 # 注意：也要清理 .cxx/ 目录，CMake 缓存的绝对路径可能指向旧 GRADLE_USER_HOME（如 /root/.gradle）
-for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android \
-                     /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android \
-                     /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android; do
-    if [ -d "$native_module/build" ]; then
-        rm -rf "$native_module/build" 2>/dev/null || true
-        CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
-    fi
-    if [ -d "$native_module/.cxx" ]; then
-        rm -rf "$native_module/.cxx" 2>/dev/null || true
-        CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
-    fi
-done
+# 修复：使用 shopt -s nullglob 避免 glob 未匹配时返回非零退出码（set -e 会中断）
+(
+    shopt -s nullglob
+    for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android \
+                         /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android \
+                         /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android; do
+        if [ -d "$native_module/build" ]; then
+            rm -rf "$native_module/build" 2>/dev/null || true
+            CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
+        fi
+        if [ -d "$native_module/.cxx" ]; then
+            rm -rf "$native_module/.cxx" 2>/dev/null || true
+            CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
+        fi
+    done
+)
 
 # 清理 Metro 缓存（强制全量重建 JS bundle）
 if [ -d "$METRO_CACHE_DIR" ]; then
@@ -258,19 +265,28 @@ fi
 # 必须 export，否则 ./gradlew 子进程读不到
 export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$HOME/.gradle}"
 if [ -d "$GRADLE_USER_HOME/caches" ]; then
-    find "$GRADLE_USER_HOME/caches" -path "*/transforms*" -name "*.bin" -newer "$BUILD_DIR" -delete 2>/dev/null || true
+    # 修复：find -delete 在 set -e 下如果无匹配会失败，放入子shell
+    (
+        find "$GRADLE_USER_HOME/caches" -path "*/transforms*" -name "*.bin" -newer "$BUILD_DIR" -delete 2>/dev/null || true
+    )
     CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
 fi
 
 # 清理 WSL 实例的 transformed resources 临时目录
-TRANSFORM_DIRS=$(find /tmp -maxdepth 2 -name "transforms*" -type d 2>/dev/null)
+# 修复：/tmp 下有 systemd-private-* 目录（root 拥有），
+# 普通用户 find 会被 Permission denied，导致 exit 1，
+# 配合 set -euo pipefail 会让脚本静默退出。必须加 || true。
+TRANSFORM_DIRS=$(find /tmp -maxdepth 2 -name "transforms*" -type d 2>/dev/null || true)
 for td in $TRANSFORM_DIRS; do
     rm -rf "$td" 2>/dev/null || true
 done
 
 BUNDLE_TASK_MARKER="/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/${BUILD_DIR}/intermediates"
 if [ -d "$BUNDLE_TASK_MARKER" ]; then
-    find "$BUNDLE_TASK_MARKER" -name "*bundle*" -type d -exec rm -rf {} + 2>/dev/null || true
+    # 修复：find -exec 在 set -e 下如果无匹配会失败，放入子shell
+    (
+        find "$BUNDLE_TASK_MARKER" -name "*bundle*" -type d -exec rm -rf {} + 2>/dev/null || true
+    )
     CLEANED_ITEMS=$((CLEANED_ITEMS + 1))
 fi
 
@@ -287,7 +303,8 @@ OLD_APK_COUNT=0
 if [ -d "$APK_DIR" ]; then
     rm -f "$APK_DIR"/linkchest-${TARGET_FLAVOR}-[0-9]*.apk 2>/dev/null || true
     rm -f "$APK_DIR"/linkchest-${TARGET_FLAVOR}-*-cached.apk 2>/dev/null || true
-    OLD_APK_COUNT=$(ls "$APK_DIR"/linkchest-${TARGET_FLAVOR}-[0-9]*.apk 2>/dev/null | wc -l)
+    # 修复：ls 无匹配时返回 2，配合 set -o pipefail 会让脚本静默退出。必须加 || true
+    OLD_APK_COUNT=$(ls "$APK_DIR"/linkchest-${TARGET_FLAVOR}-[0-9]*.apk 2>/dev/null | wc -l || true)
 fi
 
 log_json "INFO" "config-inject" "apk-cleanup-done" "APK directory cleanup completed" \
@@ -319,13 +336,13 @@ log_json "INFO" "build" "gradle-start" "Starting Gradle build" \
 
 GRADLE_START_TIME=$(date +%s)
 
-if ./gradlew "$GRADLE_TASK" --no-daemon --no-configuration-cache \
+# 修复：PIPESTATUS 在 if 语句中无法正确捕获，改用 set -o pipefail + 直接执行
+set -o pipefail
+./gradlew "$GRADLE_TASK" --no-daemon --no-configuration-cache \
     -PreactNativeMetroConfig.cacheStores="[{\"type\":\"file\",\"options\":{\"root\":\"$METRO_CACHE_DIR\"}}]" \
-    2>&1 | tee "$BUILD_LOG"; then
-    EXIT_CODE=${PIPESTATUS[0]}
-else
-    EXIT_CODE=${PIPESTATUS[0]}
-fi
+    2>&1 | tee "$BUILD_LOG"
+EXIT_CODE=$?
+set +o pipefail
 
 GRADLE_END_TIME=$(date +%s)
 GRADLE_DURATION=$((GRADLE_END_TIME - GRADLE_START_TIME))
