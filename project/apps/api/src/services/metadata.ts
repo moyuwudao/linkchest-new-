@@ -19,6 +19,7 @@ import { METADATA_CONFIG, COS_CONFIG } from '../lib/config'
 import logger from '../lib/logger'
 import { getBrowserPool } from './browser-pool'
 import { uploadToCos, getSignedUrl } from './cos'
+import { standardizeDouyinUrl } from './share-parser'
 import type { Page } from 'puppeteer'
 
 // ===== 监控统计 =====
@@ -337,6 +338,18 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
 
 async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<UrlMetadata> {
   logger.debug({ url }, '[metadata] START')
+
+  // 0. 抖音URL标准化（双保险：即使上游未走 parseShareInput，也能正确处理）
+  // iesdouyin.com/share/video/{id} → www.douyin.com/video/{id}?previous_page=app_code_link
+  // 否则 RENDER_DATA 仅有 title，没有 coverImage
+  try {
+    const { standardizeDouyinUrl } = await import('./share-parser')
+    const std = standardizeDouyinUrl(url)
+    if (std.transformed) {
+      logger.info({ from: url, to: std.url }, '[metadata] 抖音URL标准化（入口层）')
+      url = std.url
+    }
+  } catch { /* 忽略 */ }
 
   // 1. LRU 缓存
   const lruHit = lruCache.get(url)

@@ -734,13 +734,31 @@ export async function parseShareInput(input: string): Promise<ParseResult> {
   allSteps.push(...resolveSteps)
   console.log('[parseShareInput] resolvedUrl=' + resolvedUrl)
 
+  // 4.5 抖音URL标准化：iesdouyin.com/share/video/{id} → www.douyin.com/video/{id}
+  // 关键：抖音短链 v.douyin.com/xxx 重定向到 iesdouyin.com/share/video/{id} 中转分享页
+  // 该页面 RENDER_DATA 仅有分享文案，没有完整视频元数据（coverImage 为空）
+  // 必须改写为 www.douyin.com/video/{id} 真实视频详情页才能拿到完整元数据
+  // previous_page=app_code_link 模拟"从APP复制链接"路径，避免被重定向到下载页
+  const { url: stdUrl, transformed: stdTransformed, detail: stdDetail } = standardizeDouyinUrl(resolvedUrl)
+  let effectiveResolvedUrl = resolvedUrl
+  if (stdTransformed) {
+    effectiveResolvedUrl = stdUrl
+    allSteps.push({
+      step: '抖音URL标准化',
+      status: 'success',
+      detail: stdDetail,
+      result: stdUrl,
+    })
+    console.log('[parseShareInput] 抖音URL标准化: ' + resolvedUrl + ' → ' + stdUrl)
+  }
+
   // 5. 识别平台
-  const platform = detectPlatform(resolvedUrl)
+  const platform = detectPlatform(effectiveResolvedUrl)
   allSteps.push({ step: '识别平台', status: 'success', detail: `识别为 ${platform}`, result: platform })
 
   // 6. URL标准化（移除跟踪参数）
-  const normalizedUrl = normalizeUrl(resolvedUrl)
-  console.log('[normalizeUrl] in=' + resolvedUrl + ' out=' + normalizedUrl)
+  const normalizedUrl = normalizeUrl(effectiveResolvedUrl)
+  console.log('[normalizeUrl] in=' + effectiveResolvedUrl + ' out=' + normalizedUrl)
   if (normalizedUrl !== resolvedUrl) {
     allSteps.push({ step: 'URL标准化', status: 'success', detail: '已移除跟踪参数', result: normalizedUrl })
   }
@@ -752,5 +770,58 @@ export async function parseShareInput(input: string): Promise<ParseResult> {
     textTitle: textTitle || undefined,
     platform,
     steps: allSteps,
+  }
+}
+
+// ========== 抖音URL标准化 ==========
+
+/**
+ * 抖音URL标准化
+ * 关键问题：抖音短链 v.douyin.com/xxx 经过短链还原后会重定向到 iesdouyin.com/share/video/{id} 中转分享页
+ * 该页面 RENDER_DATA 只有分享文案（title），没有 coverImage 等完整视频元数据
+ * 真实视频详情页是 www.douyin.com/video/{id}，RENDER_DATA 含 videoDetail/awemeDetail
+ *
+ * 处理规则：
+ * 1. iesdouyin.com/share/video/{id} → www.douyin.com/video/{id}?previous_page=app_code_link
+ *    - previous_page=app_code_link 模拟"从APP复制链接"路径，避免PC端访问被重定向到下载页
+ * 2. m.iesdouyin.com/share/video/{id} → 同上
+ *
+ * 兜底：保留 query 中的非追踪参数（如 mid/u_code），仅移除已知追踪参数
+ */
+export function standardizeDouyinUrl(url: string): { url: string; transformed: boolean; detail: string } {
+  try {
+    const u = new URL(url)
+    const host = u.hostname.toLowerCase()
+    // 仅处理 iesdouyin.com 系列中转页
+    if (host !== 'www.iesdouyin.com' && host !== 'iesdouyin.com' && host !== 'm.iesdouyin.com') {
+      return { url, transformed: false, detail: '非iesdouyin中转页' }
+    }
+
+    // 匹配 /share/video/{awemeId} 模式
+    const m = u.pathname.match(/^\/share\/video\/(\d+)\/?$/i)
+    if (!m) {
+      return { url, transformed: false, detail: '非share/video路径' }
+    }
+
+    const awemeId = m[1]
+    // 重写为真实视频详情页，previous_page=app_code_link 模拟APP复制链接
+    // 保留 query 中的非追踪参数（did/iid/u_code/share_sign 等是抖音去重必要参数）
+    const targetUrl = new URL(`https://www.douyin.com/video/${awemeId}`)
+    // 透传必要参数
+    const KEEP_PARAMS = ['did', 'iid', 'mid', 'u_code', 'share_sign', 'share_version', 'video_share_track_ver', 'from_aid', 'from_ssr', 'ug_share_id']
+    for (const key of KEEP_PARAMS) {
+      const v = u.searchParams.get(key)
+      if (v) targetUrl.searchParams.set(key, v)
+    }
+    // 关键参数：previous_page=app_code_link 模拟APP复制链接路径，避免PC端被重定向到下载页
+    targetUrl.searchParams.set('previous_page', 'app_code_link')
+
+    return {
+      url: targetUrl.toString(),
+      transformed: true,
+      detail: `iesdouyin中转页→www.douyin.com/video/${awemeId}（含必要参数）`,
+    }
+  } catch {
+    return { url, transformed: false, detail: 'URL解析失败' }
   }
 }

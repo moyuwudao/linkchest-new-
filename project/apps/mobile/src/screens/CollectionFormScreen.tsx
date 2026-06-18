@@ -315,6 +315,28 @@ export default function CollectionFormScreen() {
       } else {
         setDuplicateWarning(null);
       }
+
+      // 🔄 兜底：抖音/小红书等反爬平台拿到 title 但 coverImage 为空时
+      // 主动用解析后的真实URL调 /parse-url 走 Puppeteer 通道补全封面
+      // 后端 iesdouyin.com/share/video/ 中转页改写为 www.douyin.com/video/ 真实页后已能拿到封面
+      // 此兜底仅在后端未及时更新或缓存命中失败时生效
+      const finalUrl = data.url || inputStr.trim();
+      const platformKey = data.platform || '';
+      const needsCoverFallback = !data.coverImage && data.title && finalUrl &&
+        ['douyin', 'xiaohongshu', 'kuaishou'].includes(platformKey);
+      if (needsCoverFallback) {
+        try {
+          setParsePhase(t('add.parsingShareText') || '正在补全封面...');
+          const fallbackResp = await api.post('/collections/parse-url', { url: finalUrl }, { timeout: 15000 });
+          const fb = fallbackResp.data?.data;
+          if (fb?.coverImage) {
+            setCoverImage(fb.coverImage);
+            setCoverStrategy('url');
+          }
+        } catch {
+          // 兜底失败不影响主流程，后台异步补全会处理
+        }
+      }
     } catch (error: any) {
       const errMsg = error.response?.data?.message || error.response?.data?.error || t('add.parseFailed');
       setParseError(errMsg);
