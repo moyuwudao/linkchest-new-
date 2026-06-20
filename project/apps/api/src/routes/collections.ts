@@ -528,7 +528,14 @@ router.post('/', authenticate, [
     })()
     
     if (shouldFetchMetadata) {
-      enqueueMetadataFetch({ collectionId: collection.id, url, userId })
+      // ⭐ 入队前预检元数据日配额（已超限 → 标记 skipPuppeteer 让队列走非 PP 通道）
+      isMetadataDailyLimitReached(userId)
+        .then((reached) => {
+          enqueueMetadataFetch({ collectionId: collection.id, url, userId, skipPuppeteer: reached })
+        })
+        .catch(() => {
+          enqueueMetadataFetch({ collectionId: collection.id, url, userId })
+        })
     }
 
     invalidateQuotaCache(userId).catch(() => {})
@@ -1668,7 +1675,14 @@ router.post('/import', authenticate, async (req: AuthenticatedRequest, res) => {
 
         // 后台抓取封面和标题（导入时未提供则异步补全）
         if (!item.coverImage || !item.title) {
-          enqueueMetadataFetch({ collectionId: collection.id, url: cleanUrl, userId })
+          // ⭐ 入队前预检元数据日配额（与 POST /collections 行为一致）
+          isMetadataDailyLimitReached(userId)
+            .then((reached) => {
+              enqueueMetadataFetch({ collectionId: collection.id, url: cleanUrl, userId, skipPuppeteer: reached })
+            })
+            .catch(() => {
+              enqueueMetadataFetch({ collectionId: collection.id, url: cleanUrl, userId })
+            })
         }
 
         result.success++
