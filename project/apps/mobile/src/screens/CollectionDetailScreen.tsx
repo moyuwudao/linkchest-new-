@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useCallback } from 'react';
+import React, { useLayoutEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,12 @@ import {
   Linking,
   Alert,
   Animated,
+  Modal,
+  Image,
+  StatusBar,
+  Pressable,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePressableScale } from '../lib/animations';
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useQuery, useMutation, useQueryClient } from '../lib/react-query';
@@ -84,7 +89,11 @@ export default function CollectionDetailScreen() {
   const queryClient = useQueryClient();
   const colors = useThemeStore(s => s.colors);
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const { id } = route.params as { id: string };
+
+  // 全屏封面查看器状态
+  const [coverViewerVisible, setCoverViewerVisible] = useState(false);
 
   // 收藏详情页保留返回按钮
   useLayoutEffect(() => {
@@ -207,14 +216,115 @@ export default function CollectionDetailScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* 封面 */}
-      <LazyImage
-        uri={collection.coverStrategy === 'brand' ? null : collection.coverImage}
-        style={{ width: '100%', aspectRatio: 16 / 9 }}
-        fallbackPlatform={collection.platform}
-        fallbackTitle={collection.title}
-        showGradientFallback={collection.coverStrategy === 'brand'}
-      />
+      {/* 封面 - 按原始比例完整展示，点击放大查看 */}
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => {
+          if (collection.coverStrategy !== 'brand' && collection.coverImage) {
+            setCoverViewerVisible(true);
+          }
+        }}
+        disabled={collection.coverStrategy === 'brand' || !collection.coverImage}
+      >
+        <LazyImage
+          uri={collection.coverStrategy === 'brand' ? null : collection.coverImage}
+          style={{ width: '100%', aspectRatio: 16 / 9 }}
+          fallbackPlatform={collection.platform}
+          fallbackTitle={collection.title}
+          showGradientFallback={collection.coverStrategy === 'brand'}
+          resizeMode="contain"
+        />
+        {/* 提示"点击查看大图"（仅在有真实封面时显示） */}
+        {collection.coverStrategy !== 'brand' && collection.coverImage && (
+          <View
+            style={{
+              position: 'absolute',
+              right: 12,
+              bottom: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 14,
+              backgroundColor: 'rgba(0,0,0,0.55)',
+            }}
+          >
+            <Ionicons name="expand-outline" size={14} color="#fff" />
+            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '500' }}>
+              {t('collection.detail.viewFullCover') || '查看大图'}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* 全屏封面查看器 */}
+      <Modal
+        visible={coverViewerVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setCoverViewerVisible(false)}
+      >
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <Pressable
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.95)' }}
+          onPress={() => setCoverViewerVisible(false)}
+        >
+          {/* 顶部关闭按钮 */}
+          <TouchableOpacity
+            onPress={() => setCoverViewerVisible(false)}
+            style={{
+              position: 'absolute',
+              top: insets.top + 12,
+              right: 16,
+              zIndex: 10,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="close" size={22} color="#fff" />
+          </TouchableOpacity>
+
+          {/* 全屏图片 - 完整尺寸 + contain 模式保留完整图 */}
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Image
+              source={{ uri: collection.coverImage! }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
+            />
+          </View>
+
+          {/* 底部标题栏 */}
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              paddingTop: 16,
+              paddingBottom: insets.bottom + 16,
+              paddingHorizontal: 20,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+            }}
+          >
+            <Text
+              style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}
+              numberOfLines={2}
+            >
+              {collection.title}
+            </Text>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 4 }}>
+              {t('collection.detail.tapToClose') || '点击任意位置关闭'}
+            </Text>
+          </View>
+        </Pressable>
+      </Modal>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}>
         {/* 标题 */}

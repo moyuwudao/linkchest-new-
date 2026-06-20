@@ -110,6 +110,7 @@ export default {
   ERR_QUOTA_COVER_IMAGES_EXCEEDED: "Cover-Bildlimit erreicht",
   ERR_QUOTA_SHARE_ITEMS_EXCEEDED: "Freigabeelementlimit erreicht",
   ERR_QUOTA_DAILY_IMPORT_EXCEEDED: "Tägliches Freigabe-Importlimit überschritten. Upgraden Sie Ihren Plan für mehr",
+  ERR_QUOTA_METADATA_DAILY_EXCEEDED: "Tägliches Cover-Abruf-Kontingent erreicht. Auf Plattform-Standard zurückgegriffen. Upgrade für mehr",
   ERR_SHARE_ITEMS_PER_SHARE_EXCEEDED: "Jede Freigabe kann maximal {limit} Sammlungen enthalten. Sie haben {actual} ausgewählt",
   ERR_STATS_PLATFORM_FETCH_FAILED: "Plattformstatistiken konnten nicht abgerufen werden",
   ERR_STATS_OVERVIEW_FETCH_FAILED: "Übersichtsstatistiken konnten nicht abgerufen werden",

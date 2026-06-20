@@ -150,7 +150,9 @@
       "edit": "编辑",
       "delete": "删除",
       "deleted": "已移入回收站",
-      "deleteConfirm": "确定删除此收藏？"
+      "deleteConfirm": "确定删除此收藏？",
+      "viewFullCover": "查看大图",
+      "tapToClose": "点击任意位置关闭"
     },
     "noSearchResults": "暂无搜索结果",
     "tryDifferentKeywords": "尝试不同的关键词"
@@ -179,7 +181,14 @@
     "hintDesc": "导出包含所有未删除的收藏数据。进阶版及以上用户导出包含封面链接。",
     "importHint": "手机端暂不支持导入数据，如需导入请前往 WEB 端导入。",
     "successMsg": "导出成功！文件已保存到缓存目录。",
-    "filePath": "文件路径："
+    "filePath": "文件路径：",
+    "browserHint": "已跳转至浏览器下载，请查看下载文件夹",
+    "dailyLimitTitle": "每日下载限制",
+    "lastChanceTitle": "今日下载次数超过 4 次",
+    "lastChanceMsg": "今日还剩 {remaining} 次下载机会，是否继续？",
+    "limitReachedTitle": "今日已达下载上限",
+    "limitReachedMsg": "今日下载次数已达上限（5次），请明天再试",
+    "dailyLimitDesc": "今日已下载 {current}/{limit} 次，剩余 {remaining} 次"
   },
   "group": {
     "management": "分组管理",

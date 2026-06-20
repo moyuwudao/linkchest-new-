@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,13 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Share as RNShare,
-  Platform,
+  Linking,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
 import { useThemeStore } from '../store/theme';
 import { useI18n } from '../lib/i18n';
-import { api } from '../lib/api';
+import { api, getPublicBaseUrl } from '../lib/api';
 
 type ExportFormat = 'json' | 'csv' | 'html';
 
@@ -22,6 +21,14 @@ interface FormatOption {
   icon: string;
   ext: string;
   mimeType: string;
+}
+
+interface DownloadLimitStatus {
+  currentCount: number;
+  limit: number;
+  remaining: number;
+  reached: boolean;
+  isLastChance: boolean;
 }
 
 const FORMAT_OPTIONS: FormatOption[] = [
@@ -34,54 +41,100 @@ export default function ExportScreen() {
   const { colors } = useThemeStore();
   const { t } = useI18n();
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
+  const [limitStatus, setLimitStatus] = useState<DownloadLimitStatus | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
+  // 加载下载限制状态
+  const loadLimitStatus = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const response = await api.get('/collections/export-status');
+      setLimitStatus(response.data);
+    } catch (err) {
+      // 静默失败，保留上一次状态
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  // 页面加载时获取限制状态
+  useEffect(() => {
+    loadLimitStatus();
+  }, [loadLimitStatus]);
+
+  // 移动端导出策略：后端生成 5 分钟有效的一次性下载 token，移动端通过 Linking.openURL
+  // 跳转系统浏览器进行下载。避免 RN 在 Android 13+ 的文件分享限制。
   const handleExport = async (format: ExportFormat) => {
     const opt = FORMAT_OPTIONS.find(o => o.key === format)!;
     setExporting(format);
     try {
-      const response = await api.get(`/collections/export?format=${format}`, {
-        responseType: format === 'json' ? 'json' : 'text',
-      });
-
-      let content: string;
-      if (format === 'json') {
-        // 如果后端返回了包装对象，提取 data 字段；否则直接使用
-        const exportData = response.data?.data || response.data;
-        content = JSON.stringify(exportData, null, 2);
-      } else {
-        content = typeof response.data === 'string' ? response.data : String(response.data);
+      // 1. 向后端请求短期下载 token（同时返回当前下载限制状态）
+      const response = await api.post(`/collections/export-token?format=${format}`);
+      const { token, currentCount, limit, remaining, isLastChance } = response.data || {};
+      if (!token) {
+        throw new Error('Failed to get download token');
       }
 
-      const filename = `linkchest-export.${opt.ext}`;
-      const filePath = `${FileSystem.cacheDirectory}${filename}`;
+      // 2. 拼接公开下载 URL（不含 /api 前缀，指向 export-download 公开端点）
+      const baseUrl = getPublicBaseUrl();
+      const downloadUrl = `${baseUrl}/api/collections/export-download?token=${encodeURIComponent(token)}&format=${format}`;
 
-      await FileSystem.writeAsStringAsync(filePath, content, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
-
-      const fileInfo = await FileSystem.getInfoAsync(filePath);
-      if (fileInfo.exists) {
-        const shareOptions: any = {
-          title: t('export.shareTitle'),
-          message: `${t('export.shareTitle')} (${opt.ext.toUpperCase()})`,
-        };
-
-        // Android 使用 file:// URI 通过 url 字段分享文件
-        // iOS 也使用 url 字段分享文件，系统会自动识别 MIME 类型
-        if (Platform.OS === 'android') {
-          shareOptions.url = 'file://' + filePath;
-        } else {
-          shareOptions.url = filePath;
+      // 3. 第 4 次下载时弹出友好提示（"今日还剩 1 次机会"），但仍允许下载
+      if (isLastChance) {
+        await new Promise<void>((resolve) => {
+          Alert.alert(
+            t('export.lastChanceTitle') || '提示',
+            t('export.lastChanceMsg') || `今日下载次数超过4次，今天还剩 ${remaining} 次下载机会，是否继续？`,
+            [
+              { text: t('common.cancel') || '取消', style: 'cancel', onPress: () => resolve() },
+              {
+                text: t('common.confirm') || '继续下载',
+                onPress: () => {
+                  Linking.openURL(downloadUrl).then(() => resolve()).catch(() => resolve());
+                },
+              },
+            ]
+          );
+        });
+      } else {
+        // 4. 跳转系统浏览器进行下载（支持 Android 13+ DownloadManager 自动保存）
+        const supported = await Linking.canOpenURL(downloadUrl);
+        if (!supported) {
+          throw new Error('Cannot open browser');
         }
-
-        await RNShare.share(shareOptions);
+        await Linking.openURL(downloadUrl);
 
         Alert.alert(
           t('common.success'),
-          t('export.successMsg') + '\n\n' + t('export.filePath') + filePath
+          `${t('export.successMsg')}\n\n${t('export.browserHint') || '已跳转至浏览器下载，请查看下载文件夹'}`
         );
       }
+
+      // 5. 更新本地限制状态（乐观更新：消耗一次机会）
+      setLimitStatus((prev) => {
+        if (!prev) return prev;
+        const next = prev.currentCount + 1;
+        return {
+          currentCount: next,
+          limit: prev.limit,
+          remaining: Math.max(0, prev.limit - next),
+          reached: next >= prev.limit,
+          isLastChance: next === prev.limit - 1,
+        };
+      });
     } catch (error: any) {
+      // HTTP 429: 达到下载上限
+      if (error?.response?.status === 429) {
+        const data = error.response.data || {};
+        Alert.alert(
+          t('export.limitReachedTitle') || '已达今日下载上限',
+          data.message || t('export.limitReachedMsg') || '今日下载次数已达上限，请明天再试',
+          [{ text: t('common.confirm') || '我知道了' }]
+        );
+        // 刷新限制状态
+        setLimitStatus((prev) => prev ? { ...prev, reached: true, remaining: 0 } : prev);
+        return;
+      }
       const msg = error?.response?.data?.message || error?.response?.data?.error || error?.message || t('common.operationFailed');
       Alert.alert(t('common.error'), msg);
     } finally {
@@ -90,8 +143,57 @@ export default function ExportScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={loadLimitStatus} tintColor={colors.primary} />
+      }
+    >
       <View style={{ padding: 16, gap: 16 }}>
+        {/* 下载限制提示卡片 */}
+        <View
+          style={{
+            backgroundColor: limitStatus?.reached
+              ? colors.error + '15'
+              : limitStatus?.isLastChance
+                ? colors.warning + '15'
+                : colors.primary + '10',
+            borderColor: limitStatus?.reached
+              ? colors.error + '40'
+              : limitStatus?.isLastChance
+                ? colors.warning + '40'
+                : colors.primary + '30',
+            borderWidth: 1,
+            borderRadius: 12,
+            padding: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
+          <Ionicons
+            name={limitStatus?.reached ? 'lock-closed-outline' : 'cloud-download-outline'}
+            size={20}
+            color={limitStatus?.reached ? colors.error : limitStatus?.isLastChance ? colors.warning : colors.primary}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 13, color: colors.text, fontWeight: '500' }}>
+              {limitStatus?.reached
+                ? t('export.limitReachedTitle') || '今日已达下载上限'
+                : limitStatus?.isLastChance
+                  ? t('export.lastChanceTitle') || '今日下载次数超过 4 次'
+                  : t('export.dailyLimitTitle') || '每日下载限制'}
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.textTertiary, marginTop: 2 }}>
+              {t('export.dailyLimitDesc', {
+                current: limitStatus?.currentCount ?? 0,
+                limit: limitStatus?.limit ?? 5,
+                remaining: limitStatus?.remaining ?? 5,
+              }) || `今日已下载 ${limitStatus?.currentCount ?? 0}/${limitStatus?.limit ?? 5} 次，剩余 ${limitStatus?.remaining ?? 5} 次`}
+            </Text>
+          </View>
+        </View>
+
         <View style={{ backgroundColor: colors.card, borderRadius: 12, padding: 16 }}>
           <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {t('export.formatGroupA')}
@@ -105,6 +207,7 @@ export default function ExportScreen() {
               title="JSON"
               desc={t('export.jsonDesc')}
               loading={exporting === 'json'}
+              disabled={limitStatus?.reached}
               colors={colors}
               onPress={() => handleExport('json')}
             />
@@ -113,6 +216,7 @@ export default function ExportScreen() {
               title="HTML"
               desc={t('export.htmlDesc')}
               loading={exporting === 'html'}
+              disabled={limitStatus?.reached}
               colors={colors}
               onPress={() => handleExport('html')}
             />
@@ -132,6 +236,7 @@ export default function ExportScreen() {
               title="CSV"
               desc={t('export.csvDesc')}
               loading={exporting === 'csv'}
+              disabled={limitStatus?.reached}
               colors={colors}
               onPress={() => handleExport('csv')}
             />
@@ -151,11 +256,12 @@ export default function ExportScreen() {
   );
 }
 
-function FormatButton({ icon, title, desc, loading, colors, onPress }: {
+function FormatButton({ icon, title, desc, loading, disabled, colors, onPress }: {
   icon: string;
   title: string;
   desc: string;
   loading: boolean;
+  disabled?: boolean;
   colors: any;
   onPress: () => void;
 }) {
@@ -168,11 +274,12 @@ function FormatButton({ icon, title, desc, loading, colors, onPress }: {
         padding: 14,
         borderRadius: 10,
         borderWidth: 1.5,
-        borderColor: colors.border,
+        borderColor: disabled ? colors.border + '60' : colors.border,
         backgroundColor: 'transparent',
+        opacity: disabled ? 0.5 : 1,
       }}
       onPress={onPress}
-      disabled={loading}
+      disabled={loading || disabled}
       activeOpacity={0.7}
     >
       <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: colors.primaryBg, justifyContent: 'center', alignItems: 'center' }}>
@@ -185,7 +292,7 @@ function FormatButton({ icon, title, desc, loading, colors, onPress }: {
       {loading ? (
         <ActivityIndicator size="small" color={colors.primary} />
       ) : (
-        <Ionicons name="download-outline" size={22} color={colors.primary} />
+        <Ionicons name={disabled ? 'lock-closed-outline' : 'download-outline'} size={22} color={disabled ? colors.textTertiary : colors.primary} />
       )}
     </TouchableOpacity>
   );

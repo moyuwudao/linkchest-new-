@@ -7,7 +7,7 @@ import { DEFAULT_LIST_KEY, DEFAULT_LIST_DESC } from '../lib/config'
 import { ListErrorCodes, CommonErrorCodes, errorResponse } from '../lib/errorCodes'
 import { sanitizeCollection } from '../lib/utils'
 import logger from '../lib/logger'
-import { invalidateQuotaCache } from '../services/quota'
+import { checkQuota, invalidateQuotaCache } from '../services/quota'
 
 const router = Router()
 
@@ -475,6 +475,12 @@ router.post('/', authenticate, [
 
   let { name, description, parentId } = req.body
   const userId = req.user.id
+
+  // 配额预检：创建分组超过上限时拒绝（防御性检查，未来若调整 medium 限额自动生效）
+  const quotaError = await checkQuota(userId, 'lists')
+  if (quotaError) {
+    return errorResponse(res, 403, quotaError)
+  }
 
   // 如果指定了 parentId，验证父分组存在且属于该用户
   if (parentId) {

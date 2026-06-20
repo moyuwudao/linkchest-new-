@@ -111,6 +111,7 @@ export default {
   ERR_QUOTA_COVER_IMAGES_EXCEEDED: "封面图片数量已达上限",
   ERR_QUOTA_SHARE_ITEMS_EXCEEDED: "分享项数量已达上限",
   ERR_QUOTA_DAILY_IMPORT_EXCEEDED: "今日接收分享配额已用完，升级会员可解锁更多",
+  ERR_QUOTA_METADATA_DAILY_EXCEEDED: "今日封面智能抓取配额已用完，已自动降级为平台默认封面，升级会员可解锁更多",
   ERR_SHARE_ITEMS_PER_SHARE_EXCEEDED: "单次分享最多包含 {limit} 条收藏，当前选择了 {actual} 条",
   ERR_STATS_PLATFORM_FETCH_FAILED: "获取平台统计失败",
   ERR_STATS_OVERVIEW_FETCH_FAILED: "获取总览统计失败",

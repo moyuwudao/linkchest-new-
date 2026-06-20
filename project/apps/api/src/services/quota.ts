@@ -22,7 +22,7 @@ const QUOTA_CODE_MAP: Record<ResourceType, QuotaErrorCode> = {
   coverImagesDaily: QuotaErrorCodes.QUOTA_COVER_IMAGES_EXCEEDED,
   maxItemsPerShare: QuotaErrorCodes.SHARE_ITEMS_PER_SHARE_EXCEEDED,
   dailyImportLimit: QuotaErrorCodes.QUOTA_DAILY_IMPORT_EXCEEDED,
-  metadataDailyLimit: QuotaErrorCodes.QUOTA_DAILY_IMPORT_EXCEEDED, // 复用或新增错误码
+  metadataDailyLimit: QuotaErrorCodes.QUOTA_METADATA_DAILY_EXCEEDED,
   trashRetentionDays: QuotaErrorCodes.QUOTA_LISTS_EXCEEDED, // 纯配置项，不用于检查
 }
 
@@ -249,6 +249,12 @@ const DAILY_QUOTA_KEY = (userId: string, date?: string) => {
   return `lc:daily_quota:${userId}:dailyImportLimit:${d}`
 }
 
+/** 元数据日抓取计数 key（与 metadata-queue.ts 中保持一致） */
+const META_DAILY_KEY = (userId: string, date?: string) => {
+  const d = date || new Date().toISOString().slice(0, 10)
+  return `lc:meta:daily:${userId}:${d}`
+}
+
 /**
  * 检查每日导入配额是否超限
  * @returns null 表示未超限，否则返回错误码
@@ -297,6 +303,43 @@ export async function incrementDailyQuota(
   const ttlSeconds = Math.ceil((tomorrow.getTime() - Date.now()) / 1000)
   pipeline.expire(key, ttlSeconds)
   await pipeline.exec().catch(() => {})
+}
+
+/**
+ * 检查用户元数据日抓取配额
+ * 用于入队前预先判断是否需要降级
+ * @returns true 表示已达上限（应降级为非 PP 抓取）
+ */
+export async function isMetadataDailyLimitReached(userId: string): Promise<boolean> {
+  try {
+    const { limits } = await getQuotaUsage(userId)
+    const limit = limits.metadataDailyLimit
+    const redis = getRedisClient()
+    if (!redis) return false
+    const current = parseInt(await redis.get(META_DAILY_KEY(userId)) || '0', 10)
+    return current >= limit
+  } catch {
+    return false
+  }
+}
+
+/**
+ * 增加用户元数据日抓取计数（PP 实际启动时调用）
+ * 与 metadata-queue.ts 的 incrementMetadataDailyUsage 保持一致
+ */
+export async function incrementMetadataDailyLimit(userId: string): Promise<void> {
+  const redis = getRedisClient()
+  if (!redis) return
+  const key = META_DAILY_KEY(userId)
+  try {
+    await redis.incr(key)
+    const tomorrow = new Date()
+    tomorrow.setHours(24, 0, 0, 0)
+    const ttlSeconds = Math.max(60, Math.ceil((tomorrow.getTime() - Date.now()) / 1000))
+    await redis.expire(key, ttlSeconds)
+  } catch {
+    // 失败不影响主流程
+  }
 }
 
 import type { Response, NextFunction } from 'express'

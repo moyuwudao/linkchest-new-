@@ -46,6 +46,23 @@ export function getMetadataStats() {
   }
 }
 
+export interface FetchMetadataOptions {
+  /** 操作用户 ID（用于配额统计） */
+  userId?: string
+  /**
+   * 跳过 Puppeteer 通道
+   * 用途：用户已达日元数据抓取上限时，避免继续消耗 PP 资源
+   * 行为：只走快速通道（OEmbed/OGP/HTTP 直拉）+ 平台降级，不启动 Puppeteer
+   */
+  skipPuppeteer?: boolean
+  /**
+   * Puppeteer 实际启动时的回调（用于配额计数）
+   * 触发条件：缓存未命中 + fast 通道未命中 + 走到 Puppeteer 渲染阶段
+   * 注意：即使 PP 渲染失败/无数据也算一次配额消耗
+   */
+  onPuppeteerUsed?: () => void
+}
+
 export interface UrlMetadata {
   title: string | null
   coverImage: string | null
@@ -316,11 +333,24 @@ const MOBILE_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X
 
 // ===== 主入口 =====
 
-export async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
+/**
+ * 抓取 URL 元数据
+ *
+ * @param url 目标 URL
+ * @param options 抓取选项
+ *   - userId: 操作用户 ID（用于配额统计）
+ *   - skipPuppeteer: 跳过 Puppeteer 通道（节省 PP 资源，走 OGP/平台降级）
+ */
+export async function fetchUrlMetadata(url: string, options: FetchMetadataOptions | string = {}): Promise<UrlMetadata> {
+  // 向后兼容：旧调用方式 fetchUrlMetadata(url, userId)
+  const opts: FetchMetadataOptions = typeof options === 'string'
+    ? { userId: options }
+    : options
+
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), TOTAL_TIMEOUT_MS)
   try {
-    return await fetchUrlMetadataCore(url, controller.signal)
+    return await fetchUrlMetadataCore(url, controller.signal, opts)
   } catch (err) {
     if (err instanceof Error && (err.name === 'AbortError' || err.message === 'TOTAL_TIMEOUT')) {
       logger.warn({ url }, '[metadata] TOTAL_TIMEOUT，尝试平台降级')
@@ -336,7 +366,11 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata> {
   }
 }
 
-async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<UrlMetadata> {
+async function fetchUrlMetadataCore(
+  url: string,
+  signal?: AbortSignal,
+  options: FetchMetadataOptions = {}
+): Promise<UrlMetadata> {
   logger.debug({ url }, '[metadata] START')
 
   // 0. 抖音URL标准化（双保险：即使上游未走 parseShareInput，也能正确处理）
@@ -402,7 +436,27 @@ async function fetchUrlMetadataCore(url: string, signal?: AbortSignal): Promise<
   }
 
   // 5. Puppeteer 渲染（核心通道）
+  // ⭐ skipPuppeteer=true 时跳过（用户已达日元数据抓取上限），节省 PP 资源
+  if (options.skipPuppeteer) {
+    logger.info(
+      { url, userId: options.userId, platform: platformKey, reason: 'metadata_daily_limit' },
+      '[metadata] 跳过 Puppeteer（用户配额已达上限），走平台降级'
+    )
+    // 走平台降级（fallback 平台色 + 平台名）
+    if (platformKey !== 'other') {
+      const fallback = await getPlatformFallbackMetadata(platformKey, url)
+      return finalizeMetadata(url, fallback, platformKey)
+    }
+    // unknown 平台：返回空
+    metadataStats.failed++
+    return { title: null, coverImage: null, favicon: null, description: null }
+  }
+
   const puppeteerResult = await fetchWithPuppeteer(normalizedUrl, platformKey, signal)
+  // ⭐ PP 已实际启动，触发配额计数回调
+  if (options.onPuppeteerUsed) {
+    try { options.onPuppeteerUsed() } catch { /* 配额计数失败不影响主流程 */ }
+  }
   if (puppeteerResult && (puppeteerResult.title || puppeteerResult.coverImage)) {
     return finalizeMetadata(url, puppeteerResult, platformKey)
   }

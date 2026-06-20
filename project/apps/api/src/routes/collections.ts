@@ -8,11 +8,13 @@ import { detectPlatform, getSupportedPlatformList } from '../services/platforms'
 import { classifyUrl } from '../services/pageClassifier'
 import { fetchUrlMetadata } from '../services/metadata'
 import { parseShareInput } from '../services/share-parser'
-import { checkQuota, checkQuotaBatch, invalidateQuotaCache } from '../services/quota'
+import { checkQuota, checkQuotaBatch, invalidateQuotaCache, isMetadataDailyLimitReached } from '../services/quota'
 import { enqueueMetadataFetch } from '../services/metadata-queue'
 import { recordCollectionCreated } from '../services/prom-metrics'
 import { emitEvent } from '../lib/eventBus'
 import { moderateCollectionTitle, moderateCollectionNote, moderateCollectionUrl, moderateCollectionTag } from '../services/contentModeration'
+import { getTodayDownloadCount, incrementTodayDownloadCount, getDownloadLimitStatus, DAILY_DOWNLOAD_LIMIT } from '../services/download-limit'
+import crypto from 'crypto'
 
 import fetch from 'node-fetch'
 import { CollectionErrorCodes, ListErrorCodes, CommonErrorCodes, UploadErrorCodes, QuotaErrorCodes, errorResponse } from '../lib/errorCodes'
@@ -1364,50 +1366,144 @@ router.post('/merge-duplicates', authenticate, [
 })
 
 // 导出收藏（必须在 /:id 之前注册）
+// 核心逻辑抽取为可复用函数，供 /export 和 /export-download 共享
+async function exportCollectionsByUser(userId: string, format: string, res: any) {
+  // 检查用户等级：专业版及以上导出包含封面
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { userTier: true } })
+  const includeCover = (user?.userTier as string) === 'heavy' || (user?.userTier as string) === 'super'
+
+  const collections = await prisma.collection.findMany({
+    where: { userId, deletedAt: null },
+    include: {
+      tags: { select: { id: true, name: true } },
+      lists: { select: { id: true, name: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 3000,
+  })
+
+  if (format === 'csv') {
+    const BOM = '\uFEFF'
+    const coverHeader = includeCover ? ',封面链接' : ''
+    const header = `标题,链接,平台,备注,评分,标签,分组,创建时间${coverHeader}\n`
+    const escapeCsv = (val: string) => val.replace(/"/g, '""').replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/\r/g, ' ')
+    const rows = collections.map(c => {
+      let row = `"${escapeCsv(c.title || '')}","${escapeCsv(c.url)}","${escapeCsv(c.platform)}","${escapeCsv(c.note || '')}","${c.rating != null ? c.rating.toString() : ''}","${c.tags?.map(t => t.name).join(';') || ''}","${c.lists?.map(l => l.name).join(';') || ''}","${c.createdAt.toISOString()}"`
+      if (includeCover) {
+        row += `,"${escapeCsv(c.coverImage || '')}"`
+      }
+      return row
+    }).join('\n')
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+    res.setHeader('Content-Disposition', 'attachment; filename=linkchest-export.csv')
+    res.send(Buffer.from(BOM + header + rows, 'utf-8'))
+  } else if (format === 'html') {
+    const html = generateBookmarkHtml(collections, [], includeCover)
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    res.setHeader('Content-Disposition', 'attachment; filename=linkchest-export.html')
+    res.send(html)
+  } else {
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Content-Disposition', 'attachment; filename=linkchest-export.json')
+    res.json({ version: '1.0', exportedAt: new Date().toISOString(), count: collections.length, data: collections.map(sanitizeCollection) })
+  }
+}
+
 router.get('/export', authenticate, async (req: AuthenticatedRequest, res) => {
   const userId = req.user.id
   const format = (req.query.format as string) || 'json'
 
   try {
-    // 检查用户等级：专业版及以上导出包含封面
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { userTier: true } })
-    const includeCover = (user?.userTier as string) === 'heavy' || (user?.userTier as string) === 'super'
+    await exportCollectionsByUser(userId, format, res)
+  } catch (error) {
+    errorResponse(res, 500, CollectionErrorCodes.COLLECTION_EXPORT_FAILED)
+  }
+})
 
-    const collections = await prisma.collection.findMany({
-      where: { userId, deletedAt: null },
-      include: {
-        tags: { select: { id: true, name: true } },
-        lists: { select: { id: true, name: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 3000,
+// ===== 移动端浏览器下载支持 =====
+// 生成 5 分钟有效的一次性下载 token，避免在 URL 中传递 JWT
+const exportDownloadTokens = new Map<string, { userId: string; format: string; expiresAt: number }>()
+
+// 定期清理过期 token（防止内存泄漏）
+setInterval(() => {
+  const now = Date.now()
+  for (const [token, entry] of exportDownloadTokens.entries()) {
+    if (entry.expiresAt < now) exportDownloadTokens.delete(token)
+  }
+}, 60 * 1000).unref()
+
+router.post('/export-token', authenticate, async (req: AuthenticatedRequest, res) => {
+  const format = (req.query.format as string) || req.body?.format || 'json'
+  if (!['json', 'csv', 'html'].includes(format)) {
+    return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED)
+  }
+
+  // 每日下载次数限制检查
+  const status = await getDownloadLimitStatus(req.user.id)
+  if (status.reached) {
+    return res.status(429).json({
+      error: 'download_limit_reached',
+      code: 'EXPORT_DAILY_LIMIT_REACHED',
+      message: `今日下载次数已达上限（${DAILY_DOWNLOAD_LIMIT}次），请明天再试`,
+      currentCount: status.currentCount,
+      limit: status.limit,
+      remaining: 0,
     })
+  }
 
-    if (format === 'csv') {
-      const BOM = '\uFEFF'
-      const coverHeader = includeCover ? ',封面链接' : ''
-      const header = `标题,链接,平台,备注,评分,标签,分组,创建时间${coverHeader}\n`
-      const escapeCsv = (val: string) => val.replace(/"/g, '""').replace(/\r\n/g, ' ').replace(/\n/g, ' ').replace(/\r/g, ' ')
-      const rows = collections.map(c => {
-        let row = `"${escapeCsv(c.title || '')}","${escapeCsv(c.url)}","${escapeCsv(c.platform)}","${escapeCsv(c.note || '')}","${c.rating != null ? c.rating.toString() : ''}","${c.tags?.map(t => t.name).join(';') || ''}","${c.lists?.map(l => l.name).join(';') || ''}","${c.createdAt.toISOString()}"`
-        if (includeCover) {
-          row += `,"${escapeCsv(c.coverImage || '')}"`
-        }
-        return row
-      }).join('\n')
-      res.setHeader('Content-Type', 'text/csv; charset=utf-8')
-      res.setHeader('Content-Disposition', 'attachment; filename=linkchest-export.csv')
-      res.send(Buffer.from(BOM + header + rows, 'utf-8'))
-    } else if (format === 'html') {
-      const html = generateBookmarkHtml(collections, [], includeCover)
-      res.setHeader('Content-Type', 'text/html; charset=utf-8')
-      res.setHeader('Content-Disposition', 'attachment; filename=linkchest-export.html')
-      res.send(html)
-    } else {
-      res.setHeader('Content-Type', 'application/json')
-      res.setHeader('Content-Disposition', 'attachment; filename=linkchest-export.json')
-      res.json({ version: '1.0', exportedAt: new Date().toISOString(), count: collections.length, data: collections.map(sanitizeCollection) })
-    }
+  // 32 字节随机 token，URL 安全
+  const token = crypto.randomBytes(32).toString('hex')
+  exportDownloadTokens.set(token, {
+    userId: req.user.id,
+    format,
+    expiresAt: Date.now() + 5 * 60 * 1000, // 5 分钟
+  })
+
+  res.json({
+    token,
+    format,
+    expiresIn: 300,
+    currentCount: status.currentCount,
+    limit: status.limit,
+    remaining: status.remaining,
+    isLastChance: status.isLastChance,
+  })
+})
+
+// 查询当前用户的下载限制状态（不消耗下载次数）
+router.get('/export-status', authenticate, async (req: AuthenticatedRequest, res) => {
+  const status = await getDownloadLimitStatus(req.user.id)
+  res.json(status)
+})
+
+// 公开端点（无需 JWT）— 通过短期 token 验证身份后返回下载文件
+// 用于移动端 Linking.openURL 跳转浏览器下载
+router.get('/export-download', async (req, res) => {
+  const token = (req.query.token as string) || ''
+  const format = (req.query.format as string) || 'json'
+  const entry = exportDownloadTokens.get(token)
+  if (!entry) {
+    return res.status(401).send('Invalid or expired download token')
+  }
+  if (entry.expiresAt < Date.now()) {
+    exportDownloadTokens.delete(token)
+    return res.status(401).send('Download token expired')
+  }
+  if (entry.format !== format) {
+    return res.status(400).send('Format mismatch')
+  }
+  // 一次性使用：使用后立即删除（防止 URL 分享）
+  exportDownloadTokens.delete(token)
+  try {
+    await exportCollectionsByUser(entry.userId, format, res)
+    // 文件成功响应后递增下载计数（仅 HTTP 200 时计数）
+    res.on('finish', () => {
+      if (res.statusCode === 200) {
+        incrementTodayDownloadCount(entry.userId).catch((err) => {
+          logger.warn({ err, userId: entry.userId }, '[Export] 下载计数递增失败')
+        })
+      }
+    })
   } catch (error) {
     errorResponse(res, 500, CollectionErrorCodes.COLLECTION_EXPORT_FAILED)
   }
@@ -1940,7 +2036,13 @@ router.post('/enqueue-metadata', authenticate, [
     })
 
     // 立即入队后台解析（不阻塞响应）
-    enqueueMetadataFetch({ collectionId: collection.id, url, userId })
+    isMetadataDailyLimitReached(userId)
+      .then((reached) => {
+        enqueueMetadataFetch({ collectionId: collection.id, url, userId, skipPuppeteer: reached })
+      })
+      .catch(() => {
+        enqueueMetadataFetch({ collectionId: collection.id, url, userId })
+      })
 
     invalidateQuotaCache(userId).catch(() => {})
     recordCollectionCreated(platform)

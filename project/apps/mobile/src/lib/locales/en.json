@@ -150,7 +150,9 @@
       "edit": "Edit",
       "delete": "Delete",
       "deleted": "Deleted",
-      "deleteConfirm": "Delete this collection?"
+      "deleteConfirm": "Delete this collection?",
+      "viewFullCover": "View full cover",
+      "tapToClose": "Tap anywhere to close"
     },
     "noSearchResults": "No search results",
     "tryDifferentKeywords": "Try different keywords"
@@ -179,7 +181,14 @@
     "hintDesc": "Export includes all non-deleted collections. Pro users and above include cover image links.",
     "importHint": "Import is not supported on mobile. Please use the web app to import data.",
     "successMsg": "Export successful! File saved to cache directory.",
-    "filePath": "File path: "
+    "filePath": "File path: ",
+    "browserHint": "Opened in browser. Check your downloads folder.",
+    "dailyLimitTitle": "Daily download limit",
+    "lastChanceTitle": "You've downloaded 4+ times today",
+    "lastChanceMsg": "You have {remaining} download(s) left today. Continue?",
+    "limitReachedTitle": "Daily download limit reached",
+    "limitReachedMsg": "You've reached today's download limit (5 times). Please try again tomorrow.",
+    "dailyLimitDesc": "Downloaded {current}/{limit} times today, {remaining} remaining"
   },
   "group": {
     "management": "Group Management",

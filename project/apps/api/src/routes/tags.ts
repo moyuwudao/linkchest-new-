@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client'
 import { authenticate, AuthenticatedRequest } from '../middleware/auth'
 import { TagErrorCodes, CommonErrorCodes, errorResponse } from '../lib/errorCodes'
 import { sanitizeCollection } from '../lib/utils'
-import { invalidateQuotaCache } from '../services/quota'
+import { checkQuota, invalidateQuotaCache } from '../services/quota'
 
 const router = Router()
 
@@ -136,6 +136,12 @@ router.post('/', authenticate, [
 
   let { name, nameCn, nameEn } = req.body
   const userId = req.user.id
+
+  // 配额预检：创建标签超过上限时拒绝（防御性检查，未来若调整 medium 限额自动生效）
+  const quotaError = await checkQuota(userId, 'tags')
+  if (quotaError) {
+    return errorResponse(res, 403, quotaError)
+  }
 
   try {
     // 获取用户的语言偏好

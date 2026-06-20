@@ -25,6 +25,66 @@ export interface MetadataQueueItem {
   url: string
   userId: string
   retryCount?: number
+  /**
+   * 强制跳过 Puppeteer 通道
+   * 用途：
+   * 1. 入队时已知用户已达元数据日上限（快速降级，避免被消费者重复检测）
+   * 2. 用户主动选择"暂不解析"等场景
+   * 行为：消费时直接走 OGP/fast 通道 + 平台降级，不消耗 PP 资源
+   */
+  skipPuppeteer?: boolean
+}
+
+/**
+ * 检查用户当日元数据抓取配额
+ * 超限 → 降级为非 PP 抓取（OGP + 平台降级）
+ * 设计目标：避免普通版/进阶版用户用满限额后继续消耗服务器 PP 资源
+ */
+async function shouldSkipPuppeteer(userId: string): Promise<boolean> {
+  try {
+    const { getQuotaConfig } = await import('./tierConfig')
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { userTier: true },
+    })
+    const tier = (user?.userTier as any) || 'medium'
+    const limits = await getQuotaConfig(tier)
+    const dailyLimit = limits.metadataDailyLimit ?? 30
+
+    // 读取当日已用次数
+    const { getRedisClient } = await import('../lib/redis')
+    const redis = getRedisClient()
+    if (redis) {
+      const today = new Date().toISOString().slice(0, 10)
+      const used = parseInt((await redis.get(`lc:meta:daily:${userId}:${today}`)) || '0', 10)
+      return used >= dailyLimit
+    }
+    return false
+  } catch (err) {
+    logger.warn({ err: err instanceof Error ? err.message : String(err), userId }, '[MetadataQueue] 配额检查失败，默认允许 PP')
+    return false
+  }
+}
+
+/**
+ * 增加用户当日元数据抓取计数（PP 实际抓取成功后调用）
+ */
+async function incrementMetadataDailyUsage(userId: string): Promise<void> {
+  try {
+    const { getRedisClient } = await import('../lib/redis')
+    const redis = getRedisClient()
+    if (!redis) return
+    const today = new Date().toISOString().slice(0, 10)
+    const key = `lc:meta:daily:${userId}:${today}`
+    await redis.incr(key)
+    // 当天 24:00 过期
+    const tomorrow = new Date()
+    tomorrow.setHours(24, 0, 0, 0)
+    const ttl = Math.max(60, Math.ceil((tomorrow.getTime() - Date.now()) / 1000))
+    await redis.expire(key, ttl)
+  } catch (err) {
+    logger.warn({ err: err instanceof Error ? err.message : String(err), userId }, '[MetadataQueue] 计数增加失败')
+  }
 }
 
 // 内存降级：Redis 不可用时使用
@@ -34,9 +94,11 @@ const memoryDedup = new Set<string>()
 
 /**
  * 生成去重 key
+ * v2.0: 改为基于 collectionId，每个收藏都有独立的后台抓取任务
+ * 原 userId:url 会导致同一用户重复添加同一 URL 时被静默跳过
  */
 function dedupKey(item: MetadataQueueItem): string {
-  return `${item.userId}:${item.url}`
+  return `${item.userId}:${item.collectionId}`
 }
 
 /**
@@ -100,7 +162,23 @@ async function processItem(item: MetadataQueueItem): Promise<void> {
 
   try {
     logger.debug({ url: item.url, retry: item.retryCount || 0 }, '[MetadataQueue] 开始抓取')
-    const metadata = await fetchUrlMetadata(item.url)
+
+    // 优先使用入队时已知的 skipPuppeteer（用户已超限），避免消费者再查一次
+    // 入队时未标记时，再走配额检查（覆盖跨进程/跨实例的并发场景）
+    const skipPuppeteer = item.skipPuppeteer ?? (await shouldSkipPuppeteer(item.userId))
+    if (skipPuppeteer) {
+      logger.info(
+        { url: item.url, userId: item.userId, reason: 'metadata_daily_limit' },
+        '[MetadataQueue] 用户已达日元数据抓取上限，降级为非 PP 抓取'
+      )
+    }
+
+    const metadata = await fetchUrlMetadata(item.url, {
+      userId: item.userId,
+      skipPuppeteer,
+      // ⭐ 只有 PP 真正启动时才计数（fast 通道命中不计）
+      onPuppeteerUsed: () => incrementMetadataDailyUsage(item.userId),
+    })
 
     // 无有效数据，加入"5 分钟重试队列"（反爬平台常先返回空再放行）
     if (!metadata.title && !metadata.coverImage) {

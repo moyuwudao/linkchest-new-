@@ -140,7 +140,9 @@
       "delete": "削除",
       "deleted": "Deleted",
       "deleteConfirm": "Delete this collection?",
-      "rating": "Rating"
+      "rating": "Rating",
+      "viewFullCover": "カバー拡大",
+      "tapToClose": "タップで閉じる"
     },
     "noSearchResults": "No search results",
     "tryDifferentKeywords": "Try different keywords",
@@ -175,7 +177,17 @@
     "csvDesc": "表形式、Excelで開けます、CJK対応",
     "shareTitle": "LinkChestデータをエクスポート",
     "hintTitle": "エクスポート情報",
-    "hintDesc": "削除されていない全コレクションが含まれます。Pro以上はカバー画像リンク付き。"
+    "hintDesc": "削除されていない全コレクションが含まれます。Pro以上はカバー画像リンク付き。",
+    "importHint": "モバイルではインポートできません。WEBアプリからインポートしてください。",
+    "successMsg": "エクスポート成功！キャッシュディレクトリに保存されました。",
+    "filePath": "ファイルパス: ",
+    "browserHint": "ブラウザで開きました。ダウンロードフォルダを確認してください。",
+    "dailyLimitTitle": "1日のダウンロード上限",
+    "lastChanceTitle": "本日のダウンロードが4回を超えました",
+    "lastChanceMsg": "本日あと{remaining}回ダウンロードできます。続行しますか？",
+    "limitReachedTitle": "本日の上限に達しました",
+    "limitReachedMsg": "本日のダウンロード上限（5回）に達しました。明日再度お試しください。",
+    "dailyLimitDesc": "本日 {current}/{limit} 回ダウンロード済み、残り {remaining} 回"
   },
   "group": {
     "management": "グループ管理",

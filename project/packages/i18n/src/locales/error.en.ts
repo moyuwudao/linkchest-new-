@@ -111,6 +111,7 @@ export default {
   ERR_QUOTA_COVER_IMAGES_EXCEEDED: "Cover image limit reached",
   ERR_QUOTA_SHARE_ITEMS_EXCEEDED: "Share item limit reached",
   ERR_QUOTA_DAILY_IMPORT_EXCEEDED: "Daily share import quota exceeded. Upgrade your plan for more",
+  ERR_QUOTA_METADATA_DAILY_EXCEEDED: "Daily cover-fetch quota reached. We've fallen back to platform default covers. Upgrade for unlimited smart covers",
   ERR_SHARE_ITEMS_PER_SHARE_EXCEEDED: "Each share can contain at most {limit} collections. You selected {actual}",
   ERR_STATS_PLATFORM_FETCH_FAILED: "Failed to fetch platform statistics",
   ERR_STATS_OVERVIEW_FETCH_FAILED: "Failed to fetch overview statistics",
