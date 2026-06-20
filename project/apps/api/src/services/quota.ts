@@ -34,18 +34,24 @@ function quotaCacheKey(userId: string): string {
  * 主动更新用户配额缓存（写操作后调用）
  * 优化：不再删除缓存（删除导致下次请求重新跑 6 个 count 查询），
  * 而是异步重新计算并写入缓存，下次请求直接命中。
+ *
+ * ⚠️ 关键：必须强制 skipCache=true 重新查 DB，否则 getQuotaUsage
+ *    会从脏缓存读旧值再写回，导致缓存永远不更新（配额失效）
  */
 export async function invalidateQuotaCache(userId: string): Promise<void> {
   // 异步重新计算配额并更新缓存（不阻塞调用方）
-  getQuotaUsage(userId).then((data) => {
-    setCachedQuotaUsage(userId, data).catch(() => {})
-  }).catch(() => {
-    // 重新计算失败时降级：删除缓存，下次请求重新计算
-    const redis = getRedisClient()
-    if (redis) {
-      redis.del(quotaCacheKey(userId)).catch(() => {})
-    }
-  })
+  // ⭐ 强制跳过缓存，确保从数据库重新查询最新计数
+  getQuotaUsage(userId, prisma, true)
+    .then((data) => {
+      setCachedQuotaUsage(userId, data).catch(() => {})
+    })
+    .catch(() => {
+      // 重新计算失败时降级：删除缓存，下次请求重新计算
+      const redis = getRedisClient()
+      if (redis) {
+        redis.del(quotaCacheKey(userId)).catch(() => {})
+      }
+    })
 }
 
 interface QuotaUsageData {
@@ -86,11 +92,12 @@ async function setCachedQuotaUsage(userId: string, data: QuotaUsageData): Promis
  */
 export async function getQuotaUsage(
   userId: string,
-  txClient: Prisma.TransactionClient = prisma
+  txClient: Prisma.TransactionClient = prisma,
+  skipCache: boolean = false
 ): Promise<QuotaUsageData> {
   const gu0 = Date.now()
-  // 优先从 Redis 缓存读取（无事务场景下）
-  if (txClient === prisma) {
+  // 优先从 Redis 缓存读取（无事务场景下 + 未显式要求跳过缓存）
+  if (txClient === prisma && !skipCache) {
     const cached = await getCachedQuotaUsage(userId)
     logger.info({ step: 'getQuotaUsage.getCachedQuotaUsage', ms: Date.now() - gu0, hit: !!cached }, '[quota] timing')
     if (cached) {
