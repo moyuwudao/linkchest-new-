@@ -377,16 +377,21 @@ ssh ubuntu@43.136.82.88 "grep -E 'COS_SECRET_ID|COS_SECRET_KEY|COS_BUCKET|COS_RE
 ### 6.2 强制检查清单
 
 - [ ] **已阅读 BUILD.md**
-- [ ] **确认 WSL 实例** — `linkchest`
+- [ ] **确认 WSL 实例** — 国内版用 `linkchest-cn` / 海外版用 `linkchest-global`（必须先 `wsl --list --verbose` 确认实例存在）
 - [ ] **验证镜像配置** — 国内镜像
 - [ ] **启用缓存** — `org.gradle.caching=true`
 - [ ] **禁止 clean**
 
 ### 6.3 唯一允许的构建方式
 
+> **WSL distro 说明**：项目使用两个独立 WSL 实例分别构建国内/海外版，distro 名称为 `linkchest-cn` 和 `linkchest-global`。执行前先运行 `wsl --list --verbose` 确认实例可用。
+
 ```bash
-# 正确：通过 WSL 执行构建脚本
-wsl -d linkchest -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
+# 正确：构建国内版 APK（CHINA 市场，package: com.linkchest.app）
+wsl -d linkchest-cn -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
+
+# 正确：构建海外版 APK（GLOBAL 市场，package: com.linkchest.app）
+wsl -d linkchest-global -u mayn -- bash /mnt/d/trae_projects/linkchest/project/apps/mobile/build-gradle.sh
 ```
 
 **禁止**：

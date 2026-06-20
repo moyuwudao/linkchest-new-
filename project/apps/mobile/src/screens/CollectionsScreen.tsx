@@ -403,7 +403,8 @@ export default function CollectionsScreen() {
       params.append('sortOrder', sortOrder);
       params.append('page', String(page));
       params.append('limit', String(PAGE_SIZE));
-      const response = await api.get(`/collections?${params.toString()}`);
+      // 首页列表：错误由 ListEmptyComponent 全屏展示 + 重试按钮，不再弹 server busy toast（避免反复提示）
+      const response = await api.get(`/collections?${params.toString()}`, { __silent: true } as any);
       return response.data;
     },
     staleTime: 30000,

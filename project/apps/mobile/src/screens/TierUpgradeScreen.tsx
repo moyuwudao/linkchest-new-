@@ -98,13 +98,21 @@ const benefitI18nMap: Record<string, string> = {
 // 严格按管理后台配置显示：基础收藏与分类、基础分享、社区支持等不隐藏
 // 在 benefits 中需要隐藏的文本（仅当与 feature flags 区域重复时）
 const hiddenBenefitTexts = new Set([
-  '分享密码保护', 'Share password protection',
+  '分享密码保护', 'Share password protection', 'Share Enhancement',
+  '分享增强',
   '重复检测', 'Duplicate detection', 'Duplicate check',
   '自动备份', 'Auto backup', 'Automatic backup',
+  // 免费版不需要显示的基础项（功能简单，套餐对比中只展示差异项）
+  '基础收藏与分类', 'Basic collections & categories',
+  '基础分享', 'Basic sharing',
+  '社区支持', 'Community support',
+  // 进阶版不需要显示的项（已在 feature flags/价格区域展示）
+  '分享增强', 'Share enhancement',
+  '支付宝月付年付', 'Alipay monthly/yearly payment',
 ]);
 
 // 旧的英文 key 匹配（向后兼容管理后台用英文 key 配置的情况）
-const hiddenBenefitKeys = ['batchops', 'exportpdf', 'sharestats', 'earlyaccess', 'sharelayout', 'sharepassword', 'prioritysupport', 'customsharecover', 'shareexpiry', 'sharerating', 'shareviews', 'duplicatecheck', 'autobackup'];
+const hiddenBenefitKeys = ['batchops', 'exportpdf', 'sharestats', 'earlyaccess', 'sharelayout', 'sharepassword', 'prioritysupport', 'customsharecover', 'shareexpiry', 'sharerating', 'shareviews', 'duplicatecheck', 'autobackup', 'basiccollections', 'basicsharing', 'communitysupport', 'shareenhancement', 'alipaysubscription'];
 
 /**
  * 判断 benefit 是否应该显示
