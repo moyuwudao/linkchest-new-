@@ -1969,12 +1969,17 @@ router.post('/:id/sync-cover', authenticate, async (req: AuthenticatedRequest, r
 router.post('/enqueue-metadata', authenticate, [
   body('url').custom((value) => {
     const processed = ensureHttps(value)
-    return !!processed && isURL(processed)
+    const valid = !!processed && isURL(processed, { require_protocol: true, require_valid_protocol: false })
+    if (!valid) {
+      logger.warn({ rawUrl: value, processedUrl: processed }, '[enqueue-metadata] URL 验证失败')
+    }
+    return valid
   }).withMessage('请输入有效的URL'),
   body('listIds').optional().isArray({ max: 1 }).withMessage('一个收藏只能属于一个分组'),
 ], async (req: AuthenticatedRequest, res) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
+    logger.warn({ url: req.body?.url, errors: errors.array() }, '[enqueue-metadata] 请求参数验证失败')
     return errorResponse(res, 400, CommonErrorCodes.VALIDATION_FAILED, errors.array())
   }
 

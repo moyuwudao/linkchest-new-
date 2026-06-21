@@ -195,7 +195,7 @@ api.interceptors.response.use(
     } else if (error.response.status === 403) {
       const errCode = error.response.data?.error || '';
       // 配额超限特殊提示
-      if (typeof errCode === 'string' && errCode.startsWith('QUOTA_EXCEEDED')) {
+      if (typeof errCode === 'string' && (errCode.startsWith('QUOTA_EXCEEDED') || (errCode.includes('QUOTA_') && errCode.endsWith('_EXCEEDED')))) {
         Toast.show({
           type: 'error',
           text1: t('error.quotaExceeded'),

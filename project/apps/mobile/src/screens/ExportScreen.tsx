@@ -8,7 +8,9 @@ import {
   Alert,
   Linking,
   RefreshControl,
+  Platform,
 } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeStore } from '../store/theme';
 import { useI18n } from '../lib/i18n';
@@ -62,8 +64,8 @@ export default function ExportScreen() {
     loadLimitStatus();
   }, [loadLimitStatus]);
 
-  // 移动端导出策略：后端生成 5 分钟有效的一次性下载 token，移动端通过 Linking.openURL
-  // 跳转系统浏览器进行下载。避免 RN 在 Android 13+ 的文件分享限制。
+  // 移动端导出策略：先获取一次性下载 token，再用 FileSystem.downloadAsync 下载到本地
+  // 解决 Linking.openURL 在 Android 上无法触发浏览器下载的问题
   const handleExport = async (format: ExportFormat) => {
     const opt = FORMAT_OPTIONS.find(o => o.key === format)!;
     setExporting(format);
@@ -75,42 +77,48 @@ export default function ExportScreen() {
         throw new Error('Failed to get download token');
       }
 
-      // 2. 拼接公开下载 URL（不含 /api 前缀，指向 export-download 公开端点）
+      // 2. 拼接公开下载 URL
       const baseUrl = getPublicBaseUrl();
       const downloadUrl = `${baseUrl}/api/collections/export-download?token=${encodeURIComponent(token)}&format=${format}`;
 
-      // 3. 第 4 次下载时弹出友好提示（"今日还剩 1 次机会"），但仍允许下载
+      // 3. 第 4 次下载时弹出友好提示
       if (isLastChance) {
-        await new Promise<void>((resolve) => {
+        await new Promise<void>((resolve, reject) => {
           Alert.alert(
             t('export.lastChanceTitle') || '提示',
             t('export.lastChanceMsg') || `今日下载次数超过4次，今天还剩 ${remaining} 次下载机会，是否继续？`,
             [
-              { text: t('common.cancel') || '取消', style: 'cancel', onPress: () => resolve() },
+              { text: t('common.cancel') || '取消', style: 'cancel', onPress: () => { resolve(); return; } },
               {
                 text: t('common.confirm') || '继续下载',
-                onPress: () => {
-                  Linking.openURL(downloadUrl).then(() => resolve()).catch(() => resolve());
-                },
+                onPress: () => resolve(),
               },
             ]
           );
         });
-      } else {
-        // 4. 跳转系统浏览器进行下载（支持 Android 13+ DownloadManager 自动保存）
-        const supported = await Linking.canOpenURL(downloadUrl);
-        if (!supported) {
-          throw new Error('Cannot open browser');
-        }
-        await Linking.openURL(downloadUrl);
-
-        Alert.alert(
-          t('common.success'),
-          `${t('export.successMsg')}\n\n${t('export.browserHint') || '已跳转至浏览器下载，请查看下载文件夹'}`
-        );
       }
 
-      // 5. 更新本地限制状态（乐观更新：消耗一次机会）
+      // 4. 使用 FileSystem.downloadAsync 下载到本地
+      const fileName = `linkchest-export.${opt.ext}`;
+      const localUri = FileSystem.documentDirectory + fileName;
+
+      const downloadResult = await FileSystem.downloadAsync(downloadUrl, localUri);
+      if (downloadResult.status !== 200) {
+        throw new Error(`Download failed with status ${downloadResult.status}`);
+      }
+
+      // 5. 用系统默认应用打开下载的文件（触发"分享/打开"菜单）
+      const canOpen = await Linking.canOpenURL(downloadResult.uri);
+      if (canOpen) {
+        await Linking.openURL(downloadResult.uri);
+      }
+
+      Alert.alert(
+        t('common.success'),
+        t('export.successMsg') || '导出成功'
+      );
+
+      // 6. 更新本地限制状态（乐观更新：消耗一次机会）
       setLimitStatus((prev) => {
         if (!prev) return prev;
         const next = prev.currentCount + 1;

@@ -59,7 +59,7 @@ api.interceptors.response.use(
       }
     } else if (error.response?.status === 403) {
       const errCode = error.response.data?.error || '';
-      if (typeof errCode === 'string' && errCode.startsWith('QUOTA_EXCEEDED')) {
+      if (typeof errCode === 'string' && (errCode.startsWith('QUOTA_EXCEEDED') || errCode.includes('QUOTA_') && errCode.endsWith('_EXCEEDED'))) {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('quota-exceeded', { detail: errCode }));
         }
