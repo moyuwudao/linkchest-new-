@@ -8,7 +8,7 @@ import { detectPlatform, getSupportedPlatformList } from '../services/platforms'
 import { classifyUrl } from '../services/pageClassifier'
 import { fetchUrlMetadata } from '../services/metadata'
 import { parseShareInput } from '../services/share-parser'
-import { checkQuota, checkQuotaBatch, invalidateQuotaCache, isMetadataDailyLimitReached } from '../services/quota'
+import { checkQuota, checkQuotaBatch, invalidateQuotaCache, isMetadataDailyLimitReached, checkDailyQuota, incrementDailyQuota } from '../services/quota'
 import { enqueueMetadataFetch } from '../services/metadata-queue'
 import { recordCollectionCreated } from '../services/prom-metrics'
 import { emitEvent } from '../lib/eventBus'
@@ -1580,6 +1580,12 @@ router.post('/import', authenticate, async (req: AuthenticatedRequest, res) => {
       return errorResponse(res, 403, quotaError)
     }
 
+    // 每日导入条数配额检查（与管理后台配置同步）
+    const dailyImportQuotaError = await checkDailyQuota(userId, itemsToImport.length)
+    if (dailyImportQuotaError) {
+      return errorResponse(res, 403, dailyImportQuotaError)
+    }
+
     // 确保有默认分组
     let defaultList = await prisma.list.findFirst({
       where: { userId, OR: [{ name: DEFAULT_LIST_KEY }, { name: '我的收藏' }] },
@@ -1694,6 +1700,11 @@ router.post('/import', authenticate, async (req: AuthenticatedRequest, res) => {
     }
 
     invalidateQuotaCache(userId).catch(() => {})
+
+    // 按实际成功导入数增加每日导入配额计数
+    if (result.success > 0) {
+      incrementDailyQuota(userId, result.success).catch(() => {})
+    }
 
     // 发布收藏导入事件
     emitEvent('collection:imported', {

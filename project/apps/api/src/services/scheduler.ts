@@ -12,9 +12,9 @@ import {
   SHARE_ITEM_RETENTION_DAYS,
   SHARE_ITEM_ACTIVE_RETENTION_DAYS,
   ERROR_EVENT_RETENTION_DAYS,
-  TRASH_RETENTION_DAYS,
   IMPORT_BATCH_SIZE,
 } from '../lib/constants'
+import { getQuotaUsage } from './quota'
 
 /**
  * ShareItem 差异化清理策略（DB-02）
@@ -82,35 +82,54 @@ async function cleanupResolvedErrorEvents(): Promise<void> {
 
 let isInitialized = false
 
-// 回收站自动清理：删除 deletedAt 超过 TRASH_RETENTION_DAYS 天的收藏
+// 回收站自动清理：按用户套餐配置删除 deletedAt 超过 trashRetentionDays 天的收藏
 async function cleanupExpiredTrash(): Promise<void> {
-  const cutoffDate = new Date()
-  cutoffDate.setDate(cutoffDate.getDate() - TRASH_RETENTION_DAYS)
-
   try {
-    // 先查找要删除的收藏 ID（用于清理关联的封面）
-    const expiredCollections = await prisma.collection.findMany({
-      where: {
-        deletedAt: { not: null, lte: cutoffDate },
-      },
-      select: { id: true },
+    // 先查找所有回收站中的收藏
+    const trashedCollections = await prisma.collection.findMany({
+      where: { deletedAt: { not: null } },
+      select: { id: true, userId: true, deletedAt: true },
     })
 
-    if (expiredCollections.length === 0) return
+    if (trashedCollections.length === 0) return
 
-    const ids = expiredCollections.map(c => c.id)
+    // 按用户获取回收站保留天数（与管理后台套餐配置同步）
+    const userIds = [...new Set(trashedCollections.map(c => c.userId))]
+    const userRetentionDays = new Map<string, number>()
+    await Promise.all(userIds.map(async (userId) => {
+      try {
+        const { limits } = await getQuotaUsage(userId)
+        userRetentionDays.set(userId, limits.trashRetentionDays)
+      } catch {
+        userRetentionDays.set(userId, 30) // 默认兜底 30 天
+      }
+    }))
+
+    const now = new Date()
+    const expiredIds: string[] = []
+
+    for (const collection of trashedCollections) {
+      const retentionDays = userRetentionDays.get(collection.userId) || 30
+      const cutoffDate = new Date(now)
+      cutoffDate.setDate(cutoffDate.getDate() - retentionDays)
+      if (collection.deletedAt && collection.deletedAt <= cutoffDate) {
+        expiredIds.push(collection.id)
+      }
+    }
+
+    if (expiredIds.length === 0) return
 
     // 批量物理删除，每批 IMPORT_BATCH_SIZE 条
     let deleted = 0
-    for (let i = 0; i < ids.length; i += IMPORT_BATCH_SIZE) {
-      const batch = ids.slice(i, i + IMPORT_BATCH_SIZE)
+    for (let i = 0; i < expiredIds.length; i += IMPORT_BATCH_SIZE) {
+      const batch = expiredIds.slice(i, i + IMPORT_BATCH_SIZE)
       const result = await prisma.collection.deleteMany({
         where: { id: { in: batch } },
       })
       deleted += result.count
     }
 
-    logger.info({ deleted, total: ids.length }, '🗑️ 回收站过期收藏清理完成')
+    logger.info({ deleted, total: expiredIds.length }, '🗑️ 回收站过期收藏清理完成（按套餐区分保留天数）')
   } catch (err) {
     logger.error({ err: err instanceof Error ? err.message : String(err) }, '❌ 回收站过期收藏清理失败')
   }
