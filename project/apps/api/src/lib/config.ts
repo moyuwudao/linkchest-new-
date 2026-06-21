@@ -40,7 +40,8 @@ export const CORS_ORIGINS = (() => {
 })()
 
 // 分享链接基础 URL（指向 Web 前端，用于生成分享链接和浏览器重定向）
-export const SHARE_BASE_URL = process.env.SHARE_BASE_URL || 'http://localhost:3003'
+// 优先读 SHARE_BASE_URL，未设置则回退到 FRONTEND_URL / WEB_BASE_URL，避免生产环境误用 localhost
+export const SHARE_BASE_URL = process.env.SHARE_BASE_URL || process.env.FRONTEND_URL || process.env.WEB_BASE_URL || 'http://localhost:3003'
 
 // Web 前端基础 URL（浏览器访问 /s/:id 时重定向到此地址）
 export const WEB_BASE_URL = process.env.WEB_BASE_URL || SHARE_BASE_URL
