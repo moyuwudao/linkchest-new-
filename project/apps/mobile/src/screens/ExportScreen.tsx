@@ -107,10 +107,20 @@ export default function ExportScreen() {
         throw new Error(`Download failed with status ${downloadResult.status}`);
       }
 
-      // 5. 用系统默认应用打开下载的文件（触发"分享/打开"菜单）
-      const canOpen = await Linking.canOpenURL(downloadResult.uri);
+      // 5. 用系统默认应用打开下载的文件
+      // Android 7+ 不允许直接用 file:// URI 跨应用分享，必须转成 content:// URI
+      let openUri = downloadResult.uri;
+      if (Platform.OS === 'android') {
+        try {
+          openUri = await FileSystem.getContentUriAsync(downloadResult.uri);
+        } catch (openErr) {
+          console.warn('[Export] getContentUriAsync failed:', openErr);
+        }
+      }
+
+      const canOpen = await Linking.canOpenURL(openUri);
       if (canOpen) {
-        await Linking.openURL(downloadResult.uri);
+        await Linking.openURL(openUri);
       }
 
       Alert.alert(

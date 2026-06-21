@@ -374,11 +374,10 @@ export default function CollectionFormScreen() {
     const targetUrl = url.trim();
     if (!targetUrl) return;
 
-    // 立即结束前端解析状态
+    // 立即结束前端解析状态，进入"正在入队"状态
     setParsing(false);
     setParsePhase('');
     setParseError('');
-    setSkipEnqueued(true);
     setSkipParsing(true);
 
     try {
@@ -387,6 +386,9 @@ export default function CollectionFormScreen() {
         url: targetUrl,
         listIds: selectedList ? [selectedList] : [],
       });
+
+      // 只有 API 成功后才标记为已入队，避免先显示成功再闪回失败
+      setSkipEnqueued(true);
 
       // 强制刷新收藏列表 + 配额（refetchQueries 立即重新获取）
       try {
@@ -783,75 +785,6 @@ export default function CollectionFormScreen() {
           </Text>
         </View>
       </View>
-
-      {/* 主封面预览 - 大图展示当前封面
-          - 有 coverImage：显示图片
-          - coverStrategy='brand'（渐变）：显示平台色 + 标题占位
-          - 其他（解析未拿到）：显示"封面待同步" */}
-      {!isEdit && (title.trim() || coverImage) && (
-        <View style={{ backgroundColor: colors.card, padding: 16, marginBottom: 8 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 }}>
-            {t('add.mainCoverPreview')}
-          </Text>
-          <View
-            style={{
-              width: '100%',
-              aspectRatio: 3 / 4,
-              maxHeight: 240,
-              borderRadius: 8,
-              overflow: 'hidden',
-              backgroundColor: colors.inputBg,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            {coverImage && coverImage.trim() ? (
-              <LazyImage uri={coverImage.trim()} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-            ) : coverStrategy === 'brand' ? (
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: platformColor || colors.primary,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  padding: 20,
-                }}
-              >
-                <Ionicons name="color-palette-outline" size={32} color="rgba(255,255,255,0.6)" />
-                {title.trim() ? (
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '600',
-                      color: '#ffffff',
-                      textAlign: 'center',
-                      marginTop: 8,
-                      textShadowColor: 'rgba(0,0,0,0.3)',
-                      textShadowOffset: { width: 0, height: 1 },
-                      textShadowRadius: 2,
-                    }}
-                    numberOfLines={2}
-                  >
-                    {title.trim()}
-                  </Text>
-                ) : null}
-              </View>
-            ) : (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                <Ionicons name="image-outline" size={36} color={colors.textTertiary} />
-                <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 10, textAlign: 'center' }}>
-                  {t('add.coverPendingSync')}
-                </Text>
-                {title.trim() ? (
-                  <Text style={{ fontSize: 11, color: colors.textTertiary, marginTop: 4, textAlign: 'center' }} numberOfLines={1}>
-                    {title.trim()}
-                  </Text>
-                ) : null}
-              </View>
-            )}
-          </View>
-        </View>
-      )}
 
       {/* 封面 */}
       <CoverEditor

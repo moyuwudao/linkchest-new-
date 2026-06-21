@@ -104,9 +104,9 @@ export default function CoverEditor({ value, onChange, platform = '', title, url
   // 当前选中的 library 封面（用于预览）
   const selectedLibraryCover = libraryCovers.find((c: any) => c.cosUrl === urlValue) || libraryCovers.find((c: any) => c.cosUrl === value) || latestLibraryCover;
 
-  // URL 封面是否可用
+  // URL 封面是否可用：任何非渐变、非系统封面的图片 URL 都在此预览
   const urlCoverAvailable = useMemo(() => {
-    return !!value && !value.startsWith('data:image/svg') && !isLibraryCoverValue(value) && !isSystemCoverValue(value, systemCovers) && !isGradientValue(value);
+    return !!value && !value.startsWith('data:image/svg') && !isSystemCoverValue(value, systemCovers) && !isGradientValue(value);
   }, [value, systemCovers]);
 
   useEffect(() => {
