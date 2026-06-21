@@ -9,6 +9,7 @@ import {
   Linking,
   RefreshControl,
   Platform,
+  Share,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
@@ -107,7 +108,7 @@ export default function ExportScreen() {
         throw new Error(`Download failed with status ${downloadResult.status}`);
       }
 
-      // 5. 用系统默认应用打开下载的文件
+      // 5. 把文件交给系统，优先保存到下载目录 / 分享面板
       // Android 7+ 不允许直接用 file:// URI 跨应用分享，必须转成 content:// URI
       let openUri = downloadResult.uri;
       if (Platform.OS === 'android') {
@@ -118,15 +119,55 @@ export default function ExportScreen() {
         }
       }
 
-      const canOpen = await Linking.canOpenURL(openUri);
-      if (canOpen) {
-        await Linking.openURL(openUri);
+      let savedToSystem = false;
+
+      if (Platform.OS === 'android') {
+        // Android：用 SAF 尝试保存到用户选中的目录（推荐 Downloads）
+        try {
+          const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+          if (permissions.granted) {
+            const safFileUri = await FileSystem.StorageAccessFramework.createFileAsync(
+              permissions.directoryUri,
+              fileName,
+              opt.mimeType
+            );
+            const content = await FileSystem.readAsStringAsync(downloadResult.uri, {
+              encoding: FileSystem.EncodingType.UTF8,
+            });
+            await FileSystem.StorageAccessFramework.writeAsStringAsync(safFileUri, content, {
+              encoding: FileSystem.EncodingType.UTF8,
+            });
+            savedToSystem = true;
+            Alert.alert(
+              t('common.success'),
+              t('export.savedToDownloads') || '文件已保存到所选目录'
+            );
+          }
+        } catch (safErr) {
+          console.warn('[Export] SAF save failed:', safErr);
+        }
+      } else {
+        // iOS：用系统分享面板，用户可选"存储到文件"
+        try {
+          const shareResult = await Share.share({
+            url: downloadResult.uri,
+            title: fileName,
+          });
+          if (shareResult.action !== Share.dismissedAction) {
+            savedToSystem = true;
+          }
+        } catch (shareErr) {
+          console.warn('[Export] Share failed:', shareErr);
+        }
       }
 
-      Alert.alert(
-        t('common.success'),
-        t('export.successMsg') || '导出成功'
-      );
+      // 如果保存/分享失败或被取消，降级为直接打开文件
+      if (!savedToSystem) {
+        const canOpen = await Linking.canOpenURL(openUri);
+        if (canOpen) {
+          await Linking.openURL(openUri);
+        }
+      }
 
       // 6. 更新本地限制状态（乐观更新：消耗一次机会）
       setLimitStatus((prev) => {
