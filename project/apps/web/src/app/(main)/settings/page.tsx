@@ -963,11 +963,11 @@ export default function SettingsPage() {
             <div className="px-5 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex-1 p-3 bg-parchment/5 dark:bg-chest-800/30 rounded-lg border border-chest-200 dark:border-chest-600/40">
-                  <p className="text-lg font-bold text-charcoal dark:text-parchment tracking-widest text-center font-mono">support@linkchest.net</p>
+                  <p className="text-lg font-bold text-charcoal dark:text-parchment tracking-widest text-center font-mono">{isChinaEnv ? 'support@linkchest.cn' : 'support@linkchest.net'}</p>
                 </div>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText('support@linkchest.net');
+                    navigator.clipboard.writeText(isChinaEnv ? 'support@linkchest.cn' : 'support@linkchest.net');
                     showToast(t('account.referralCopied'), 'success');
                   }}
                   className="p-3 border border-taupe/15 dark:border-parchment/10 rounded-lg hover:bg-parchment/10 dark:hover:bg-chest-700/40 text-charcoal dark:text-parchment transition-colors"

@@ -1,0 +1,107 @@
+﻿diff --git a/project/apps/api/src/services/subscription.ts b/project/apps/api/src/services/subscription.ts
+index 5d0f10d..8d66ce4 100644
+--- a/project/apps/api/src/services/subscription.ts
++++ b/project/apps/api/src/services/subscription.ts
+@@ -24,11 +24,12 @@ export async function getSubscriptionPlans() {
+       }
+ 
+       if (tier === 'medium') {
+-        plan.price = { monthly: 0, yearly: 0 }
++        // v4.1: 浠呭勾浠樸€俶edium 姘歌繙鏄?0
++        plan.price = { yearly: 0 }
+       } else {
+         const pricing = await getTierPricing(tier)
++        // v4.1: monthly 瀛楁宸蹭粠 PlanPricing 涓Щ闄わ紝price 浠呭惈 yearly
+         plan.price = {
+-          monthly: { cny: pricing.monthly.cny, usd: pricing.monthly.usd },
+           yearly: { cny: pricing.yearly.cny, usd: pricing.yearly.usd },
+         }
+       }
+diff --git a/project/apps/api/src/services/tierConfig.ts b/project/apps/api/src/services/tierConfig.ts
+index b0ebc72..5bc3107 100644
+--- a/project/apps/api/src/services/tierConfig.ts
++++ b/project/apps/api/src/services/tierConfig.ts
+@@ -79,45 +79,21 @@ async function seedTierConfigs(): Promise<TierConfig[]> {
+  * 鍒濆鍖?tier 閰嶇疆锛堜粎鍦ㄦ暟鎹簱涓虹┖鏃跺啓鍏ョ‖缂栫爜榛樿鍊硷級
+  * 绠＄悊鍚庡彴鏄厤缃敮涓€鏉ユ簮锛屾鍑芥暟涓嶄細瑕嗙洊宸叉湁鏁版嵁
+  *
+- * 渚嬪锛氬綋宸叉湁璁板綍鐨?pricingConfig 缂哄皯 cny 瀛楁鏃讹紙鍘嗗彶閬楃暀 bug锛夛紝
+- *       鑷姩鐢ㄤ唬鐮侀粯璁ょ殑 cny 浠锋牸琛ラ綈锛岀‘淇濆浗鍐呭競鍦烘樉绀烘纭殑浜烘皯甯佷环鏍?+ * v4.1: 鍒犻櫎 cny 琛ラ綈閫昏緫锛坴4.1 鏀逛负鍗?yearly 瀛楁锛屾棤 monthly锛?+ *       鍘嗗彶璁板綍鑻ヤ粛鍚?monthly锛屽湪璇诲彇鏃剁敱 rowToTierConfig 杩囨护
+  */
+-export async function syncTierConfigs(): Promise<{ updated: number; created: number; cnyBackfilled: number }> {
++export async function syncTierConfigs(): Promise<{ updated: number; created: number }> {
+   const configs = buildFallbackConfigs()
+   let updated = 0
+   let created = 0
+-  let cnyBackfilled = 0
+ 
+   for (const c of configs) {
+     try {
+       const existing = await prisma.tierConfig.findUnique({ where: { key: c.key } })
+       if (existing) {
+-        // 妫€鏌ユ槸鍚﹂渶瑕佽ˉ鍏?cny 瀛楁锛堜笉瑕嗙洊鍏朵粬宸叉湁鏁版嵁锛?-        const existingPricing = (existing.pricingConfig as Record<string, any>) || {}
+-        const needsCnyBackfill =
+-          c.pricingConfig &&
+-          existingPricing &&
+-          (existingPricing.monthly?.cny == null || existingPricing.yearly?.cny == null)
+-
+-        if (needsCnyBackfill && c.pricingConfig) {
+-          const mergedPricing = {
+-            monthly: {
+-              usd: existingPricing.monthly?.usd ?? c.pricingConfig.monthly.usd,
+-              cny: existingPricing.monthly?.cny ?? c.pricingConfig.monthly.cny ?? 0,
+-            },
+-            yearly: {
+-              usd: existingPricing.yearly?.usd ?? c.pricingConfig.yearly.usd,
+-              cny: existingPricing.yearly?.cny ?? c.pricingConfig.yearly.cny ?? 0,
+-            },
+-          }
+-          await prisma.tierConfig.update({
+-            where: { id: existing.id },
+-            data: { pricingConfig: mergedPricing as any },
+-          })
+-          cnyBackfilled++
+-          logger.info({ key: c.key }, '宸蹭负鍘嗗彶 tier 閰嶇疆琛ュ厖 cny 浠锋牸瀛楁锛堝浗鍐呬汉姘戝竵锛?)
+-        }
+-        // 鍏朵粬鍦烘櫙涓嶈鐩栫鐞嗗悗鍙版暟鎹?+        // v4.1: 涓嶅啀涓诲姩鍚屾宸叉湁鏁版嵁锛堢鐞嗗悗鍙颁负鍞竴鏉ユ簮锛?+        // 鍏煎锛氬鏋滄暟鎹簱璁板綍閲?monthly 瀛楁娈嬬暀锛坴4.1 涔嬪墠鐨勬暟鎹級锛屼笅娆″惎鍔ㄦ椂浼氳杩囨护鎺?+        continue
+       } else {
+         await prisma.tierConfig.create({
+           data: {
+@@ -139,11 +115,11 @@ export async function syncTierConfigs(): Promise<{ updated: number; created: num
+     }
+   }
+ 
+-  if (created > 0 || cnyBackfilled > 0) {
++  if (created > 0) {
+     clearTierConfigCache()
+-    logger.info({ created, cnyBackfilled }, 'tier configs synced')
++    logger.info({ created }, 'tier configs synced')
+   }
+-  return { updated, created, cnyBackfilled }
++  return { updated, created }
+ }
+ 
+ function rowToTierConfig(row: {
+@@ -160,10 +136,22 @@ function rowToTierConfig(row: {
+   createdAt: Date
+   updatedAt: Date
+ }): TierConfig {
++  // v4.1: 闃插尽鎬ц繃婊?monthly锛堝巻鍙?v3.x 鏁版嵁搴撹褰曞彲鑳戒粛鍚?monthly 瀛楁锛?+  //       宸茶縼绉荤殑鏁版嵁搴撲笉浼氬惈 monthly锛屼絾浠ｇ爜灞傚仛鏈€鍚庝竴閬撻槻绾?+  const rawPricing = (row.pricingConfig as PlanPricing | null) || null
++  const cleanPricing: PlanPricing | null = rawPricing
++    ? ({
++        yearly: rawPricing.yearly,
++        // 鏄惧紡涓㈠純 monthly 瀛楁锛坴4.1 璧蜂笉鍐嶆敮鎸侊級
++        ...(rawPricing as Record<string, unknown>),
++        monthly: undefined,
++      } as PlanPricing)
++    : null
++
+   return {
+     ...row,
+     quotaConfig: row.quotaConfig as QuotaLimits,
+-    pricingConfig: row.pricingConfig as PlanPricing | null,
++    pricingConfig: cleanPricing,
+     benefits: (row.benefits as string[]) || [],
+   }
+ }
+

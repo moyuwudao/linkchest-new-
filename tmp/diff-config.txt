@@ -1,0 +1,38 @@
+﻿diff --git a/project/apps/api/src/lib/config.ts b/project/apps/api/src/lib/config.ts
+index 61af676..26dc121 100644
+--- a/project/apps/api/src/lib/config.ts
++++ b/project/apps/api/src/lib/config.ts
+@@ -187,7 +187,7 @@ export const TIER_DISPLAY_NAMES: Record<UserTier, { nameZh: string; nameEn: stri
+ 
+ // ===== 瀹氫环閰嶇疆锛堜环鏍煎崟浣嶏細缇庡厓缇庡垎锛岄伩鍏嶆诞鐐圭簿搴﹂棶棰橈級 =====
+ // v4.1: 浠呮敮鎸佸勾浠橈紙楼98锛夈€侭illingCycle 鏀逛负 'yearly' 鍗曞€硷紝TS 缂栬瘧鏃跺己鍒躲€?-//       鍚庣画濡傞渶鏀寔鏈堜粯锛屽啀鏀瑰洖 'monthly' | 'yearly'
++//       鍚庣画濡傞渶鏀寔鏈堜粯锛屽啀鏀瑰洖 'monthly' | 'yearly'锛屽苟鎶?monthly 瀛楁鍔犲洖 PlanPricing
+ export type BillingCycle = 'yearly'
+ 
+ export interface PlanPrice {
+@@ -196,7 +196,8 @@ export interface PlanPrice {
+ }
+ 
+ export interface PlanPricing {
+-  monthly: PlanPrice
++  // v4.1: monthly 宸插垹闄わ紙浠呭勾浠橈級銆傚巻鍙叉暟鎹簱璁板綍鍙兘浠嶅惈 monthly锛?+  //       璋冪敤鏂归渶鍏煎锛堣 services/tierConfig.ts 鐨勫瓧娈佃繃婊わ級
+   yearly: PlanPrice
+ }
+ 
+@@ -204,16 +205,15 @@ export interface PlanPricing {
+ // 鍥藉唴甯傚満锛氫环鏍煎崟浣嶄负浜烘皯甯佸垎锛坈ny锛夛紝鍥藉唴甯傚満蹇呴』閰嶇疆 cny锛岀己澶辨椂鏄剧ず涓?$0 鏄敊璇殑
+ // 娴峰甯傚満锛氫环鏍煎崟浣嶄负缇庡厓缇庡垎锛坲sd锛? // cny 涓?usd 鍚屾璁剧疆锛岄伩鍏嶄换涓€甯傚満鏄剧ず涓虹┖鎴栧崟浣嶉敊璇?+// v4.1: heavy 浠呭勾浠?楼98/$14.99锛泂uper 鍐呴儴淇濈暀锛堜紒涓氱増锛夛紝UI 涓嶅睍绀? export const PRICING_CONFIG: Record<Exclude<UserTier, 'medium'>, PlanPricing> = {
+   heavy: {
+-    // 鍥藉唴锛毬?9/鏈堛€伮?99/骞达紙8鎶橈級锛涙捣澶栵細$2.99/鏈堛€?28.71/骞?-    monthly: { usd: 299, cny: 1990 },
+-    yearly:  { usd: 2871, cny: 19900 },
++    // 鍥藉唴锛毬?8/骞达紱娴峰锛?14.99/骞?+    yearly: { usd: 1499, cny: 9800 },
+   },
+   super: {
+-    // 鍥藉唴锛毬?9/鏈堛€伮?99/骞达紙8鎶橈級锛涙捣澶栵細$5.99/鏈堛€?57.51/骞?-    monthly: { usd: 599, cny: 3990 },
+-    yearly:  { usd: 5751, cny: 39900 },
++    // 鍥藉唴锛毬?99/骞达紱娴峰锛?28.71/骞达紙浼佷笟鐗堬紝UI 涓嶅睍绀猴級
++    yearly: { usd: 2871, cny: 19900 },
+   },
+ }
+ 
+

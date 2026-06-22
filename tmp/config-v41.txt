@@ -1,0 +1,197 @@
+﻿// 闆嗕腑绠＄悊搴旂敤閰嶇疆锛岄伩鍏嶅垎鏁ｇ殑纭紪鐮佸洖閫€鍊?// 纭繚 dotenv 鍦ㄨ鍙栫幆澧冨彉閲忎箣鍓嶅姞杞?import dotenv from 'dotenv'
+import {
+  USER_CACHE_TTL_SECONDS,
+  SHARE_CACHE_TTL_SECONDS,
+  METADATA_CACHE_TTL_SECONDS,
+  METADATA_TOTAL_TIMEOUT_MS,
+  METADATA_FETCH_TIMEOUT_MS,
+  METADATA_MAX_CONCURRENT,
+  METADATA_LRU_CACHE_MAX_SIZE,
+  ALERT_SCAN_INTERVAL_MS,
+  COVER_CLEANUP_DAYS,
+  AVATAR_MAX_SIZE,
+  AVATAR_DIMENSION,
+  COVER_MAX_SIZE,
+  COVER_TARGET_SIZE,
+  COVER_MAX_DIMENSION,
+} from './constants'
+dotenv.config()
+
+// JWT 瀵嗛挜锛氬己鍒惰姹傜幆澧冨彉閲忥紝涓嶆彁渚涘急榛樿鍊?export const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    console.error('鉂?FATAL: JWT_SECRET 鐜鍙橀噺鏈缃紒璇峰厛閰嶇疆 JWT_SECRET 鍚庡啀鍚姩鏈嶅姟銆?)
+    process.exit(1)
+  }
+  return secret
+})()
+
+// CORS 鍏佽鐨勬潵婧愶細鏀寔閫楀彿鍒嗛殧澶氫釜鏉ユ簮
+export const CORS_ORIGINS = (() => {
+  const envOrigins = process.env.CORS_ORIGIN
+  if (envOrigins) {
+    return envOrigins.split(',').map(o => o.trim()).filter(Boolean)
+  }
+  // 榛樿浠呭厑璁告湰鍦板紑鍙?  return ['http://localhost:3000', 'http://localhost:3001']
+})()
+
+// 鍒嗕韩閾炬帴鍩虹 URL锛堟寚鍚?Web 鍓嶇锛岀敤浜庣敓鎴愬垎浜摼鎺ュ拰娴忚鍣ㄩ噸瀹氬悜锛?export const SHARE_BASE_URL = process.env.SHARE_BASE_URL || 'http://localhost:3003'
+
+// Web 鍓嶇鍩虹 URL锛堟祻瑙堝櫒璁块棶 /s/:id 鏃堕噸瀹氬悜鍒版鍦板潃锛?export const WEB_BASE_URL = process.env.WEB_BASE_URL || SHARE_BASE_URL
+
+// API 绔彛
+export const PORT = parseInt(process.env.PORT || '3001', 10)
+
+// 鍏变韩涓氬姟甯搁噺
+export const DEFAULT_LIST_KEY = '__DEFAULT_LIST__'
+export const DEFAULT_LIST_DESC = '__DEFAULT_LIST_DESC__'
+
+// ===== COS 閰嶇疆 =====
+export const COS_CONFIG = {
+  secretId: process.env.COS_SECRET_ID || '',
+  secretKey: process.env.COS_SECRET_KEY || '',
+  bucket: process.env.COS_BUCKET || '',
+  region: process.env.COS_REGION || 'ap-guangzhou',
+  domain: process.env.COS_DOMAIN || '', // 鑷畾涔夊煙鍚嶏紙鍙€夛級
+}
+
+// ===== 閰嶉閰嶇疆 =====
+export type UserTier = 'medium' | 'heavy' | 'super'
+
+export interface QuotaLimits {
+  // 鏁板€煎瀷閰嶉
+  collections: number
+  tags: number
+  lists: number
+  shares: number
+  shareItems: number
+  coverImages: number        // 灏侀潰鎬婚噺涓婇檺锛堜繚鐣欏吋瀹癸級
+  coverImagesDaily: number   // 鏃ヤ笂浼犲皝闈㈡暟锛坴3.0 鏍稿績闄愬埗锛?  maxItemsPerShare: number   // 鍗曟鍒嗕韩瀹归噺涓婇檺
+  dailyImportLimit: number   // 姣忔棩瀵煎叆鏉℃暟涓婇檺
+  metadataDailyLimit: number // 鍏冩暟鎹棩鎶撳彇涓婇檺
+  trashRetentionDays: number // 鍥炴敹绔欎繚鐣欏ぉ鏁?  // 鍔熻兘寮€鍏冲瀷锛坱rue=寮€鍚紝false=鍏抽棴锛? 浠呬繚鐣欏凡瀹炵幇鐨勫姛鑳?  sharePassword: boolean     // 鍒嗕韩瀵嗙爜淇濇姢
+  shareExpiry: boolean       // 鍒嗕韩鏈夋晥鏈熻缃?  shareRating: boolean       // 鍒嗕韩鏃堕檮甯﹁瘎鍒?}
+
+// ===== 閰嶉閰嶇疆锛坴4.1 - 浠呭勾浠橈紝绉婚櫎鏈疄鐜板姛鑳藉瓧娈碉級=====
+// v4.1: 浠呮敮鎸佸勾浠橈紙楼98锛夛紝鍒犻櫎鏈疄鐜板姛鑳藉瓧娈?(shareStats/shareViews/shareLayout/
+//       batchOps/exportPdf/prioritySupport/earlyAccess/customShareCover)
+// v4.0: 绠€鍖栦负 2 妗ｅ椁愶紙medium=鍏嶈垂, heavy=浠樿垂锛?//       super 淇濈暀鍐呴儴鏁版嵁鍏煎锛孶I 涓嶅睍绀猴紙鏈潵鎵╁睍/浼佷笟鐗堜娇鐢級
+export const QUOTA_CONFIG: Record<UserTier, QuotaLimits> = {
+  // 鍏嶈垂鐗堬紙medium锛?  medium: { collections: 999999, tags: 999999, lists: 999999, shares: 5, shareItems: 999999, coverImages: 999999, coverImagesDaily: 5, maxItemsPerShare: 50, dailyImportLimit: 30, metadataDailyLimit: 30, trashRetentionDays: 7, sharePassword: false, shareExpiry: false, shareRating: false },
+  // 浠樿垂鐗堬紙heavy锛壜?8/骞?  heavy:  { collections: 999999, tags: 999999, lists: 999999, shares: 100, shareItems: 999999, coverImages: 999999, coverImagesDaily: 80, maxItemsPerShare: 500, dailyImportLimit: 500, metadataDailyLimit: 200, trashRetentionDays: 30, sharePassword: true, shareExpiry: true, shareRating: true },
+  // 鏃楄埌鐗堬紙super锛夛細淇濈暀鍐呴儴鏁版嵁鍏煎锛孶I 涓嶅睍绀猴紙鏈潵鎵╁睍/浼佷笟鐗堜娇鐢級
+  super:  { collections: 999999, tags: 999999, lists: 999999, shares: 300, shareItems: 999999, coverImages: 999999, coverImagesDaily: 100, maxItemsPerShare: 1000, dailyImportLimit: 5000, metadataDailyLimit: 500, trashRetentionDays: 90, sharePassword: true, shareExpiry: true, shareRating: true },
+}
+
+// ===== 澶村儚澶勭悊閰嶇疆 =====
+export const AVATAR_CONFIG = {
+  maxUploadSize: AVATAR_MAX_SIZE,
+  dimension: AVATAR_DIMENSION, // 200x200 姝ｆ柟褰?  format: 'webp' as const,
+  quality: 80,
+  urlExpirySeconds: SHARE_CACHE_TTL_SECONDS, // 绛惧悕URL 7澶?  redisCacheTtl: USER_CACHE_TTL_SECONDS, // Redis缂撳瓨 5澶?}
+
+// ===== 灏侀潰澶勭悊閰嶇疆 =====
+export const COVER_CONFIG = {
+  maxUploadSize: COVER_MAX_SIZE,
+  recommendSize: 2 * 1024 * 1024, // 2MB锛堝墠绔缓璁級
+  targetSize: COVER_TARGET_SIZE,
+  maxDimension: COVER_MAX_DIMENSION,
+  format: 'webp' as const,
+  quality: 80,
+  urlExpirySeconds: SHARE_CACHE_TTL_SECONDS, // 绛惧悕URL 7澶╋紙Mobile绔棤娉曞儚Web绔紦瀛楤lob锛岄渶杈冮暱鏈夋晥鏈燂級
+  redisCacheTtl: USER_CACHE_TTL_SECONDS, // Redis缂撳瓨 5澶?  cleanupDays: COVER_CLEANUP_DAYS,
+}
+
+// ===== 鏈湴缂撳瓨閰嶇疆 =====
+export const CACHE_CONFIG = {
+  mobileMaxSize: 100 * 1024 * 1024, // 100MB
+  webMaxSize: 50 * 1024 * 1024, // 50MB
+}
+
+// ===== SES 閭欢鎺ㄩ€侀厤缃?=====
+export const SES_CONFIG = {
+  secretId: process.env.TENCENTCLOUD_SECRET_ID || '',
+  secretKey: process.env.TENCENTCLOUD_SECRET_KEY || '',
+  region: process.env.SES_REGION || 'ap-guangzhou',
+  fromEmail: process.env.SES_FROM_EMAIL || 'noreply@linkchest.net',
+}
+
+// ===== TMS 鑵捐浜戝唴瀹瑰畨鍏ㄩ厤缃?=====
+export const TMS_CONFIG = {
+  secretId: process.env.TENCENTCLOUD_SECRET_ID || '',
+  secretKey: process.env.TENCENTCLOUD_SECRET_KEY || '',
+  // 涓?SES/COS-鍥藉唴鐗堜繚鎸佷竴鑷?鍐呯綉浜掗€?+ 浣庡欢杩?  region: process.env.TMS_REGION || 'ap-guangzhou',
+  // 鏄惁鍚敤(鍥藉唴鐗堜笖瀵嗛挜宸查厤缃椂涓?true)
+  enabled: !!(process.env.TENCENTCLOUD_SECRET_ID && process.env.TENCENTCLOUD_SECRET_KEY),
+}
+
+// ===== Google OAuth 閰嶇疆 =====
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
+
+// ===== 杩愮淮鐩戞帶閰嶇疆 =====
+export const ADMIN_CONFIG = {
+  /** 绠＄悊鍛樼敤鎴稩D鍒楄〃锛岄€楀彿鍒嗛殧 */
+  userIds: (process.env.ADMIN_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean),
+  /** 鍛婅寮曟搸寮€鍏?*/
+  alertingEnabled: process.env.ALERTING_ENABLED !== 'false',
+  /** 鍛婅鎵弿闂撮殧锛堟绉掞級锛岄粯璁?15 鍒嗛挓 */
+  alertScanIntervalMs: parseInt(process.env.ALERT_SCAN_INTERVAL_MS || String(ALERT_SCAN_INTERVAL_MS), 10),
+  /** 鍛婅鎺ユ敹閭锛岄€楀彿鍒嗛殧 */
+  alertEmails: (process.env.ALERT_EMAILS || '').split(',').map(s => s.trim()).filter(Boolean),
+  /** 椋炰功 Webhook URL */
+  feishuWebhook: process.env.FEISHU_WEBHOOK_URL || '',
+  /** 浼佷笟寰俊 Webhook URL */
+  wecomWebhook: process.env.WECOM_WEBHOOK_URL || '',
+}
+
+// ===== 鍏冩暟鎹姄鍙栭厤缃?=====
+export const METADATA_CONFIG = {
+  // Redis 缂撳瓨 24 灏忔椂锛圴3.6 浼樺寲锛氫粠 1 灏忔椂寤堕暱鍒?24 灏忔椂锛屽ぇ骞呭噺灏戦噸澶嶆姄鍙栵級
+  cacheTtlSeconds: METADATA_CACHE_TTL_SECONDS,
+  // 鍗曟鎶撳彇鎬昏秴鏃?8 绉掞紙P1 浼樺寲锛氫粠 10s 缂╃煭鍒?8s锛屽姞蹇け璐ュ洖閫€锛?  totalTimeoutMs: METADATA_TOTAL_TIMEOUT_MS,
+  // 鍗曚釜 HTTP 璇锋眰瓒呮椂 4 绉掞紙P1 浼樺寲锛氫粠 5s 缂╃煭鍒?4s锛?  fetchTimeoutMs: METADATA_FETCH_TIMEOUT_MS,
+  // 鏈€澶у苟鍙戞姄鍙栨暟锛堥厤鍚?metadata-queue.ts 鐨?p-limit锛?  maxConcurrentFetch: METADATA_MAX_CONCURRENT,
+  // 鍐呭瓨 LRU 缂撳瓨鏈€澶ф潯鐩暟
+  lruCacheMaxSize: METADATA_LRU_CACHE_MAX_SIZE,
+}
+
+// ===== 濂楅鍝佺墝鍚嶆槧灏?=====
+export const TIER_DISPLAY_NAMES: Record<UserTier, { nameZh: string; nameEn: string }> = {
+  medium: { nameZh: '鍏嶈垂鐗?, nameEn: 'Free' },
+  heavy:  { nameZh: '涓撲笟鐗?, nameEn: 'Pro' },
+  // 鍐呴儴淇濈暀鍚嶇О锛圲I 涓嶅睍绀猴紝鏈潵浼佷笟鐗堟墿灞曠敤锛?  super:  { nameZh: '浼佷笟鐗?, nameEn: 'Enterprise' },
+}
+
+// ===== 瀹氫环閰嶇疆锛堜环鏍煎崟浣嶏細缇庡厓缇庡垎锛岄伩鍏嶆诞鐐圭簿搴﹂棶棰橈級 =====
+// v4.1: 浠呮敮鎸佸勾浠橈紙楼98锛夈€侭illingCycle 鏀逛负 'yearly' 鍗曞€硷紝TS 缂栬瘧鏃跺己鍒躲€?//       鍚庣画濡傞渶鏀寔鏈堜粯锛屽啀鏀瑰洖 'monthly' | 'yearly'
+export type BillingCycle = 'yearly'
+
+export interface PlanPrice {
+  usd: number  // 缇庡厓缇庡垎
+  cny?: number // 浜烘皯甯佸垎锛堝浗鍐呭競鍦猴級
+}
+
+export interface PlanPricing {
+  monthly: PlanPrice
+  yearly: PlanPrice
+}
+
+// ===== 瀹氫环閰嶇疆 =====
+// 鍥藉唴甯傚満锛氫环鏍煎崟浣嶄负浜烘皯甯佸垎锛坈ny锛夛紝鍥藉唴甯傚満蹇呴』閰嶇疆 cny锛岀己澶辨椂鏄剧ず涓?$0 鏄敊璇殑
+// 娴峰甯傚満锛氫环鏍煎崟浣嶄负缇庡厓缇庡垎锛坲sd锛?// cny 涓?usd 鍚屾璁剧疆锛岄伩鍏嶄换涓€甯傚満鏄剧ず涓虹┖鎴栧崟浣嶉敊璇?export const PRICING_CONFIG: Record<Exclude<UserTier, 'medium'>, PlanPricing> = {
+  heavy: {
+    // 鍥藉唴锛毬?9/鏈堛€伮?99/骞达紙8鎶橈級锛涙捣澶栵細$2.99/鏈堛€?28.71/骞?    monthly: { usd: 299, cny: 1990 },
+    yearly:  { usd: 2871, cny: 19900 },
+  },
+  super: {
+    // 鍥藉唴锛毬?9/鏈堛€伮?99/骞达紙8鎶橈級锛涙捣澶栵細$5.99/鏈堛€?57.51/骞?    monthly: { usd: 599, cny: 3990 },
+    yearly:  { usd: 5751, cny: 39900 },
+  },
+}
+
+// ===== 骞垮満閰嶇疆锛堝凡涓嬬嚎锛屼繚鐣欎互澶囧悗缁仮澶嶏級 =====
+// export const PLAZA_CONFIG = {
+//   pageSize: 20,
+//   previewItems: 3,
+//   defaultTags: ['鎶€鏈?, '璁捐', '鐢熸椿', '濞变箰', '瀛︿範'],
+// }

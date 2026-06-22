@@ -1,0 +1,17 @@
+{
+  "extensionName": {
+    "message": "LinkChest - Smart Bookmark Manager"
+  },
+  "extensionDescription": {
+    "message": "Auto-detect platform, extract title and cover from any link. Organize with groups, tags, ratings. Parse later, share in one click. Free, cross-device sync."
+  },
+  "saveToLinkchest": {
+    "message": "Save to LinkChest"
+  },
+  "savePageMenu": {
+    "message": "Save current page to LinkChest"
+  },
+  "saveLinkMenu": {
+    "message": "Save this link to LinkChest"
+  }
+}

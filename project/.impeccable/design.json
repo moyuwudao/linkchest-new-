@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-09T13:34:00+08:00",
+  "title": "Design System: LinkChest",
+  "extensions": {
+    "colorMeta": {
+      "the-vault": {
+        "role": "primary",
+        "displayName": "The Vault",
+        "canonical": "#1B2A4A",
+        "tonalRamp": [
+          "#EEF1F6", "#D5DBE7", "#ABB7CF", "#8193B7", "#6C82AB",
+          "#576F9F", "#3A4D75", "#1B2A4A", "#16233D", "#111C31", "#0F1829", "#0A111E", "#04070C"
+        ]
+      },
+      "wax-seal": {
+        "role": "secondary",
+        "displayName": "Wax Seal",
+        "canonical": "#B07A4F",
+        "tonalRamp": [
+          "#FBF5EE", "#F2E4D4", "#E5C9A9", "#D8AE7E", "#D0A175",
+          "#C8956C", "#BC885D", "#B07A4F", "#8D6240", "#6A4930", "#463120", "#231810", "#120C08"
+        ]
+      },
+      "wax-seal-bright": {
+        "role": "tertiary",
+        "displayName": "Wax Seal Bright",
+        "canonical": "#C8956C",
+        "tonalRamp": ["#FBF5EE", "#F2E4D4", "#E5C9A9", "#D8AE7E", "#C8956C", "#B07A4F", "#6A4930"]
+      },
+      "parchment": {
+        "role": "neutral",
+        "displayName": "Parchment",
+        "canonical": "#F7F5F0",
+        "tonalRamp": ["#FFFFFF", "#F7F5F0", "#F0EDE6", "#E8E4DC", "#D8D4CC", "#B0A99E", "#8A8175", "#2D3142"]
+      },
+      "lampblack": {
+        "role": "neutral",
+        "displayName": "Lampblack",
+        "canonical": "#0F1419",
+        "tonalRamp": ["#E8E4DC", "#1E2430", "#1A1F2A", "#151A23", "#0F1419"]
+      },
+      "ink-mute": {
+        "role": "neutral",
+        "displayName": "Ink Mute",
+        "canonical": "#2D3142",
+        "tonalRamp": ["#E8E4DC", "#8A8175", "#2D3142", "#0F1419"]
+      },
+      "taupe": {
+        "role": "neutral",
+        "displayName": "Taupe",
+        "canonical": "#8A8175",
+        "tonalRamp": ["#E8E4DC", "#B0A99E", "#8A8175", "#2D3142"]
+      },
+      "sage": {
+        "role": "accent",
+        "displayName": "Sage",
+        "canonical": "#5B8A72",
+        "tonalRamp": ["#8FB5A0", "#5B8A72", "#3D5C4D"]
+      },
+      "rust": {
+        "role": "accent",
+        "displayName": "Rust",
+        "canonical": "#B85C5C",
+        "tonalRamp": ["#D48A8A", "#B85C5C", "#7A3A3A"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (Bodoni Moda)",
+        "purpose": "Hero headlines and share-page page titles only. Never inside product UI chrome."
+      },
+      "headline": {
+        "displayName": "Headline (DM Sans 600)",
+        "purpose": "Section titles, modal titles, primary label on a featured card."
+      },
+      "title": {
+        "displayName": "Title (DM Sans 600)",
+        "purpose": "Card titles, list item primary labels, drawer section headers."
+      },
+      "body": {
+        "displayName": "Body (DM Sans 400)",
+        "purpose": "All running copy, notes, descriptions, link metadata."
+      },
+      "label": {
+        "displayName": "Label (DM Sans 500)",
+        "purpose": "Form labels, button text, badges, tab labels. Never uppercase."
+      },
+      "cjk-display": {
+        "displayName": "CJK Display (LXGW WenKai)",
+        "purpose": "CJK fallback for display headlines. Maintains vertical rhythm."
+      }
+    },
+    "shadows": [
+      { "name": "card", "value": "0 1px 3px rgba(27, 42, 74, 0.04), 0 1px 2px rgba(27, 42, 74, 0.02)", "purpose": "Resting card. Barely-there ambient." },
+      { "name": "card-hover", "value": "0 8px 24px rgba(27, 42, 74, 0.08), 0 2px 8px rgba(27, 42, 74, 0.04)", "purpose": "Hover state. Pairs with -translate-y-1." },
+      { "name": "elevated", "value": "0 4px 12px rgba(27, 42, 74, 0.06), 0 2px 4px rgba(27, 42, 74, 0.03)", "purpose": "Raised controls (primary buttons at rest, focus rings, sticky toolbars)." },
+      { "name": "floating", "value": "0 12px 40px rgba(15, 20, 25, 0.12), 0 4px 12px rgba(15, 20, 25, 0.06)", "purpose": "Modals, command palettes, toasts. The drawer pulled out of the desk." },
+      { "name": "glow", "value": "0 0 24px rgba(200, 149, 108, 0.2)", "purpose": "Wax Seal halo on focus rings and the share-link affordance." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for state transitions." },
+      { "name": "ease-toast", "value": "cubic-bezier(0.34, 1.56, 0.64, 1)", "purpose": "Toast entry. The single allowed spring easing." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Color, border, and background-color changes." },
+      { "name": "duration-base", "value": "200ms", "purpose": "Default for transforms, shadows, and most state transitions." },
+      { "name": "duration-modal", "value": "300ms", "purpose": "Modal entry, drawer slide." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The default action button. One per primary action surface. Lifts on hover, presses on active, glows on focus.",
+      "html": "<button class=\"ds-btn-primary\">Save link</button>",
+      "css": ".ds-btn-primary { background: #1B2A4A; color: #F7F5F0; padding: 10px 16px; font-family: 'DM Sans', system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; line-height: 1.3; letter-spacing: 0.02em; border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(27,42,74,0.06), 0 2px 4px rgba(27,42,74,0.03); cursor: pointer; transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1); will-change: transform, box-shadow; } .ds-btn-primary:hover { background: #111C31; transform: scale(1.02); box-shadow: 0 8px 24px rgba(27,42,74,0.08), 0 2px 8px rgba(27,42,74,0.04); } .ds-btn-primary:active { transform: scale(0.98); box-shadow: 0 1px 3px rgba(27,42,74,0.04), 0 1px 2px rgba(27,42,74,0.02); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 24px rgba(200,149,108,0.2), 0 4px 12px rgba(27,42,74,0.06); } .ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }"
+    },
+    {
+      "name": "Accent Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "The share-link affordance. The single most important button in the product.",
+      "html": "<button class=\"ds-btn-accent\">Generate share link</button>",
+      "css": ".ds-btn-accent { background: #C8956C; color: #0F1419; padding: 10px 16px; font-family: 'DM Sans', system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; line-height: 1.3; letter-spacing: 0.02em; border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(27,42,74,0.06), 0 2px 4px rgba(27,42,74,0.03); cursor: pointer; transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-accent:hover { background: #B07A4F; transform: scale(1.02); box-shadow: 0 8px 24px rgba(27,42,74,0.08), 0 2px 8px rgba(27,42,74,0.04), 0 0 24px rgba(200,149,108,0.2); } .ds-btn-accent:active { transform: scale(0.98); } .ds-btn-accent:focus-visible { outline: none; box-shadow: 0 0 24px rgba(200,149,108,0.4), 0 4px 12px rgba(27,42,74,0.06); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "The third button. Used for cancel, close, dismiss. The least weight of the system.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { background: transparent; color: #8A8175; padding: 10px 16px; font-family: 'DM Sans', system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; line-height: 1.3; letter-spacing: 0.02em; border: none; border-radius: 8px; cursor: pointer; transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), color 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-ghost:hover { background: rgba(27,42,74,0.05); color: #1B2A4A; transform: scale(1.02); } .ds-btn-ghost:active { transform: scale(0.98); } .ds-btn-ghost:focus-visible { outline: 2px solid rgba(200,149,108,0.4); outline-offset: 2px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The resting card. Flat at rest, lifts on hover, draws a wax-seal hairline when the user reaches for it.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card-title\">Bookmark title</h3><p class=\"ds-card-meta\">Saved 3 days ago · 12 links in group</p></article>",
+      "css": ".ds-card { background: #F7F5F0; color: #2D3142; padding: 16px; border: 1px solid rgba(27,42,74,0.06); border-radius: 10px; box-shadow: 0 1px 3px rgba(27,42,74,0.04), 0 1px 2px rgba(27,42,74,0.02); transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1), border-color 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-card:hover { transform: translateY(-4px); border-color: rgba(200,149,108,0.2); box-shadow: 0 8px 24px rgba(27,42,74,0.08), 0 2px 8px rgba(27,42,74,0.04); } .ds-card:active { transform: translateY(0) scale(0.99); box-shadow: 0 1px 3px rgba(27,42,74,0.04), 0 1px 2px rgba(27,42,74,0.02); } .ds-card-title { font-family: 'DM Sans', system-ui, sans-serif; font-size: 1.125rem; font-weight: 600; line-height: 1.4; margin: 0 0 4px 0; color: #2D3142; } .ds-card-meta { font-family: 'DM Sans', system-ui, sans-serif; font-size: 0.8125rem; font-weight: 400; line-height: 1.4; margin: 0; color: #8A8175; }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Text input with soft focus ring. The stamp being placed on the field.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search 30 groups…\" />",
+      "css": ".ds-input { width: 100%; padding: 10px 16px; background: #FFFFFF; color: #2D3142; font-family: 'DM Sans', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 400; line-height: 1.55; border: 1px solid rgba(138,129,117,0.2); border-radius: 8px; box-shadow: none; transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-input::placeholder { color: rgba(138,129,117,0.6); } .ds-input:hover { border-color: rgba(138,129,117,0.4); } .ds-input:focus { outline: none; border-color: rgba(27,42,74,0.4); box-shadow: 0 0 0 3px rgba(27,42,74,0.2), 0 0 24px rgba(200,149,108,0.2); } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Badge / Chip",
+      "kind": "chip",
+      "refersTo": "badge-accent",
+      "description": "Tag or status label. Mixed case, never uppercase. The badge is a label, not a stamp.",
+      "html": "<span class=\"ds-badge-accent\">Saved</span>",
+      "css": ".ds-badge-accent { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(200,149,108,0.15); color: #B07A4F; font-family: 'DM Sans', system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; line-height: 1.3; letter-spacing: 0.02em; border-radius: 4px; } .ds-badge-primary { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(27,42,74,0.08); color: #1B2A4A; font-family: 'DM Sans', system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; line-height: 1.3; letter-spacing: 0.02em; border-radius: 4px; } .ds-badge-success { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(91,138,114,0.1); color: #5B8A72; font-family: 'DM Sans', system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; line-height: 1.3; letter-spacing: 0.02em; border-radius: 4px; }"
+    },
+    {
+      "name": "Modal",
+      "kind": "nav",
+      "refersTo": "modal",
+      "description": "The drawer pulled out of the desk. The largest corner radius and strongest shadow in the system.",
+      "html": "<div class=\"ds-modal-overlay\"><div class=\"ds-modal\"><h2 class=\"ds-modal-title\">Move to group</h2></div></div>",
+      "css": ".ds-modal-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15,20,25,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: ds-fade-in 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-modal { background: #F7F5F0; color: #2D3142; padding: 24px; border: 1px solid rgba(27,42,74,0.06); border-radius: 16px; box-shadow: 0 12px 40px rgba(15,20,25,0.12), 0 4px 12px rgba(15,20,25,0.06); max-width: 32rem; width: 100%; max-height: 85vh; overflow: hidden; animation: ds-scale-in 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-modal-title { font-family: 'DM Sans', system-ui, sans-serif; font-size: 1.5rem; font-weight: 600; line-height: 1.3; margin: 0 0 16px 0; color: #2D3142; } @keyframes ds-fade-in { from { opacity: 0; } to { opacity: 1; } } @keyframes ds-scale-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "card",
+      "description": "Vertical list item. No icons on the primary items. Hover slides the label toward the cursor.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item ds-nav-item-active\" href=\"/collections\">All collections</a><a class=\"ds-nav-item\" href=\"/tags\">Tags</a></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 2px; padding: 8px; background: #F7F5F0; border-right: 1px solid rgba(27,42,74,0.06); width: 240px; } .ds-nav-item { display: flex; align-items: center; padding: 8px 12px; font-family: 'DM Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 400; line-height: 1.4; color: #2D3142; text-decoration: none; border-radius: 6px; border-left: 2px solid transparent; transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1), border-left-color 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-nav-item:hover { color: #B07A4F; transform: translateX(2px); } .ds-nav-item-active { color: #1B2A4A; font-weight: 600; border-left-color: #C8956C; } .ds-nav-item:focus-visible { outline: 2px solid rgba(200,149,108,0.4); outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Archivist's Drawer",
+    "overview": "LinkChest is an archivist's drawer, not a social feed. Every link is a piece of evidence a person kept, labeled by the hand that filed it, and held inside a piece of furniture built to outlast the day. The surface should feel like a quiet desk drawer opened mid-afternoon: warm parchment, deep navy edges, a brass pull-tab, the faint smell of paper. No one is selling anything here, no algorithm is suggesting anything, no celebration animation is firing. The user came to put something away or to take something out, and the product should stay out of the way while they do it.\n\nDensity is a feature. A 30-item list at tight line-height is more respectful of a power user than five 320-px cards with avatars and timestamps. The product manages 91 platforms; the UI must not look like 91 widgets fighting for attention. Pick one rhythm and repeat it. Voice is matter-of-fact: button labels say what they do (\"Save link\", \"Move to group\", \"Generate share link\"). No \"empower your workflow\", no \"Welcome back\", no \"Let's get started\". The product opens, it works, it goes back into the drawer.\n\nThis system explicitly rejects the saturated 2026 AI monoculture: no purple-blue gradients, no glassmorphism, no identical 3-up card grids, no emoji in code, no Lucide icons on every surface, no \"Trusted by 10,000+ teams\" trust strip, no gradient-text hero, no glassmorphic floating panels. It also rejects the older Chrome Web Store aesthetic: no banner ads, no \"Editor's Pick\" ribbons, no countdown timers, no \"FREE!\" callouts, no fake review badges, no marketplace discount UI. The product is a tool for a person, not a storefront for a person.",
+    "keyCharacteristics": [
+      "Editorial, not promotional. Type carries weight, color is rare, every label is precise.",
+      "Cover-first, text-second. When a link has a cover image, the cover is the primary surface. Text supports the cover; it does not replace it.",
+      "State-driven motion. Surfaces are flat at rest. Buttons lift on hover, scale on press, glow on focus. No idle decoration.",
+      "One accent, used sparingly. Wax seal amber is the only color with emotional permission. It appears on ≤10% of any given surface.",
+      "Information density at rest. Lists, grids, and tables beat illustrative cards for content the user came to read."
+    ],
+    "rules": [
+      { "name": "The Wax Seal Rule", "body": "Wax Seal (the amber family) is the only color with emotional permission. It is used on ≤10% of any given surface, and only on: save/sent/confirm actions, hover-elevated card edges, focus rings, and the single share-link affordance. It is never used for body text, never for backgrounds larger than a button, and never for system messages that aren't affirmative. The rarity of the seal is what makes it feel pressed by hand.", "section": "colors" },
+      { "name": "The Vault Outside the Drawer Rule", "body": "The Vault (deep navy) is for the structural skeleton of the product: the app shell, primary buttons, high-weight headings, and dark-mode backgrounds. It is not for content surfaces. A card with a navy background is wrong; a card with navy text on parchment is right. Color describes the type of element, not its size.", "section": "colors" },
+      { "name": "The Parchment Rule", "body": "Parchment (the warm off-white body background) is mandatory. Pure white is forbidden anywhere the user can see; the warmth is what makes the surface feel like paper rather than a screen. In dark mode the rule inverts: pure black is forbidden; Lampblack carries the same slight warmth-into-elevation logic.", "section": "colors" },
+      { "name": "The Two Voice Rule", "body": "The system has exactly two type voices: Bodoni Moda (display, editorial) and DM Sans (everything else). Mono and uppercase tracking are forbidden. Adding a third face is a brand break.", "section": "typography" },
+      { "name": "The CJK Continuity Rule", "body": "CJK fallback fonts are mandatory in every stack; products that ship with a Bodoni / DM Sans pair and no CJK fallback ship broken in zh / ja / ko. LXGW WenKai carries handwritten tone for CJK display; PingFang SC carries the system default. Both must be in the stack in that order.", "section": "typography" },
+      { "name": "The Flat-at-Rest Rule", "body": "Surfaces are flat at rest. Shadows appear only as a response to state (hover, focus, active, modal-open). A card that ships with shadow-elevated permanently is wrong. If something needs to feel \"above\" the surface, give it border + a one-step translate on hover, not a permanent shadow.", "section": "elevation" },
+      { "name": "The No-Stacking Rule", "body": "Two stacked shadows per element maximum. A surface that is card + floating is over-engineered; pick the one that fits the state.", "section": "elevation" },
+      { "name": "The Wax Seal Glow Rule", "body": "The glow shadow uses the wax-seal hue (rgba(200,149,108,…)) and never the vault hue. Glow is a confirmation, not a callout.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use the Wax Seal (amber) for the share-link affordance, the save confirmation, and any affirmative state. It is the only color with emotional permission.",
+      "Do keep the body background as Parchment (#F7F5F0) in light mode and Lampblack (#0F1419) in dark mode. Never pure white, never pure black.",
+      "Do set the primary button to The Vault (light) or Wax Seal Bright (dark). One primary per action surface.",
+      "Do keep cards flat at rest; use shadow-card-hover + border-wax-seal/20 + -translate-y-1 for the hover state. Surfaces are quiet until the user touches them.",
+      "Do use Bodoni Moda only for display headlines and the page title on share pages. Never inside product UI chrome.",
+      "Do keep the CJK fallback chain intact in every font stack: LXGW WenKai → PingFang SC → Microsoft YaHei. The product ships in 6 languages; a broken CJK stack is a broken product.",
+      "Do prefer dense lists over illustrative cards for content the user came to read. A 30-item list at tight line-height beats 5 cards with avatars and timestamps.",
+      "Do cap body line length at 65–75ch inside cards. Long-form copy on detail pages is fine; running copy in cards is not.",
+      "Do write button labels as verb + object: \"Save link\", \"Move to group\", \"Generate share link\". The label says what will happen.",
+      "Do honor prefers-reduced-motion. Every animation needs a crossfade or instant transition as a fallback. The 0.01ms global override in globals.css is acceptable.",
+      "Do show, don't tell. Empty states show the cover grid, not \"Add your first bookmark\". Feature copy is specific: \"Save 300 links across 30 groups\" beats \"Unlimited organization\"."
+    ],
+    "donts": [
+      "Don't use purple-blue gradients, glassmorphism, identical 3-up card grids, emoji in code, or Lucide icons everywhere. These are the 2026 AI defaults; they read as templated.",
+      "Don't use side-stripe borders (border-left or border-right greater than 1px as a colored accent on cards, list items, callouts, or alerts). Never intentional.",
+      "Don't use gradient text. background-clip: text with a gradient is decorative, never meaningful. Use a single solid color; emphasize via weight or size.",
+      "Don't use the hero-metric template. No \"big number + small label + supporting stats + gradient accent\" SaaS cliché.",
+      "Don't put a tiny uppercase tracked eyebrow (\"ABOUT\", \"PROCESS\", \"PRICING\") above every section. One deliberate kicker per page is voice; an eyebrow on every section is AI grammar.",
+      "Don't number sections by reflex (01 / 02 / 03). Numbers earn their place when the section IS a sequence. Section markers on every section are scaffolding.",
+      "Don't use old-style Chrome Web Store aesthetics: no banner ads, no \"Editor's Pick\" ribbons, no fake review badges, no \"Verified\" stamps, no dense footers, no \"X people viewing now\" badges.",
+      "Don't use marketplace / online-store aesthetics: no discount badges, no countdown timers, no \"FREE!\" callouts, no red envelopes, no gift boxes, no \"share to unlock\" popups.",
+      "Don't imitate Linear / Notion visually with a pastel hero, 3-column feature grid, \"Trusted by 10,000+ teams\" line, or mascot illustrations. The product is a tool, not a SaaS landing page.",
+      "Don't use a hero heading that exceeds 6rem (clamp() max). Above that the page is shouting, not designing. Display letter-spacing floor is -0.02em; tighter is cramped.",
+      "Don't use Wax Seal on body text, on backgrounds larger than a button, or on system messages that aren't affirmative. The rarity of the seal is the point.",
+      "Don't add a third typeface. Bodoni Moda + DM Sans + the CJK fallback is the entire type system. A third face is a brand break.",
+      "Don't use all-caps body copy. Sentences in ALL CAPS are unreadable at body sizes. Labels are mixed case; that's the rule.",
+      "Don't gate content visibility on a class-triggered transition. Reveal animations must enhance an already-visible default; transitions pause on hidden tabs and the section ships blank.",
+      "Don't add a \"Layout Principles\" or \"Motion\" or \"Responsive Behavior\" top-level section. Fold that content into Overview and Components where it belongs."
+    ]
+  }
+}

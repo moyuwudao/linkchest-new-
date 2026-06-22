@@ -1,0 +1,17 @@
+{
+  "extensionName": {
+    "message": "链藏 LinkChest - 一键智能收藏"
+  },
+  "extensionDescription": {
+    "message": "粘贴链接自动识别平台、提取标题封面，支持分组标签管理、稍后解析、一键分享。多端同步，免费使用。"
+  },
+  "saveToLinkchest": {
+    "message": "保存到链藏"
+  },
+  "savePageMenu": {
+    "message": "保存当前页面到链藏"
+  },
+  "saveLinkMenu": {
+    "message": "保存此链接到链藏"
+  }
+}

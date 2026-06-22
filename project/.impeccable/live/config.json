@@ -1,0 +1,10 @@
+{
+  "files": ["apps/web/src/app/layout.tsx"],
+  "exclude": [
+    "apps/web/src/app/admin/**",
+    "apps/web/src/app/login/**"
+  ],
+  "insertBefore": "</body>",
+  "commentSyntax": "jsx",
+  "cspChecked": true
+}

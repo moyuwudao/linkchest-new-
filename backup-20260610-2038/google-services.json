@@ -1,0 +1,51 @@
+{
+  "project_info": {
+    "project_number": "76720591248",
+    "project_id": "linkchest-7e82f",
+    "storage_bucket": "linkchest-7e82f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76720591248:android:987978ad236e33ee7de315",
+        "android_client_info": {
+          "package_name": "com.linkchest.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "76720591248-ght8qghfrjiq6bsrjhe5dpv2pmtcu8df.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.linkchest.app",
+            "certificate_hash": "5E8F16062EA3CD2C4A0D547876BAA6F38CABF625"
+          }
+        },
+        {
+          "client_id": "76720591248-m75hgr8256hut3m5j835qhgmirr9bnuh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBS4lbLiXyzIERxEmakGmUzZJw5bSOXRZA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "76720591248-ght8qghfrjiq6bsrjhe5dpv2pmtcu8df.apps.googleusercontent.com",
+              "client_type": 1
+            },
+            {
+              "client_id": "76720591248-m75hgr8256hut3m5j835qhgmirr9bnuh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

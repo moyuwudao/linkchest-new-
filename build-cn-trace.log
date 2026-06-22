@@ -1,0 +1,302 @@
+===== BUILD TRACE START: Thu Jun 18 22:57:27 CST 2026 =====
++ set -euo pipefail
++ cd /mnt/d/trae_projects/linkchest/project/apps/mobile/android
++ export ANDROID_HOME=/opt/android-sdk
++ ANDROID_HOME=/opt/android-sdk
++ export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
++ JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
++ export 'PATH=/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:/opt/android-sdk/build-tools/34.0.0:/usr/lib/jvm/java-17-openjdk-amd64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Users/Mayn/.trae-cn/tools/trae-gopls/current:/mnt/c/Users/Mayn/.trae-cn/sdks/workspaces/59e6aa63/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/sdks/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/tools/trae-gopls/current:/mnt/c/Users/Mayn/.trae-cn/sdks/workspaces/59e6aa63/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/sdks/versions/node/current:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Windows/system32/downlevel:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/GitHub CLI/:/mnt/c/Program Files/PuTTY/:/mnt/d/Program Files/QoderCN/bin:/mnt/d/Program Files/Qoder/bin:/mnt/c/Users/Mayn/CodeBuddy/20260410101121/jdk-17.0.2/bin:/mnt/c/Users/Mayn/.trae-cn/tools/maven/latest/bin:/mnt/c/Users/Mayn/.trae-cn/tools/gradle/latest/bin:/mnt/c/Users/Mayn/.trae-cn/tools/trae-gopls/current:/mnt/c/Users/Mayn/.trae-cn/sdks/workspaces/20f110e5/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/sdks/versions/node/current:/mnt/c/flutter-sdk/bin/:/mnt/c/Users/Mayn/CodeBuddy/20260410101121/jdk-17.0.2/bin:/mnt/c/Users/Mayn/.trae-cn/tools/maven/latest/bin:/mnt/c/Users/Mayn/.trae-cn/tools/gradle/latest/bin:/mnt/c/Users/Mayn/.trae-cn/tools/trae-gopls/current:/mnt/c/Users/Mayn/.trae-cn/sdks/workspaces/20f110e5/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/sdks/versions/node/current:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Windows/system32/downlevel:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/GitHub CLI/:/mnt/c/Program Files/PuTTY/:/mnt/d/Program Files/QoderCN/bin:/mnt/d/Program Files/Qoder/bin:/mnt/d/cargo/bin:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Windows/system32/downlevel:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/GitHub CLI/:/mnt/c/Program Files/PuTTY/:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Windows/system32/downlevel:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/GitHub CLI/:/mnt/c/Program Files/PuTTY/:/mnt/c/flutter-sdk/bin:/mnt/c/flutter-sdk/bin:/mnt/c/Users/Mayn/.local/bin:/mnt/d/Program Files (x86)/Trae CN/resources/app/node_modules/@vscode/ripgrep/bin:/mnt/c/Users/Mayn/Desktop/platform-tools:/mnt/d/Program Files (x86)/Trae CN/resources/app/node_modules/@vscode/ripgrep/bin'
++ PATH='/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:/opt/android-sdk/build-tools/34.0.0:/usr/lib/jvm/java-17-openjdk-amd64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Users/Mayn/.trae-cn/tools/trae-gopls/current:/mnt/c/Users/Mayn/.trae-cn/sdks/workspaces/59e6aa63/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/sdks/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/tools/trae-gopls/current:/mnt/c/Users/Mayn/.trae-cn/sdks/workspaces/59e6aa63/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/sdks/versions/node/current:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Windows/system32/downlevel:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/GitHub CLI/:/mnt/c/Program Files/PuTTY/:/mnt/d/Program Files/QoderCN/bin:/mnt/d/Program Files/Qoder/bin:/mnt/c/Users/Mayn/CodeBuddy/20260410101121/jdk-17.0.2/bin:/mnt/c/Users/Mayn/.trae-cn/tools/maven/latest/bin:/mnt/c/Users/Mayn/.trae-cn/tools/gradle/latest/bin:/mnt/c/Users/Mayn/.trae-cn/tools/trae-gopls/current:/mnt/c/Users/Mayn/.trae-cn/sdks/workspaces/20f110e5/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/sdks/versions/node/current:/mnt/c/flutter-sdk/bin/:/mnt/c/Users/Mayn/CodeBuddy/20260410101121/jdk-17.0.2/bin:/mnt/c/Users/Mayn/.trae-cn/tools/maven/latest/bin:/mnt/c/Users/Mayn/.trae-cn/tools/gradle/latest/bin:/mnt/c/Users/Mayn/.trae-cn/tools/trae-gopls/current:/mnt/c/Users/Mayn/.trae-cn/sdks/workspaces/20f110e5/versions/node/current:/mnt/c/Users/Mayn/.trae-cn/sdks/versions/node/current:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Windows/system32/downlevel:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/GitHub CLI/:/mnt/c/Program Files/PuTTY/:/mnt/d/Program Files/QoderCN/bin:/mnt/d/Program Files/Qoder/bin:/mnt/d/cargo/bin:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Windows/system32/downlevel:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/GitHub CLI/:/mnt/c/Program Files/PuTTY/:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Windows/system32/downlevel:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/GitHub CLI/:/mnt/c/Program Files/PuTTY/:/mnt/c/flutter-sdk/bin:/mnt/c/flutter-sdk/bin:/mnt/c/Users/Mayn/.local/bin:/mnt/d/Program Files (x86)/Trae CN/resources/app/node_modules/@vscode/ripgrep/bin:/mnt/c/Users/Mayn/Desktop/platform-tools:/mnt/d/Program Files (x86)/Trae CN/resources/app/node_modules/@vscode/ripgrep/bin'
+++ cat /etc/wsl.conf
+++ grep '^hostname='
+++ cut -d= -f2
+++ hostnamectl hostname
++ WSL_INSTANCE=DESKTOP-JK3MJJQ
++ TARGET_FLAVOR=china
++ '[' -z china ']'
++ MARKET_VALUE=china
++ GRADLE_TASK=assembleChinaRelease
++ WSL_ID=linkchest-cn
++ BUILD_DIR=build-china
++ export BUILD_DIR_NAME=build-china
++ BUILD_DIR_NAME=build-china
++ echo ''
+
++ echo ==========================================
+==========================================
++ echo '=== 运营文档校验 (MARKET-OPS.md) ==='
+=== 运营文档校验 (MARKET-OPS.md) ===
++ echo ==========================================
+==========================================
++ '[' china = global ']'
++ MARKET_OPS=/mnt/d/trae_projects/linkchest/.trae/rules/MARKET-OPS.md
++ '[' -f /mnt/d/trae_projects/linkchest/.trae/rules/MARKET-OPS.md ']'
++ echo '✅ MARKET-OPS.md 文档存在'
+✅ MARKET-OPS.md 文档存在
++ '[' china = global ']'
++ echo '   国内版登录配置要求: 微信 (支付宝已禁用)'
+   国内版登录配置要求: 微信 (支付宝已禁用)
++ '[' china = global ']'
++ echo '   协议地址: https://linkchest.cn/terms | https://linkchest.cn/privacy'
+   协议地址: https://linkchest.cn/terms | https://linkchest.cn/privacy
++ echo ==========================================
+==========================================
+++ date +%Y%m%d-%H%M%S
++ BUILD_TIMESTAMP=20260618-225727
++ BUILD_ID=build-china-20260618-225727
++ BUILD_LOG=/tmp/build-china-20260618-225727.log
++ JSON_LOG=/tmp/build-china-20260618-225727.jsonl
++ log_json INFO init log-start 'Build logger initialized' '{"build_log":"/tmp/build-china-20260618-225727.log","json_log":"/tmp/build-china-20260618-225727.jsonl","build_id":"build-china-20260618-225727"}'
++ local level=INFO
++ local stage=init
++ local step=log-start
++ local 'message=Build logger initialized'
++ local 'extra={"build_log":"/tmp/build-china-20260618-225727.log","json_log":"/tmp/build-china-20260618-225727.jsonl","build_id":"build-china-20260618-225727"}}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:27+08:00 INFO init log-start china linkchest-cn build-china-20260618-225727 'Build logger initialized' '{"build_log":"/tmp/build-china-20260618-225727.log","json_log":"/tmp/build-china-20260618-225727.jsonl","build_id":"build-china-20260618-225727"}}'
++ echo ''
+
++ echo ==========================================
+==========================================
++ echo '=== WSL Instance: linkchest-cn'
+=== WSL Instance: linkchest-cn
++ echo '=== Building CHINA flavor (MARKET=china) ==='
+=== Building CHINA flavor (MARKET=china) ===
++ echo ==========================================
+==========================================
++ log_json INFO init flavor-detect 'Flavor and WSL instance detected' '{"wsl_id":"linkchest-cn","target_flavor":"china","market_value":"china","gradle_task":"assembleChinaRelease"}'
++ local level=INFO
++ local stage=init
++ local step=flavor-detect
++ local 'message=Flavor and WSL instance detected'
++ local 'extra={"wsl_id":"linkchest-cn","target_flavor":"china","market_value":"china","gradle_task":"assembleChinaRelease"}}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:27+08:00 INFO init flavor-detect china linkchest-cn build-china-20260618-225727 'Flavor and WSL instance detected' '{"wsl_id":"linkchest-cn","target_flavor":"china","market_value":"china","gradle_task":"assembleChinaRelease"}}'
++ log_json INFO env-prep env-start 'Starting environment preparation'
++ local level=INFO
++ local stage=env-prep
++ local step=env-start
++ local 'message=Starting environment preparation'
++ local 'extra={}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:27+08:00 INFO env-prep env-start china linkchest-cn build-china-20260618-225727 'Starting environment preparation' '{}'
+++ java -version
+++ head -1
+++ tr -d '"'
++ JAVA_VER='openjdk version 17.0.19 2026-04-21'
+++ node --version
++ NODE_VER=v20.20.2
+++ ./gradlew --version
+++ grep Gradle
+++ tr -d '"'
+++ head -1
++ GRADLE_VER='Gradle 8.7'
+++ df -BG /mnt/d
+++ tail -1
+++ awk '{print $4}'
+++ tr -d G
++ DISK_FREE=323
+++ free -m
+++ grep Mem
+++ awk '{print $7}'
++ MEM_FREE=15231
++ log_json INFO env-prep env-check 'Environment variables and versions' '{"java_version":"openjdk version 17.0.19 2026-04-21","node_version":"v20.20.2","gradle_version":"Gradle 8.7","java_home":"/usr/lib/jvm/java-17-openjdk-amd64","android_home":"/opt/android-sdk","disk_free_gb":323,"memory_free_mb":15231}'
++ local level=INFO
++ local stage=env-prep
++ local step=env-check
++ local 'message=Environment variables and versions'
++ local 'extra={"java_version":"openjdk version 17.0.19 2026-04-21","node_version":"v20.20.2","gradle_version":"Gradle 8.7","java_home":"/usr/lib/jvm/java-17-openjdk-amd64","android_home":"/opt/android-sdk","disk_free_gb":323,"memory_free_mb":15231}}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:28+08:00 INFO env-prep env-check china linkchest-cn build-china-20260618-225727 'Environment variables and versions' '{"java_version":"openjdk version 17.0.19 2026-04-21","node_version":"v20.20.2","gradle_version":"Gradle 8.7","java_home":"/usr/lib/jvm/java-17-openjdk-amd64","android_home":"/opt/android-sdk","disk_free_gb":323,"memory_free_mb":15231}}'
++ log_json INFO config-inject env-market-start 'Starting .env.market injection'
++ local level=INFO
++ local stage=config-inject
++ local step=env-market-start
++ local 'message=Starting .env.market injection'
++ local 'extra={}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:28+08:00 INFO config-inject env-market-start china linkchest-cn build-china-20260618-225727 'Starting .env.market injection' '{}'
++ ENV_MARKET_SHARED=/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market
++ ENV_MARKET_FLAVOR=/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.china
++ ENV_MARKET_ISOLATED=/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.linkchest-cn
++ echo -n china
++ echo -n china
++ echo -n china
+++ md5sum /mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market
+++ awk '{print $1}'
++ SHARED_HASH=8a7d7ba288ca0f0ea1ecf975b026e8e1
+++ md5sum /mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.china
+++ awk '{print $1}'
++ FLAVOR_HASH=8a7d7ba288ca0f0ea1ecf975b026e8e1
+++ md5sum /mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.linkchest-cn
+++ awk '{print $1}'
++ ISOLATED_HASH=8a7d7ba288ca0f0ea1ecf975b026e8e1
++ log_json INFO config-inject env-market-written '.env.market written to all paths' '{"market_value":"china","paths":["/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market","/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.china","/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.linkchest-cn"],"hashes":{"shared":"8a7d7ba288ca0f0ea1ecf975b026e8e1","flavor":"8a7d7ba288ca0f0ea1ecf975b026e8e1","isolated":"8a7d7ba288ca0f0ea1ecf975b026e8e1"}}'
++ local level=INFO
++ local stage=config-inject
++ local step=env-market-written
++ local 'message=.env.market written to all paths'
++ local 'extra={"market_value":"china","paths":["/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market","/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.china","/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.linkchest-cn"],"hashes":{"shared":"8a7d7ba288ca0f0ea1ecf975b026e8e1","flavor":"8a7d7ba288ca0f0ea1ecf975b026e8e1","isolated":"8a7d7ba288ca0f0ea1ecf975b026e8e1"}}}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:28+08:00 INFO config-inject env-market-written china linkchest-cn build-china-20260618-225727 '.env.market written to all paths' '{"market_value":"china","paths":["/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market","/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.china","/mnt/d/trae_projects/linkchest/project/apps/mobile/.env.market.linkchest-cn"],"hashes":{"shared":"8a7d7ba288ca0f0ea1ecf975b026e8e1","flavor":"8a7d7ba288ca0f0ea1ecf975b026e8e1","isolated":"8a7d7ba288ca0f0ea1ecf975b026e8e1"}}}'
++ echo '=== Written .env.market: china ==='
+=== Written .env.market: china ===
++ echo '=== Written .env.market.china: china ==='
+=== Written .env.market.china: china ===
++ echo '=== Written isolated .env.market.linkchest-cn: china ==='
+=== Written isolated .env.market.linkchest-cn: china ===
++ export MARKET=china
++ MARKET=china
++ export WSL_DISTRO_NAME=linkchest-cn
++ WSL_DISTRO_NAME=linkchest-cn
++ log_json INFO config-inject metro-cache-start 'Setting up Metro cache isolation'
++ local level=INFO
++ local stage=config-inject
++ local step=metro-cache-start
++ local 'message=Setting up Metro cache isolation'
++ local 'extra={}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:28+08:00 INFO config-inject metro-cache-start china linkchest-cn build-china-20260618-225727 'Setting up Metro cache isolation' '{}'
++ METRO_CACHE_DIR=/tmp/metro-cache-linkchest-cn
++ mkdir -p /tmp/metro-cache-linkchest-cn
++ export REACT_NATIVE_METRO_CACHE_DIR=/tmp/metro-cache-linkchest-cn
++ REACT_NATIVE_METRO_CACHE_DIR=/tmp/metro-cache-linkchest-cn
+++ '[' -d /tmp/metro-cache-linkchest-cn ']'
+++ echo true
++ CACHE_DIR_EXISTS=true
+++ '[' -w /tmp/metro-cache-linkchest-cn ']'
+++ echo true
++ CACHE_DIR_WRITABLE=true
++ log_json INFO config-inject metro-cache-ready 'Metro cache directory configured' '{"metro_cache_dir":"/tmp/metro-cache-linkchest-cn","exists":true,"writable":true}'
++ local level=INFO
++ local stage=config-inject
++ local step=metro-cache-ready
++ local 'message=Metro cache directory configured'
++ local 'extra={"metro_cache_dir":"/tmp/metro-cache-linkchest-cn","exists":true,"writable":true}}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:28+08:00 INFO config-inject metro-cache-ready china linkchest-cn build-china-20260618-225727 'Metro cache directory configured' '{"metro_cache_dir":"/tmp/metro-cache-linkchest-cn","exists":true,"writable":true}}'
++ echo '=== Metro cache dir: /tmp/metro-cache-linkchest-cn ==='
+=== Metro cache dir: /tmp/metro-cache-linkchest-cn ===
++ log_json INFO config-inject bundle-cleanup-start 'Cleaning old JS bundles and caches'
++ local level=INFO
++ local stage=config-inject
++ local step=bundle-cleanup-start
++ local 'message=Cleaning old JS bundles and caches'
++ local 'extra={}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:28+08:00 INFO config-inject bundle-cleanup-start china linkchest-cn build-china-20260618-225727 'Cleaning old JS bundles and caches' '{}'
++ JS_BUNDLE_DIR=/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build-china/generated/assets
++ JS_BUNDLE_RES=/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build-china/generated/res
++ EXPO_CONSTANTS_BUILD=/mnt/d/trae_projects/linkchest/project/apps/mobile/node_modules/expo-constants/android/build
++ CLEANED_ITEMS=0
++ '[' -d /mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build-china/generated/assets ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build-china/generated/res ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/apps/mobile/node_modules/expo-constants/android/build ']'
++ shopt -s nullglob
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-application/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-application/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-asset/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-asset/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-clipboard/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-clipboard/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-constants/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-constants/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-crypto/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-crypto/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-device/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-device/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-document-picker/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-document-picker/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-file-system/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-font/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-font/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-loader/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-loader/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-image-picker/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-keep-awake/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-keep-awake/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-modules-core/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-modules-core/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-notifications/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-secure-store/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-secure-store/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-web-browser/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/expo-web-browser/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-gesture-handler/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-gesture-handler/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-safe-area-context/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-safe-area-context/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-screens/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-screens/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-svg/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-svg/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-vector-icons/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-vector-icons/android/.cxx ']'
++ for native_module in /mnt/d/trae_projects/linkchest/project/node_modules/expo-*/android /mnt/d/trae_projects/linkchest/project/node_modules/react-native-*/android /mnt/d/trae_projects/linkchest/project/node_modules/@react-native-*/android
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-wechat-lib/android/build ']'
++ '[' -d /mnt/d/trae_projects/linkchest/project/node_modules/react-native-wechat-lib/android/.cxx ']'
++ '[' -d /tmp/metro-cache-linkchest-cn ']'
++ rm -rf '/tmp/metro-cache-linkchest-cn/*'
++ CLEANED_ITEMS=1
++ export GRADLE_USER_HOME=/home/mayn/.gradle
++ GRADLE_USER_HOME=/home/mayn/.gradle
++ '[' -d /home/mayn/.gradle/caches ']'
++ find /home/mayn/.gradle/caches -path '*/transforms*' -name '*.bin' -newer build-china -delete
++ CLEANED_ITEMS=2
+++ find /tmp -maxdepth 2 -name 'transforms*' -type d
+++ true
++ TRANSFORM_DIRS=
++ BUNDLE_TASK_MARKER=/mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build-china/intermediates
++ '[' -d /mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build-china/intermediates ']'
++ find /mnt/d/trae_projects/linkchest/project/apps/mobile/android/app/build-china/intermediates -name '*bundle*' -type d -exec rm -rf '{}' +
++ CLEANED_ITEMS=3
++ log_json INFO config-inject bundle-cleanup-done 'JS bundle and cache cleanup completed' '{"cleaned_items":3}'
++ local level=INFO
++ local stage=config-inject
++ local step=bundle-cleanup-done
++ local 'message=JS bundle and cache cleanup completed'
++ local 'extra={"cleaned_items":3}}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:32+08:00 INFO config-inject bundle-cleanup-done china linkchest-cn build-china-20260618-225727 'JS bundle and cache cleanup completed' '{"cleaned_items":3}}'
++ log_json INFO config-inject apk-cleanup-start 'Cleaning old APK files'
++ local level=INFO
++ local stage=config-inject
++ local step=apk-cleanup-start
++ local 'message=Cleaning old APK files'
++ local 'extra={}'
+++ date -Iseconds
++ printf '{"timestamp":"%s","level":"%s","stage":"%s","step":"%s","flavor":"%s","wsl_instance":"%s","build_id":"%s","message":"%s","extra":%s}\n' 2026-06-18T22:57:32+08:00 INFO config-inject apk-cleanup-start china linkchest-cn build-china-20260618-225727 'Cleaning old APK files' '{}'
++ APK_DIR=build-china/outputs/apk/china/release
++ OLD_APK_COUNT=0
++ '[' -d build-china/outputs/apk/china/release ']'
++ rm -f 'build-china/outputs/apk/china/release/linkchest-china-[0-9]*.apk'
++ rm -f 'build-china/outputs/apk/china/release/linkchest-china-*-cached.apk'
+++ wc -l
+++ ls 'build-china/outputs/apk/china/release/linkchest-china-[0-9]*.apk'
++ OLD_APK_COUNT=0
+===== BUILD TRACE END: Thu Jun 18 22:57:32 CST 2026 =====
+EXIT_CODE=2
