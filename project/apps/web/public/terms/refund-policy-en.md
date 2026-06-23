@@ -1,6 +1,6 @@
 # LinkChest Refund & Auto-Renewal Policy
 
-**Version:** 2026-06-22 (Compliance Revision)
+**Version:** 2026-06-22
 **Last Updated:** June 22, 2026
 
 **Service Provider:** Shenzhen Linkji Information Technology Co., Ltd. (深圳市链记信息技术有限责任公司)

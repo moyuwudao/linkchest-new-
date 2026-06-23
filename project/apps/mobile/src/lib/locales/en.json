@@ -621,7 +621,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "dialogTitle": "User Agreement & Privacy Policy",
-    "dialogIntro": "Welcome to LinkChest! We take your privacy seriously. Please review the Terms of Service and Privacy Policy before proceeding. We collect and use your personal information as follows:",
+    "dialogIntro": "Welcome to LinkChest! This app is developed and operated by Shenzhen Linkji Information Technology Co., Ltd. (Developer). We take your privacy seriously. Please review the Terms of Service and Privacy Policy before proceeding. We collect and use your personal information as follows:",
     "summaryTitle": "Information we collect:",
     "summaryAccount": "Account info (email, password, nickname): for registration and authentication",
     "summaryCollection": "Saved content (links, titles, tags you save): to provide the core collection service",

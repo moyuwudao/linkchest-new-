@@ -1,6 +1,6 @@
 # LinkChest Terms of Service
 
-**Version:** 2026-06-22 (Compliance Revision)  
+**Version:** 2026-06-22  
 **Last Updated:** June 22, 2026  
 **Effective Date:** June 22, 2026
 
