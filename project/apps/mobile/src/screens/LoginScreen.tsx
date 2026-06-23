@@ -210,6 +210,12 @@ export default function LoginScreen() {
       return;
     }
 
+    // 合规：登录前必须同意隐私政策
+    const privacyConsented = await (global as any).requestPrivacyConsent?.();
+    if (!privacyConsented) {
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await api.post('/auth/login-email', { email: account, password, lang });
@@ -241,6 +247,12 @@ export default function LoginScreen() {
 
     if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(regPassword)) {
       Alert.alert(t('common.hint'), t('error.invalidPasswordFormat'));
+      return;
+    }
+
+    // 合规：注册前必须同意隐私政策
+    const privacyConsented = await (global as any).requestPrivacyConsent?.();
+    if (!privacyConsented) {
       return;
     }
 

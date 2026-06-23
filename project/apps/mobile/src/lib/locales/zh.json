@@ -183,6 +183,7 @@
     "successMsg": "导出成功！文件已保存到缓存目录。",
     "filePath": "文件路径：",
     "browserHint": "已跳转至浏览器下载，请查看下载文件夹",
+    "savedToDownloads": "文件已保存到所选目录",
     "dailyLimitTitle": "每日下载限制",
     "lastChanceTitle": "今日下载次数超过 4 次",
     "lastChanceMsg": "今日还剩 {remaining} 次下载机会，是否继续？",
@@ -553,7 +554,18 @@
     "referralUpgraded": "已升级",
     "referralRewardDays": "奖励天数",
     "referralLoading": "加载中...",
-    "referralEmpty": "暂无邀请记录，分享邀请码给好友，好友升级后你将获得奖励"
+    "referralEmpty": "暂无邀请记录，分享邀请码给好友，好友升级后你将获得奖励",
+    "deleteAccount": "注销账号",
+    "deleteAccountDesc": "永久删除账号及所有数据，操作不可恢复",
+    "deleteAccountConfirmTitle": "确认注销账号？",
+    "deleteAccountConfirmDesc": "注销后将永久删除以下数据，且无法恢复：\n\n• 您的个人信息（用户名、邮箱、头像等）\n• 所有收藏、分组、标签数据\n• 所有分享链接\n• 套餐订阅及邀请记录\n\n如有未使用的会员有效期，注销后将自动失效，不支持退款。",
+    "deleteAccountKeepHint": "如果您只是想暂停使用，建议清除应用数据或卸载本 App，无需注销账号。",
+    "deleteAccountConfirmBtn": "我已知晓后果，确认注销",
+    "deleteAccountInputHint": "请输入「注销账号」以确认",
+    "deleteAccountInputKey": "注销账号",
+    "deleteAccountInputMismatch": "输入内容不一致，无法注销",
+    "deleteAccountSuccess": "账号已注销，应用将退出",
+    "deleteAccountFailed": "注销失败，请重试"
   },
   "login": {
     "emailLogin": "邮箱登录",
@@ -609,7 +621,33 @@
     "titleAndPrivacy": "服务条款&隐私政策"
   },
   "privacy": {
-    "title": "隐私政策"
+    "title": "隐私政策",
+    "dialogTitle": "用户协议与隐私政策",
+    "dialogIntro": "欢迎使用链藏！我们非常重视您的个人信息保护。在您开始使用前，请仔细阅读并充分理解《用户协议》和《隐私政策》。我们会按照以下规则收集、使用和保护您的个人信息：",
+    "summaryTitle": "我们将收集与使用的信息：",
+    "summaryAccount": "账号信息（邮箱、密码、昵称）：用于注册登录和身份识别",
+    "summaryCollection": "收藏内容（您主动保存的链接、标题、标签）：用于提供核心收藏服务",
+    "summaryDevice": "设备信息（机型、系统版本、Android ID、网络状态）：用于服务稳定性诊断与推送目标识别",
+    "summaryPush": "极光推送 SDK：在您同意后启用，收集 Android ID、设备机型、网络状态，用于向您推送消息通知",
+    "summaryCos": "腾讯云 COS / SES：用于存储封面图片、发送邮件验证码",
+    "rightsTitle": "您的权利：",
+    "rightsDesc": "您可以随时查看、修改、删除您的个人信息，也可以在「账号设置」中注销账号或撤回隐私政策同意。",
+    "viewFull": "查看完整《隐私政策》",
+    "viewTerms": "查看《用户协议》",
+    "agree": "同意",
+    "disagree": "拒绝",
+    "disagreeConfirmTitle": "确认拒绝？",
+    "disagreeConfirmDesc": "若您拒绝本协议，将无法使用链藏服务，App 将退出。请确认操作。",
+    "disagreeExit": "仍然拒绝并退出",
+    "disagreeReview": "再看看",
+    "exitApp": "仍然拒绝并退出",
+    "reviewAgain": "再看看",
+    "revokeEntry": "隐私同意管理",
+    "agreedAt": "已同意（{date}）",
+    "revokeTitle": "撤回隐私政策同意",
+    "revokeDesc": "撤回后，应用将不再允许极光推送 SDK 收集您的个人信息（包括 Android ID 等设备标识符），并且下次启动时会重新弹出隐私政策弹窗。此操作不会删除您的账号与收藏数据。",
+    "revokeConfirm": "确认撤回",
+    "revokeSuccess": "已成功撤回隐私同意。应用将退出登录，下次启动时需重新同意隐私政策。"
   },
   "tag": {
     "newTag": "新建标签",
@@ -899,7 +937,32 @@
     "contactSupport": "联系客服",
     "contactSupportDesc": "如遇支付问题，请联系",
     "autoRenew": "自动续费",
-    "autoRenewDesc": "到期前自动续费，关闭后将在到期前7天和1天提醒您"
+    "autoRenewDesc": "到期前自动续费，关闭后将在到期前7天和1天提醒您",
+    "userConsentNotice": "付款前请仔细阅读",
+    "memberServiceAgreement": "会员服务协议",
+    "autoRenewAgreement": "自动续费服务协议",
+    "agreedToRead": "我已阅读并同意",
+    "agreedToReadAndConfirm": "我已阅读并同意上述协议",
+    "mustAgreeTerms": "请先阅读并同意《会员服务协议》（如开启自动续费还需同意《自动续费服务协议》）后再进行支付"
+  },
+  "cancellation": {
+    "title": "退订说明",
+    "subtitle": "您可随时通过支付宝 App 关闭自动续费服务（应用内不提供续费管理入口）：",
+    "alipayStep1": "打开支付宝 App → 我的 → 设置",
+    "alipayStep2": "支付设置 → 免密支付/自动扣款",
+    "alipayStep3": "找到「链藏」服务 → 关闭服务",
+    "note": "取消后当前周期内会员权益保留至到期日，到期后不再续费。",
+    "ios": "iOS 设备：请在 App Store 订阅管理中取消（设置 → 账户 → 订阅 → 找到本应用 → 取消订阅）",
+    "android": "安卓设备：请通过支付宝 App 取消（应用内不提供续费管理入口）",
+    "other": "支付宝/微信支付：请在对应支付 App 的「自动扣费管理」中关闭"
+  },
+  "privacyPopup": {
+    "title": "隐私协议及用户协议",
+    "subtitle": "感谢您信任链藏。为了保护您的个人信息，请仔细阅读：",
+    "agreeAndContinue": "同意并继续",
+    "rejectAndExit": "拒绝并退出",
+    "mustAgree": "请先同意隐私协议及用户协议后再继续使用",
+    "checkedStatus": "您确认已阅读并同意上述两项协议"
   },
   "error": {
     "unknown": "发生了未知错误",

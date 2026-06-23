@@ -8,6 +8,7 @@ import { Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 import { api } from './api'
+import { setJiguangAuth } from './privacyAuth'
 
 let JPushModule: any = null
 let isJPushAvailable = false
@@ -38,11 +39,13 @@ export async function initJPush() {
   }
 
   try {
-    // 初始化
+    // 合规：先开启极光（JCore）数据收集授权，再初始化推送
+    await setJiguangAuth(true)
+    // 初始化（合规：production 根据 __DEV__ 自动判断，发布构建自动切换为正式环境）
     JPush.init({
       appKey: process.env.EXPO_PUBLIC_JPUSH_APPKEY || '',
       channel: 'default',
-      production: false, // TODO: 生产环境改为 true
+      production: !__DEV__,
     })
 
     // 获取 Registration ID 并上报

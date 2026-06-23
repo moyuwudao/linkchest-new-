@@ -1,16 +1,20 @@
 # LinkChest Privacy Policy
 
-**Version:** 1.0  
-**Last Updated:** April 28, 2026  
-**Effective Date:** April 28, 2026
+**Version:** 2026-06-22 (Compliance Revision)
+**Last Updated:** June 22, 2026
+**Effective Date:** June 22, 2026
+
+**Developer:** Shenzhen Linkji Information Technology Co., Ltd. (深圳市链记信息技术有限责任公司)
+**Application Name:** LinkChest (链藏)
+**Application Package:** com.linkchest.app
 
 ---
 
 ## Introduction
 
-LinkChest ("we," "us," or "our") values your privacy and the protection of your personal information. This Privacy Policy ("Policy") explains how we collect, use, store, share, and protect your personal information when you use LinkChest services (including the LinkChest Android APP, Web website, and related services).
+LinkChest ("we," "us," or "our"), developed and operated by **Shenzhen Linkji Information Technology Co., Ltd.** ("the Company"), values your privacy and the protection of your personal information. This Privacy Policy ("Policy") explains how we collect, use, store, share, and protect your personal information when you use LinkChest services (including the LinkChest Android APP, Web website, and related services).
 
-Please read this Policy carefully before using LinkChest services. By using LinkChest, you acknowledge that you have read, understood, and agree to be bound by this Policy. If you do not agree with any part of this Policy, please stop using LinkChest services immediately.
+Please read this Policy carefully before using LinkChest services. **We will only begin collecting and using your personal information, and activating third-party SDKs, after you explicitly click the "Agree" button.** If you do not agree with any part of this Policy, please stop using LinkChest services immediately.
 
 ---
 
@@ -18,35 +22,35 @@ Please read this Policy carefully before using LinkChest services. By using Link
 
 ### 1.1 Information You Provide
 
-- **Account Information**: When you register for a LinkChest account, we collect your **email address** and **password** (stored in encrypted form). You may also choose to set a nickname, username, and avatar.
-- **Third-Party Login Information**: When you use **Google Sign-In or Apple Sign-In**, we collect your Google or Apple account **email address**, **name**, and **profile picture** to create or link your LinkChest account. We do not access your Google or Apple account password.
+- **Account Information**: When you register for a LinkChest account, we collect your **email address** and **password** (stored in encrypted bcrypt hash form). You may also choose to set a nickname, username, and avatar.
 - **Collection Content**: URL links, titles, descriptions, cover images, tags, groups, and other user content you add or save through LinkChest.
 - **Feedback Information**: Problem descriptions, contact information, and other details you submit to us through the "Help & Feedback" feature.
 
 ### 1.2 Information We Collect Automatically
 
-- **Device Information**: Device model, operating system version, device identifiers (used for diagnostics and statistics, not for advertising tracking).
+- **Device Information**: Device model, operating system version, Android ID (device identifier, used for service diagnostics, abnormal login detection, and push targeting — not for advertising tracking).
 - **Log Information**: Operation logs when you use LinkChest services, including access times, feature usage records, IP addresses, and error logs.
 - **Network Information**: Network connection type and status, used to optimize service experience.
 
-### 1.3 Information from Third-Party Sources
+### 1.3 Third-Party Information
 
-When you collect links from third-party platforms, we extract publicly available metadata (such as titles, covers, descriptions) through our smart parsing feature. This information comes from the public content of the corresponding webpages, and we do not obtain your third-party platform account information.
+When you save a link from a third-party platform, we extract publicly available metadata (such as title, cover image, description) from the corresponding webpage. We do not access your third-party platform account information through this process.
 
 ---
 
 ## 2. How We Use Your Information
 
-We collect your personal information solely for the following purposes:
+We use your personal information solely for the following purposes:
 
-- **Providing Core Services**: Storing and syncing your collection content to enable cross-device access;
-- **Account Management**: Verifying your identity and ensuring account security;
-- **Service Optimization**: Analyzing usage data to improve product features and user experience;
-- **Security Protection**: Detecting and preventing fraud, abuse, and security risks;
-- **Customer Support**: Responding to your questions, suggestions, and complaints;
-- **Legal Compliance**: Complying with applicable laws, regulations, and regulatory requirements.
+- **Core Service Delivery**: Store and sync your collection content, enabling cross-device access;
+- **Account Management**: Verify your identity and safeguard your account;
+- **Push Notifications**: Send you collection updates, system notifications, and marketing messages (can be disabled in Settings > Notifications);
+- **Service Optimization**: Analyze usage data to improve product features and user experience;
+- **Security Protection**: Detect and prevent fraud, abuse, and security risks;
+- **Customer Support**: Respond to your questions, suggestions, and complaints;
+- **Legal Compliance**: Comply with applicable laws, regulations, and regulatory requirements.
 
-**We promise**: We will not use your personal information for purposes other than those stated above without your explicit consent, nor will we sell your personal information to third parties.
+**Our Commitment**: We will not use your personal information for purposes beyond those stated above without your explicit consent, nor will we sell your personal information to third parties.
 
 ---
 
@@ -54,22 +58,22 @@ We collect your personal information solely for the following purposes:
 
 ### 3.1 Storage Location
 
-Your personal information is stored on our servers located in Singapore. We take reasonable measures to ensure the security of data storage.
+Your personal information is stored on servers located in mainland China (Tencent Cloud domestic nodes). We take reasonable measures to ensure the security of data storage.
 
 ### 3.2 Retention Period
 
-We retain your personal information only for as long as necessary to fulfill the purposes described in this Policy, unless a longer retention period is required or permitted by law. After you cancel your account, we will delete your personal information within a reasonable time, except where otherwise required by law or agreed upon between you and us.
+We retain your personal information only for the period necessary to fulfill the purposes described in this Policy, unless laws and regulations require or permit a longer retention period. After you delete your account, we will delete your personal information within a reasonable time, unless otherwise specified by law or agreed upon between you and us.
 
 ### 3.3 Security Measures
 
 We employ industry-standard security measures to protect your personal information, including:
 
-- Using encryption technologies (such as HTTPS, password hashing) to protect data transmission and storage;
-- Implementing access controls to limit employee access to personal information;
-- Conducting regular security risk assessments and vulnerability remediation;
-- Establishing data security incident emergency response plans.
+- Encryption technologies (HTTPS, bcrypt password hashing) to protect data transmission and storage;
+- Access controls to restrict employee access to personal information;
+- Regular security risk assessments and vulnerability remediation;
+- Data security incident response plans.
 
-**Please note**: The Internet is not an absolutely secure environment. We strongly recommend that you set a complex and unique password and keep it safe to prevent information leakage due to your personal reasons.
+**Please Note**: The internet is not an absolutely secure environment. We strongly recommend setting a strong, unique password and keeping it secure to prevent information leakage due to personal reasons.
 
 ---
 
@@ -77,42 +81,42 @@ We employ industry-standard security measures to protect your personal informati
 
 ### 4.1 Sharing Principles
 
-We will not share your personal information with any third party without your consent, except in the following circumstances:
+We will not share your personal information with any third party without your consent, except:
 
-- **With Your Explicit Consent**: Sharing with designated third parties after obtaining your explicit authorization;
-- **Legal Requirements**: As required by laws, regulations, court orders, government requests, or other legal processes;
-- **Protecting Legitimate Rights and Interests**: As necessary to protect the legitimate rights, property, or safety of LinkChest, our users, or the public;
-- **Merger, Acquisition, or Bankruptcy**: In the event of a merger, division, acquisition, or bankruptcy liquidation, your personal information may be transferred as part of the transaction. We will require the new company holding your personal information to continue to be bound by this Policy.
+- **With Your Explicit Consent**: After obtaining your explicit authorization;
+- **Legal Requirements**: Pursuant to laws, court orders, government requests, or other legal proceedings;
+- **Protection of Rights**: Where necessary to protect the legitimate rights, property, or safety of LinkChest, our users, or the public;
+- **Merger, Acquisition, or Bankruptcy**: In the event of a merger, division, acquisition, or bankruptcy, your personal information may be transferred as part of the transaction. We will require the new entity to continue to be bound by this Policy.
 
 ### 4.2 Third-Party Services
 
-We may use third-party service providers to support our business operations (such as cloud storage and email sending services). These service providers access your personal information only to the extent necessary to provide services to us and are bound by confidentiality agreements.
+We may use third-party service providers to support our business operations (e.g., cloud storage, email delivery). These providers access your personal information only to the extent necessary to provide services to us and are bound by confidentiality agreements. For specific third-party SDKs integrated, please see Section 8 below.
 
 ---
 
 ## 5. Your Rights
 
-Under the Personal Data Protection Act (PDPA) of Singapore and other applicable laws, you have the following rights regarding your personal information:
+Under applicable data protection laws, you have the following rights regarding your personal information:
 
-- **Right to Know**: You have the right to know how we process your personal information;
+- **Right to Know**: You have the right to understand how we process your personal information;
 - **Right to Access**: You have the right to access the personal information we hold about you;
-- **Right to Rectification**: If you find that your personal information is inaccurate, you have the right to request correction;
-- **Right to Deletion**: Under circumstances prescribed by law, you have the right to request deletion of your personal information;
+- **Right to Rectification**: If you discover inaccuracies in your personal information, you have the right to request correction;
+- **Right to Deletion**: Under legally defined circumstances, you have the right to request deletion of your personal information;
 - **Right to Withdraw Consent**: You have the right to withdraw your consent to the processing of your personal information at any time;
-- **Right to Cancel Account**: You may apply to cancel your account through LinkChest APP → Settings → Cancel Account.
+- **Right to Account Deletion**: You can delete your account via LinkChest APP > Settings > Account Deletion.
 
-If you wish to exercise any of these rights, please contact us using the contact information at the bottom of this Policy. We will respond to your request within a reasonable period after receipt.
+To exercise these rights, please contact us through the channels listed at the bottom of this Policy. We will respond to your request within a reasonable timeframe.
 
 ---
 
 ## 6. Cookies and Similar Technologies
 
-The LinkChest Web client may use cookies and similar technologies to identify your browser or device in order to:
+The LinkChest Web version may use cookies and similar technologies to recognize your browser or device, in order to:
 
 - Remember your login status to avoid repeated logins;
-- Understand your usage preferences and optimize service experience.
+- Understand your preferences to optimize your service experience.
 
-You can manage or delete cookies through your browser settings. Please note that disabling cookies may affect the normal use of some LinkChest features.
+You can manage or delete cookies through your browser settings. However, disabling cookies may affect the normal use of certain LinkChest features.
 
 ---
 
@@ -122,22 +126,147 @@ LinkChest services are primarily intended for adults aged 18 and above. We do no
 
 ---
 
-## 8. Updates to This Privacy Policy
+## 8. Third-Party SDK Information Collection Disclosure
 
-We may revise this Policy from time to time in response to changes in laws and regulations, business development, or technological updates. The revised Policy will be published within the LinkChest APP or on the Web client and will take effect upon publication. If you continue to use LinkChest services, you are deemed to have accepted the revised Policy.
+To ensure the proper functioning of LinkChest APP features and the security and stability of our services, our product integrates third-party Software Development Kits (SDKs). We conduct strict security monitoring of SDKs that access information to protect data security. **The following SDKs are only initialized and invoked after you agree to this Privacy Policy.**
+
+### 8.1 JPush SDK & JCore (Aurora Mobile Push + Core Library)
+
+LinkChest integrates the push service provided by Aurora Mobile, which consists of two SDK components:
+
+- **JPush SDK**: `cn.jpush.android`
+- **JCore (Aurora Core Library / Aurora Analytics)**: `cn.jiguang`
+
+JCore is the underlying foundation library required by JPush SDK, providing device identification and network communication capabilities. **Both JPush and JCore are only initialized after the user agrees to this Privacy Policy.**
+
+- **Service Name**: JPush (Aurora Push) and JCore (Aurora Core Library / Aurora Analytics)
+- **Provider**: Aurora Mobile Limited (Shenzhen Hexun Huagu Information Technology Co., Ltd.)
+- **SDK Packages**: `cn.jpush.android` (JPush), `cn.jiguang` (JCore)
+- **Purpose**:
+  - JPush: Push notification delivery for collection updates, system notifications, and marketing messages
+  - JCore: Provides device identification and network communication capabilities required by JPush
+- **Collection Method**: After user agrees in the privacy policy dialog, SDK starts collection only after JCollectionAuth authorization
+- **Personal Information Collected**:
+  - **Device Identifier**: Android ID (for push targeting and anti-spam identification)
+  - **Network Information**: Network connection type, IP address, network status
+  - **Device Information**: Device manufacturer, device model, OS version
+  - **JPush Registration ID**: Unique push identifier assigned by JPush
+- **Information NOT Collected**:
+  - **NOT collected**: IMEI, device MAC address
+  - **NOT collected**: Software installation list
+  - **NOT collected**: Contacts, SMS messages
+  - **NOT collected**: Location information
+- **Collection Frequency**: On app launch (only after authorization), user login/logout, push message delivery
+- **Data Transmitted To**: JPush servers (within China)
+- **Communication Domains**: `*.jpush.cn`
+- **SDK Privacy Policy**: https://www.jiguang.cn/license/privacy
+
+### 8.2 Firebase Cloud Messaging SDK (FCM)
+
+- **Service Name**: Firebase Cloud Messaging (FCM) — Global version only
+- **Provider**: Google LLC
+- **SDK Package**: `com.google.firebase.messaging`, `io.invertase.firebase`
+- **Purpose**: Push notifications for global users
+- **Collection Method**: Automatic SDK collection
+- **Personal Information Collected**:
+  - Device model, OS version
+  - FCM Push Token
+  - Network status
+- **Data Transmitted To**: Google servers (outside China)
+- **Privacy Policy**: https://firebase.google.com/support/privacy
+
+### 8.3 Expo Notifications SDK
+
+- **Service Name**: Expo Notifications
+- **Provider**: Expo, Inc.
+- **SDK Package**: `expo.modules.notifications`
+- **Purpose**: Local notification scheduling, collection success reminders
+- **Collection Method**: Automatic SDK collection (local-only, not uploaded to any server)
+- **Personal Information Collected**:
+  - Notification ID, notification content (processed locally only)
+- **Data Location**: Local device only, no server upload
+- **Privacy Policy**: https://expo.dev/privacy
+
+### 8.4 Tencent Cloud COS SDK
+
+- **Service Name**: Tencent Cloud Object Storage (COS)
+- **Provider**: Tencent Cloud Computing (Beijing) Co., Ltd.
+- **Purpose**: Storing uploaded cover images and avatar images
+- **Collection Method**: Invoked only when you actively upload images
+- **Personal Information Collected**:
+  - Image files you actively upload
+  - Temporary credentials for upload requests
+- **Data Transmitted To**: Tencent Cloud COS servers (within China)
+- **Privacy Policy**: https://privacy.qq.com/
+
+### 8.5 Tencent Cloud SES SDK
+
+- **Service Name**: Tencent Cloud Simple Email Service (SES)
+- **Provider**: Tencent Cloud Computing (Beijing) Co., Ltd.
+- **Purpose**: Sending email verification codes, account security notifications, system emails
+- **Collection Method**: Invoked only during registration, login, or password change
+- **Personal Information Collected**:
+  - Your email address
+  - Email content
+- **Data Transmitted To**: Tencent Cloud SES servers (within China)
+- **Privacy Policy**: https://privacy.qq.com/
+
+### 8.6 Alipay Payment SDK (China Version Only)
+
+- **Service Name**: Alipay Mobile Payment SDK
+- **Provider**: Alipay (China) Internet Technology Co., Ltd.
+- **SDK Package**: `com.alipay.sdk`
+- **Purpose**: Membership subscription payments
+- **Collection Method**: Invoked only when you initiate a payment
+- **Personal Information Collected**:
+  - Order information (order ID, order amount)
+  - Device information (for payment security verification)
+- **Data Transmitted To**: Alipay servers
+- **Privacy Policy**: https://render.alipay.com/p/c/k2cx0tg8
+
+### 8.7 WeChat Open Platform SDK (China Version Only)
+
+- **Service Name**: WeChat Login & Share SDK
+- **Provider**: Shenzhen Tencent Computer Systems Co., Ltd.
+- **SDK Package**: `com.tencent.mm.opensdk`
+- **Purpose**: WeChat login, content sharing to WeChat
+- **Collection Method**: Invoked only when you actively click WeChat login or share
+- **Personal Information Collected**:
+  - OpenID, UnionID, nickname, avatar returned by WeChat Open Platform
+- **Data Transmitted To**: WeChat servers
+- **Privacy Policy**: https://privacy.qq.com/
 
 ---
 
-## 9. Contact Us
+## 9. App Auto-Start and Associated Launch Behavior
 
-If you have any questions, comments, or suggestions regarding this Privacy Policy, or if you wish to exercise your personal information rights, please contact us through the following channels:
+To enable push notifications and local notification scheduling, the LinkChest APP includes the following system-level behaviors:
 
-- **Customer Service Email**: support@linkchest.net
-- **In-App Feedback**: LinkChest APP → Settings → Help & Feedback → Contact Us
+- **JPush SDK** may trigger app process wake-up when receiving push messages (only after you agree to the Privacy Policy and enable push permissions)
+- **Expo Notifications module** schedules local notification tasks after app exit (no information is uploaded to any server)
 
-We will process and respond to your request within a reasonable period after receipt.
+You can disable auto-start permissions in System Settings > App Management > LinkChest > Auto-Start Management, or disable push functionality in APP > Settings > Notification Settings.
 
 ---
 
-**LinkChest / 链藏 Operations Team**  
-**Version: 1.0 · Last Updated: April 28, 2026**
+## 10. Policy Updates
+
+We may revise this Policy from time to time based on changes in laws and regulations, business development, or technology updates. The revised policy will be published within the LinkChest APP or on the Web version and will take effect upon publication. **Major changes will require re-confirmation of consent through a popup dialog.** Your continued use of LinkChest services constitutes your acceptance of the revised policy.
+
+---
+
+## 11. Contact Us
+
+If you have any questions, comments, or suggestions regarding this Privacy Policy, or wish to exercise your personal information rights, please contact us through:
+
+- **Developer Entity**: Shenzhen Linkji Information Technology Co., Ltd. (深圳市链记信息技术有限责任公司)
+- **Customer Support Email**: support@linkchest.net
+- **In-App Feedback**: LinkChest APP > Settings > Help & Feedback > Contact Us
+
+We will process and respond to your request within a reasonable timeframe.
+
+---
+
+**Developer:** Shenzhen Linkji Information Technology Co., Ltd.
+**Application:** LinkChest (链藏)
+**Version: 2026-06-22 · Last Updated: June 22, 2026**

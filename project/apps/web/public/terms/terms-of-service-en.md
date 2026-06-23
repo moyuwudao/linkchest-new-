@@ -1,8 +1,12 @@
 # LinkChest Terms of Service
 
-**Version:** 1.0  
-**Last Updated:** April 28, 2026  
-**Effective Date:** April 28, 2026
+**Version:** 2026-06-22 (Compliance Revision)  
+**Last Updated:** June 22, 2026  
+**Effective Date:** June 22, 2026
+
+**Service Provider:** Shenzhen Linkji Information Technology Co., Ltd. (深圳市链记信息技术有限责任公司)
+**Application Name:** LinkChest (链藏)
+**Application Package:** com.linkchest.app
 
 ---
 
@@ -10,7 +14,7 @@
 
 Welcome to LinkChest.
 
-This Terms of Service ("**Terms**") is a legally binding agreement between you and LinkChest ("**we**", "**us**", or "**our**") governing your use of LinkChest (including the Web client, mobile APP, and related services, branded as "LinkChest" internationally and "链藏" domestically).
+This Terms of Service ("**Terms**") is a legally binding agreement between you and **Shenzhen Linkji Information Technology Co., Ltd.** ("**we**", "**us**", or "**our**") governing your use of LinkChest (including the Web client, mobile APP, and related services, branded as "LinkChest" internationally and "链藏" domestically).
 
 By registering for, logging into, or using LinkChest in any manner—including by clicking to accept, logging in, or continuing to use the service—you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, please stop using LinkChest immediately.
 
@@ -27,7 +31,7 @@ Unless otherwise defined herein, the following terms have the meanings set forth
 - **"LinkChest"** means the cross-platform content aggregation and management tool operated by us, including client applications (Android/iOS), the Website (linkchest.net and related domains), and related services. It is branded as "LinkChest" for international users and "链藏" for domestic users.
 - **"Service"** means all functionalities and services provided by LinkChest, including but not limited to: content aggregation and management, content parsing and display, grouping and tagging, sharing, paid membership, and related features.
 - **"User Content"** means any content collected, saved, uploaded, published, shared, or transmitted by you through LinkChest, including but not limited to: URLs, titles, descriptions, cover images, tags, group information, and other metadata.
-- **"Public Share"** means any share created through LinkChest using a share link that is accessible by anyone on the internet.
+- **"Public Share"** means any share created through LinkChest using an LCST: share code or corresponding link that is accessible by anyone on the internet.
 - **"Paid Service"** means any membership benefits or value-added services provided by LinkChest that require payment.
 
 ### 1.2 Eligibility
@@ -40,14 +44,14 @@ By using LinkChest, you represent and warrant that you have full civil capacity,
 
 ### 2.1 Scope of Service
 
-LinkChest provides a cross-platform content aggregation and management service, enabling you to collect, organize, categorize, and share content links from major platforms across the web.
+LinkChest provides a cross-platform content aggregation and management service, enabling you to collect, organize, categorize, and share content links from 193 platforms including Douyin (抖音), Xiaohongshu (小红书), Bilibili (B站), Taobao, and many more.
 
 Core features of LinkChest include:
 
 - **Collection Management**: Add, edit, delete, search, filter, and batch manage your collections.
 - **Smart Parsing**: LinkChest automatically identifies URL sources and extracts and displays Open Graph metadata (titles, cover images, descriptions, etc., hereinafter "OG Content"), restores shortened URLs, and removes tracking parameters.
 - **Groups and Tags**: Organize your collections using custom groups and tags.
-- **Sharing**: Share your collections via links, with optional password protection and expiration settings.
+- **Sharing**: Share your collections via LCST: codes or links, with optional password protection and expiration settings.
 - **Multilingual Interface**: Switch between Chinese and English interfaces.
 
 ### 2.2 Limitations of Service
@@ -83,8 +87,7 @@ For material changes to the Service, we will endeavor to provide advance notice 
 
 You must register an account before using LinkChest. Registration options include:
 
-- **Email**: Provide a valid email address and set a password.
-- **Google Sign-In or Apple Sign-In**: You may sign in using your Google account or Apple account. When you sign in via Google or Apple, we will collect your account email, name, and profile picture to create or link your LinkChest account.
+- **Email**: Provide a valid email address, complete verification via a one-time code sent by us, and set a password.
 
 You represent and warrant that all registration information you provide is true, complete, and accurate, and that you will promptly update it if it changes. You understand that any loss or consequence arising from false information or failure to keep your information current shall be your sole responsibility.
 
@@ -174,7 +177,7 @@ You understand and agree that LinkChest has the right (but not the obligation) t
 
 ### 6.1 Public Sharing
 
-The link sharing functionality provided by LinkChest constitutes **Public Sharing**. Shares created without password protection or expiration settings may be accessed, viewed, and saved by anyone on the internet.
+The LCST: share code and corresponding link sharing functionality provided by LinkChest constitutes **Public Sharing**. Shares created without password protection or expiration settings may be accessed, viewed, and saved by anyone on the internet.
 
 ### 6.2 Responsibility for Shares
 
@@ -294,7 +297,7 @@ LinkChest's privacy practices are further described in our separately published 
 
 ### 11.1 Third-Party Content Disclaimer
 
-**LinkChest makes no representations or warranties of any kind—and assumes no liability of any kind—with respect to any third-party platform content you access, collect, or share through LinkChest.** The authenticity, legality, completeness, accuracy, and safety of any content accessed via links to any third-party platform are the sole responsibility of the originating platform and publisher. Any dispute, loss, or other matter arising between you and any third-party platform shall be resolved solely between you and that third party; LinkChest assumes no joint, several, or contributory liability.
+**LinkChest makes no representations or warranties of any kind—and assumes no liability of any kind—with respect to any third-party platform content you access, collect, or share through LinkChest.** The authenticity, legality, completeness, accuracy, and safety of any content accessed via links to Douyin (抖音), Xiaohongshu (小红书), Bilibili (B站), Taobao, or any other third-party platform are the sole responsibility of the originating platform and publisher. Any dispute, loss, or other matter arising between you and any third-party platform shall be resolved solely between you and that third party; LinkChest assumes no joint, several, or contributory liability.
 
 ### 11.2 OG Content Disclaimer
 
@@ -327,16 +330,17 @@ Upon termination by either party, you remain liable for all acts and omissions p
 
 ### 12.2 Applicable Law
 
-These Terms shall be governed by and construed in accordance with the laws of the **Republic of Singapore**, without regard to its conflict of law provisions.
+These Terms shall be governed by and construed in accordance with the laws of the **People's Republic of China**, without regard to its conflict of law provisions.
 
 ### 12.3 Dispute Resolution
 
-In the event of any dispute arising from or relating to LinkChest, the parties shall first attempt to resolve the dispute through amicable negotiation. If negotiation fails, either party may submit the dispute to **arbitration at the Singapore International Arbitration Centre (SIAC)**, or to the **competent courts of Singapore** for resolution.
+In the event of any dispute arising from or relating to LinkChest, the parties shall first attempt to resolve the dispute through amicable negotiation. If negotiation fails, either party may submit the dispute to the **competent people's court in the defendant's place of domicile** for resolution.
 
 ### 12.4 Contact Us
 
 If you have any questions, comments, or concerns regarding these Terms; if you need to report non-compliant content or submit an infringement complaint; or if you wish to request data deletion or account cancellation, please contact us through the following channels:
 
+- **Service Provider**: Shenzhen Linkji Information Technology Co., Ltd. (深圳市链记信息技术有限责任公司)
 - **In-App**: LinkChest APP → Settings → Help & Feedback → Contact Us
 - **Customer Service Email**: support@linkchest.net
 
@@ -351,5 +355,6 @@ We will process and respond to your request within a reasonable period after rec
 
 ---
 
-**LinkChest / 链藏 Operations Team**  
-**Version: 1.0 · Last Updated: April 28, 2026**
+**Service Provider:** Shenzhen Linkji Information Technology Co., Ltd.
+**Application:** LinkChest (链藏)
+**Version: 2026-06-22 · Last Updated: June 22, 2026**

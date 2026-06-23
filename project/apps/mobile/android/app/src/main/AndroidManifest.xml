@@ -1,18 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
   <uses-permission android:name="android.permission.INTERNET"/>
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+  <!-- 仅在 Android 9 及以下需要外部存储权限（用于保存生成的图片到相册） -->
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+  <!-- Android 13+ 读取媒体图片权限（保存生成图片所需） -->
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <!-- 极光推送权限 -->
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
   <uses-permission android:name="android.permission.WAKE_LOCK"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   <!-- 华为推送权限 -->
   <uses-permission android:name="com.huawei.android.launcher.permission.CHANGE_BADGE"/>
-  <!-- 小米推送权限 -->
-  <uses-permission android:name="android.permission.GET_TASKS"/>
+  <!-- 移除 GET_TASKS（已废弃，会被审核扣分） -->
+  <!-- 移除 SYSTEM_ALERT_WINDOW（应用不使用悬浮窗，会被审核扣分） -->
   <queries>
     <intent>
       <action android:name="android.intent.action.VIEW"/>
@@ -20,13 +22,17 @@
       <data android:scheme="https"/>
     </intent>
   </queries>
-  <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="true" android:theme="@style/AppTheme" android:usesCleartextTraffic="false">
+  <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="false" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules" android:theme="@style/AppTheme" android:usesCleartextTraffic="false">
     <!-- 推送相关 meta-data 已移至 src/china/AndroidManifest.xml -->
     <!-- 国内版需通过 tools:replace 覆盖以下值 -->
 
     <meta-data android:name="expo.modules.updates.ENABLED" android:value="false"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0"/>
+    <!-- 修复合规：极光改为用户同意隐私政策后手动初始化，关闭自动初始化 -->
+    <meta-data android:name="JPUSH_AUTOINIT" android:value="false"/>
+    <!-- 修复合规：移除 expo-notifications 的开机自启动 receiver，避免应用退出时自启动 -->
+    <receiver android:name="expo.modules.notifications.service.NotificationsService" tools:node="remove"/>
     <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.App.SplashScreen" android:exported="true" android:screenOrientation="portrait">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>

@@ -2,10 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import {
   TouchableOpacity,
   Alert,
-  Modal,
-  View,
-  Text,
-  TextInput,
   StyleSheet,
 } from 'react-native';
 import * as WeChat from 'react-native-wechat-lib';
@@ -47,10 +43,6 @@ export default function WeChatLoginSection({
 }: Props) {
   const navigation = useNavigation();
   const { setToken, setUser } = useAuthStore();
-  const [showSetPassword, setShowSetPassword] = useState(false);
-  const [setPwd, setSetPwd] = useState('');
-  const [setPwdConfirm, setSetPwdConfirm] = useState('');
-  const [setPwdLoading, setSetPwdLoading] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
 
   useEffect(() => {
@@ -73,13 +65,8 @@ export default function WeChatLoginSection({
       const { token, user } = response.data;
       await setToken(token);
       setUser(user);
-      if (!user.hasPassword) {
-        setSetPwd('');
-        setSetPwdConfirm('');
-        setShowSetPassword(true);
-      } else {
-        navigation.replace('Main' as never);
-      }
+      // 移除首次登录设置密码弹窗，用户可在「账号设置」中自行设置密码
+      navigation.replace('Main' as never);
     } catch (error: any) {
       const errorCode = error.response?.data?.error || AuthErrorCodes.SERVER_ERROR;
       Alert.alert(t('common.error'), getErrorMessage(errorCode, t));
@@ -95,6 +82,12 @@ export default function WeChatLoginSection({
     }
     if (!isRegistered) {
       Alert.alert(t('common.error'), t('login.wechatLoginFailed'));
+      return;
+    }
+
+    // 合规：微信登录前必须同意隐私政策
+    const privacyConsented = await (global as any).requestPrivacyConsent?.();
+    if (!privacyConsented) {
       return;
     }
 
@@ -117,90 +110,14 @@ export default function WeChatLoginSection({
     }
   }, [wechatClientId, isRegistered, lang, setLoading]);
 
-  const handleSetPassword = async () => {
-    if (!setPwd || !setPwdConfirm) {
-      Alert.alert(t('common.hint'), t('login.enterPasswordAndConfirm'));
-      return;
-    }
-    if (setPwd !== setPwdConfirm) {
-      Alert.alert(t('common.hint'), t('login.passwordsDoNotMatch'));
-      return;
-    }
-    if (setPwd.length < 6) {
-      Alert.alert(t('common.hint'), t('login.passwordTooShort'));
-      return;
-    }
-    try {
-      setSetPwdLoading(true);
-      await api.post('/auth/set-password', { password: setPwd });
-      Alert.alert(t('common.success'), t('login.passwordSetSuccess'));
-      setShowSetPassword(false);
-      navigation.replace('Main' as never);
-    } catch (error: any) {
-      const errorCode = error.response?.data?.error || AuthErrorCodes.SERVER_ERROR;
-      Alert.alert(t('common.error'), getErrorMessage(errorCode, t));
-    } finally {
-      setSetPwdLoading(false);
-    }
-  };
-
   return (
-    <>
-      <TouchableOpacity
-        style={[styles.thirdPartyBtn, { backgroundColor: '#07C160', borderWidth: 0 }]}
-        onPress={handleWechatLogin}
-        disabled={loading || !wechatClientId}
-      >
-        <WeChatIcon size={22} color="#fff" />
-      </TouchableOpacity>
-
-      {/* 首次登录设置密码弹窗 */}
-      <Modal visible={showSetPassword} animationType="slide" transparent>
-        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {t('login.setPassword')}
-              </Text>
-            </View>
-            <Text style={[styles.hint, { color: colors.textTertiary }]}>
-              {t('login.setPasswordHint')}
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border },
-              ]}
-              placeholder={t('login.enterPassword')}
-              placeholderTextColor={colors.textTertiary}
-              secureTextEntry
-              value={setPwd}
-              onChangeText={setSetPwd}
-            />
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.inputBg, color: colors.text, borderColor: colors.border },
-              ]}
-              placeholder={t('login.confirmPassword')}
-              placeholderTextColor={colors.textTertiary}
-              secureTextEntry
-              value={setPwdConfirm}
-              onChangeText={setSetPwdConfirm}
-            />
-            <TouchableOpacity
-              style={[styles.btn, { backgroundColor: colors.primary }]}
-              onPress={handleSetPassword}
-              disabled={setPwdLoading}
-            >
-              <Text style={styles.btnText}>
-                {setPwdLoading ? t('common.loading') : t('common.confirm')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </>
+    <TouchableOpacity
+      style={[styles.thirdPartyBtn, { backgroundColor: '#07C160', borderWidth: 0 }]}
+      onPress={handleWechatLogin}
+      disabled={loading || !wechatClientId}
+    >
+      <WeChatIcon size={22} color="#fff" />
+    </TouchableOpacity>
   );
 }
 
@@ -212,47 +129,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 8,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    width: '100%',
-    maxWidth: 400,
-    borderRadius: 16,
-    padding: 20,
-  },
-  modalHeader: {
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  hint: {
-    fontSize: 14,
-    marginBottom: 16,
-  },
-  input: {
-    height: 48,
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    fontSize: 15,
-  },
-  btn: {
-    height: 48,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

@@ -128,7 +128,12 @@ export default function GoogleLoginSection({ colors, loading, t, lang, setLoadin
     <>
       <TouchableOpacity
         style={[styles.thirdPartyBtn, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-        onPress={() => promptGoogleAsync()}
+        onPress={async () => {
+          // 合规：Google 登录前必须同意隐私政策
+          const privacyConsented = await (global as any).requestPrivacyConsent?.();
+          if (!privacyConsented) return;
+          promptGoogleAsync();
+        }}
         disabled={!googleRequest || loading}
       >
         <Ionicons name="logo-google" size={24} color="#EA4335" />

@@ -1,6 +1,10 @@
 /**
  * 推送通知封装 (FCM + Expo Notifications)
  * 条件初始化：如果未配置 FCM 则回退到 Expo Notifications 本地通知
+ *
+ * 合规说明：
+ * - setNotificationHandler 仅设置展示规则，不收集任何个人信息（属于安全行为）
+ * - initNotifications() 内的权限请求和 Firebase 加载，必须在用户同意隐私政策后才调用
  */
 
 import * as Notifications from 'expo-notifications'

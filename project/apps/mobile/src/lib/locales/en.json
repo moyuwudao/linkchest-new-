@@ -552,7 +552,18 @@
     "referralTotalInvited": "Invited",
     "referralUpgraded": "Upgraded",
     "referralRewardDays": "Reward Days",
-    "referralLoading": "Loading..."
+    "referralLoading": "Loading...",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDesc": "Permanently delete your account and all data. This action cannot be undone.",
+    "deleteAccountConfirmTitle": "Confirm Account Deletion?",
+    "deleteAccountConfirmDesc": "The following data will be permanently deleted and cannot be recovered:\n\n• Personal information (username, email, avatar, etc.)\n• All collections, groups, and tags\n• All sharing links\n• Subscription and referral records\n\nAny remaining membership period will be voided and is non-refundable.",
+    "deleteAccountKeepHint": "If you just want to pause usage, you can clear app data or uninstall this app instead of deleting your account.",
+    "deleteAccountConfirmBtn": "I understand, continue",
+    "deleteAccountInputHint": "Type \"DELETE\" to confirm",
+    "deleteAccountInputKey": "DELETE",
+    "deleteAccountInputMismatch": "Input does not match, deletion aborted",
+    "deleteAccountSuccess": "Your account has been deleted. The app will exit.",
+    "deleteAccountFailed": "Failed to delete account, please try again"
   },
   "login": {
     "emailLogin": "Sign in with Email",
@@ -608,7 +619,33 @@
     "titleAndPrivacy": "Terms & Privacy"
   },
   "privacy": {
-    "title": "Privacy Policy"
+    "title": "Privacy Policy",
+    "dialogTitle": "User Agreement & Privacy Policy",
+    "dialogIntro": "Welcome to LinkChest! We take your privacy seriously. Please review the Terms of Service and Privacy Policy before proceeding. We collect and use your personal information as follows:",
+    "summaryTitle": "Information we collect:",
+    "summaryAccount": "Account info (email, password, nickname): for registration and authentication",
+    "summaryCollection": "Saved content (links, titles, tags you save): to provide the core collection service",
+    "summaryDevice": "Device info (model, OS version, Android ID, network status): for diagnostics and push targeting",
+    "summaryPush": "JPush SDK: activated after consent, collects Android ID, device model, network status for push notifications",
+    "summaryCos": "Tencent Cloud COS / SES: for storing cover images and sending email verification codes",
+    "rightsTitle": "Your rights:",
+    "rightsDesc": "You can view, edit, and delete your personal data at any time, or delete your account in Settings.",
+    "viewFull": "View Full Privacy Policy",
+    "viewTerms": "View Terms of Service",
+    "agree": "Agree",
+    "disagree": "Decline",
+    "disagreeConfirmTitle": "Are you sure?",
+    "disagreeConfirmDesc": "Without agreeing, you cannot use LinkChest and the app will exit. Please confirm.",
+    "exitApp": "Decline and Exit",
+    "reviewAgain": "Review again",
+    "disagreeExit": "Exit App",
+    "disagreeReview": "Review Again",
+    "revokeEntry": "Privacy Consent",
+    "agreedAt": "Agreed ({date})",
+    "revokeTitle": "Withdraw Privacy Consent",
+    "revokeDesc": "After withdrawal, the app will no longer allow JPush SDK to collect your personal information (including device identifiers like Android ID), and the privacy policy dialog will appear again on next launch. This action will NOT delete your account or saved data.",
+    "revokeConfirm": "Confirm Withdrawal",
+    "revokeSuccess": "Privacy consent withdrawn. The app will log out, and you will need to agree to the privacy policy again on next launch."
   },
   "tag": {
     "newTag": "New Tag",
@@ -844,7 +881,32 @@
     "contactSupport": "Contact Support",
     "contactSupportDesc": "Please contact us if you have any payment issues",
     "autoRenew": "Auto Renew",
-    "autoRenewDesc": "Renew automatically before expiry. If disabled, you'll be reminded 7 and 1 day before expiry"
+    "autoRenewDesc": "Renew automatically before expiry. If disabled, you'll be reminded 7 and 1 day before expiry",
+    "userConsentNotice": "Please read before payment",
+    "memberServiceAgreement": "Member Service Agreement",
+    "autoRenewAgreement": "Auto-Renewal Service Agreement",
+    "agreedToRead": "I have read and agree to ",
+    "agreedToReadAndConfirm": "I have read and agree to the above agreements",
+    "mustAgreeTerms": "Please read and agree to the Member Service Agreement (and Auto-Renewal Agreement if applicable) before payment"
+  },
+  "cancellation": {
+    "title": "Cancellation Instructions",
+    "subtitle": "You can cancel auto-renewal at any time via Alipay App (in-app management is not provided):",
+    "alipayStep1": "Open Alipay App → Me → Settings",
+    "alipayStep2": "Payment Settings → Auto-Deduction",
+    "alipayStep3": "Find LinkChest service → Disable",
+    "note": "After cancellation, current membership remains valid until expiry, no further renewal will occur.",
+    "ios": "iOS: Settings → Apple ID → Subscriptions → Find this app → Cancel",
+    "android": "Android: Cancel via Alipay App (in-app management is not provided)",
+    "other": "Alipay App: Me → Settings → Payment Settings → Auto-Deduction → Disable"
+  },
+  "privacyPopup": {
+    "title": "Privacy Policy & User Agreement",
+    "subtitle": "Thank you for trusting LinkChest. Please read carefully to protect your personal information:",
+    "agreeAndContinue": "Agree and Continue",
+    "rejectAndExit": "Decline and Exit",
+    "mustAgree": "Please agree to the privacy policy and user agreement to continue",
+    "checkedStatus": "I have read and agree to the above two agreements"
   },
   "tier": {
     "title": "Plan & Tier",

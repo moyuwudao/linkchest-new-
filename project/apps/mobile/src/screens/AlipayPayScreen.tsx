@@ -77,7 +77,7 @@ type PayPhase = 'idle' | 'creating' | 'opening' | 'opened' | 'success' | 'failed
 
 export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenProps) {
   const { colors } = useThemeStore();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { tier, billingCycle, tierName, price } = route.params;
 
   // 防御性处理：price 可能是 string（标准）或 fmtPrice 返回的 {amt, symbol, per} 对象
@@ -97,6 +97,7 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
   const [orderId, setOrderId] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [autoRenew, setAutoRenew] = useState(true);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const appStateRef = useRef(AppState.currentState);
 
   // 列表入场动画
@@ -120,6 +121,14 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
 
   async function handlePay() {
     if (phase === 'creating' || phase === 'opening') return;
+    // 合规：必须勾选会员服务协议与自动续费服务协议（如已开启自动续费）才可支付
+    if (!agreedToTerms) {
+      Alert.alert(
+        t('common.hint') || '提示',
+        t('payment.mustAgreeTerms') || '请先阅读并同意《会员服务协议》' + (autoRenew ? '和《自动续费服务协议》' : '')
+      );
+      return;
+    }
     setError('');
     setPhase('creating');
     try {
@@ -367,6 +376,77 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
               />
             </View>
           </TouchableOpacity>
+
+          {/* 合规：自动续费显著的退订说明 */}
+          {autoRenew && (
+            <View style={[styles.cancellationBox, { backgroundColor: (colors as any).warningBg || '#FFA50015', borderColor: colors.warning }]}>
+              <Text style={[styles.cancellationTitle, { color: colors.warning }]}>
+                {t('cancellation.title') || '退订说明'}
+              </Text>
+              <Text style={[styles.cancellationDesc, { color: colors.text }]}>
+                {t('cancellation.subtitle') || '您可随时通过支付宝 App 关闭自动续费服务：'}
+              </Text>
+              <Text style={[styles.cancellationItem, { color: colors.textSecondary }]}>
+                • {t('cancellation.alipayStep1') || '打开支付宝 App → 我的 → 设置'}
+              </Text>
+              <Text style={[styles.cancellationItem, { color: colors.textSecondary }]}>
+                • {t('cancellation.alipayStep2') || '支付设置 → 免密支付/自动扣款'}
+              </Text>
+              <Text style={[styles.cancellationItem, { color: colors.textSecondary }]}>
+                • {t('cancellation.alipayStep3') || '找到「链藏」服务 → 关闭服务'}
+              </Text>
+              <Text style={[styles.cancellationItem, { color: colors.textSecondary, marginTop: 6 }]}>
+                {t('cancellation.note') || '取消后当前周期内会员权益保留至到期日，到期后不再续费。'}
+              </Text>
+            </View>
+          )}
+        </View>
+      </Animated.View>
+
+      {/* 合规：会员服务协议 + 自动续费服务协议 勾选区（默认未勾选） */}
+      <Animated.View style={[{ opacity: anim3.opacity, transform: [{ translateY: anim3.translateY }] }]}>
+        <View style={[styles.card, { backgroundColor: colors.card }, shadow.card]}>
+          <TouchableOpacity
+            onPress={() => setAgreedToTerms(!agreedToTerms)}
+            activeOpacity={0.7}
+            style={styles.agreementRow}
+          >
+            <Ionicons
+              name={agreedToTerms ? 'checkbox' : 'square-outline'}
+              size={22}
+              color={agreedToTerms ? colors.primary : colors.textTertiary}
+            />
+            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+              <Text style={{ fontSize: 13, color: colors.text }}>
+                {t('payment.agreedToRead') || '我已阅读并同意'}
+              </Text>
+              <Text
+                style={{ fontSize: 13, color: colors.primary, textDecorationLine: 'underline' }}
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  navigation?.navigate?.('Terms', { type: 'member' });
+                }}
+              >
+                《{t('payment.memberServiceAgreement') || '会员服务协议'}》
+              </Text>
+              {autoRenew && (
+                <>
+                  <Text style={{ fontSize: 13, color: colors.text }}>
+                    {locale === 'zh' ? '和' : ' and '}
+                  </Text>
+                  <Text
+                    style={{ fontSize: 13, color: colors.primary, textDecorationLine: 'underline' }}
+                    onPress={(e) => {
+                      e.stopPropagation?.();
+                      navigation?.navigate?.('Terms', { type: 'autoRenew' });
+                    }}
+                  >
+                    《{t('payment.autoRenewAgreement') || '自动续费服务协议'}》
+                  </Text>
+                </>
+              )}
+            </View>
+          </TouchableOpacity>
         </View>
       </Animated.View>
 
@@ -492,5 +572,30 @@ const styles = StyleSheet.create({
   autoRenewTextWrap: {
     flex: 1,
     gap: 2,
+  },
+  cancellationBox: {
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
+  cancellationTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  cancellationDesc: {
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  cancellationItem: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  agreementRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingVertical: 4,
   },
 });

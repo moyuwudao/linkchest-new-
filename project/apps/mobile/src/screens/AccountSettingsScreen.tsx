@@ -29,7 +29,7 @@ import { moderateNicknameLocal } from '../lib/contentModeration';
 
 export default function AccountSettingsScreen() {
   const navigation = useNavigation();
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, logout: logoutFn } = useAuthStore();
   const queryClient = useQueryClient();
   const colors = useThemeStore(s => s.colors);
   const { t, locale } = useI18n();
@@ -391,6 +391,69 @@ export default function AccountSettingsScreen() {
     ]);
   };
 
+  // 合规：账号注销（OPPO/小米/应用宝审核要求）
+  // 二次弹窗确认 + 一次输入框确认，防止误操作
+  const [deleteAccountModal, setDeleteAccountModal] = useState(false);
+  const [deleteAccountInput, setDeleteAccountInput] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('account.deleteAccountConfirmTitle') || '确认注销账号？',
+      `${t('account.deleteAccountConfirmDesc')}\n\n${t('account.deleteAccountKeepHint')}`,
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('account.deleteAccountConfirmBtn') || '我已知晓后果，继续',
+          style: 'destructive',
+          onPress: () => {
+            // 打开输入确认弹窗（适配 Android）
+            setDeleteAccountInput('');
+            setDeleteAccountModal(true);
+          },
+        },
+      ]
+    );
+  };
+
+  const confirmDeleteAccount = async () => {
+    const expectedKey = t('account.deleteAccountInputKey') || '注销账号';
+    if (deleteAccountInput.trim() !== expectedKey) {
+      Alert.alert(
+        t('common.hint'),
+        t('account.deleteAccountInputMismatch') || '输入内容不一致，无法注销'
+      );
+      return;
+    }
+    setDeletingAccount(true);
+    try {
+      await api.delete('/auth/account');
+      setDeleteAccountModal(false);
+      Alert.alert(
+        t('common.success'),
+        t('account.deleteAccountSuccess') || '账号已注销',
+        [
+          {
+            text: t('common.confirm'),
+            onPress: async () => {
+              await logoutFn();
+            },
+          },
+        ]
+      );
+    } catch (err: any) {
+      Alert.alert(
+        t('common.error'),
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          t('account.deleteAccountFailed') ||
+          '注销失败'
+      );
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
   const renderItem = (icon: string, iconColor: string, title: string, value: string, onPress: () => void) => (
     <TouchableOpacity
       style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border }}
@@ -581,6 +644,27 @@ export default function AccountSettingsScreen() {
               <Text style={{ fontSize: 14, color: colors.textSecondary, textAlign: 'center' }}>{t('account.referralEmpty')}</Text>
             </View>
           )}
+        </View>
+
+        {/* 合规：账号注销入口（OPPO 审核要求） */}
+        <View style={{ marginTop: 8, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.card }}>
+          <TouchableOpacity
+            onPress={handleDeleteAccount}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Ionicons name="trash-outline" size={22} color={colors.danger || '#DC3545'} />
+              <View>
+                <Text style={{ fontSize: 16, color: colors.danger || '#DC3545' }}>
+                  {t('account.deleteAccount') || '注销账号'}
+                </Text>
+                <Text style={{ fontSize: 12, color: colors.textTertiary }}>
+                  {t('account.deleteAccountDesc') || '永久删除账号及所有数据，操作不可恢复'}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+          </TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -822,6 +906,51 @@ export default function AccountSettingsScreen() {
                 )}
               </View>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 注销账号确认 Modal */}
+      <Modal visible={deleteAccountModal} animationType="slide" transparent onRequestClose={() => setDeleteAccountModal(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: colors.card, borderRadius: 12, padding: 20, width: '100%', maxWidth: 360 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12, textAlign: 'center', color: colors.danger || '#DC3545' }}>
+              {t('account.deleteAccountConfirmTitle') || '确认注销账号？'}
+            </Text>
+            <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 16, lineHeight: 18 }}>
+              {t('account.deleteAccountInputHint') || '请输入「注销账号」以确认'}
+            </Text>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 16, color: colors.text }}
+              placeholder={t('account.deleteAccountInputKey') || '注销账号'}
+              placeholderTextColor={colors.textTertiary}
+              value={deleteAccountInput}
+              onChangeText={setDeleteAccountInput}
+              autoFocus
+              maxLength={20}
+            />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                style={{ flex: 1, padding: 12, borderRadius: 8, alignItems: 'center', backgroundColor: colors.secondaryBg }}
+                onPress={() => setDeleteAccountModal(false)}
+                disabled={deletingAccount}
+              >
+                <Text style={{ color: colors.textSecondary, fontSize: 16 }}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, padding: 12, borderRadius: 8, alignItems: 'center', backgroundColor: colors.danger || '#DC3545', opacity: deletingAccount ? 0.6 : 1 }}
+                onPress={confirmDeleteAccount}
+                disabled={deletingAccount}
+              >
+                {deletingAccount ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
+                    {t('common.confirm')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>

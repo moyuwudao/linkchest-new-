@@ -6,7 +6,7 @@ import Toast, { BaseToast, ErrorToast, InfoToast, ToastConfig, BaseToastProps } 
 import { flushMetaOnBackground } from './src/lib/coverCache';
 import { StatusBar } from 'expo-status-bar';
 import { registerRootComponent } from 'expo';
-import { useColorScheme, View, Text, TouchableOpacity, Linking, AppState, Alert, ScrollView } from 'react-native';
+import { useColorScheme, View, Text, TouchableOpacity, Linking, AppState, Alert, ScrollView, BackHandler } from 'react-native';
 import { useAuthStore } from './src/store/auth';
 import { api, initApiUrl } from './src/lib/api';
 import { useThemeStore, lightColors, darkColors } from './src/store/theme';
@@ -17,6 +17,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initAnalytics, logEvent, logScreenView, setUserId, setUserProperties } from './src/lib/analytics';
 import { initNotifications, getPushToken } from './src/lib/notifications';
 import { initJPush, setJPushAlias, deleteJPushAlias } from './src/lib/jpush';
+import { isPrivacyAgreed, setPrivacyAgreed } from './src/lib/privacyConsent';
+import PrivacyConsentDialog from './src/components/PrivacyConsentDialog';
 import { CollectionViewsProvider } from './src/lib/collectionViewsContext';
 
 // 页面
@@ -138,16 +140,88 @@ function AppContent() {
   const loadTheme = useThemeStore(s => s.loadTheme);
   const setSystemTheme = useThemeStore(s => s.setSystemTheme);
   const [isLoading, setIsLoading] = useState(true);
+  const [privacyDialogVisible, setPrivacyDialogVisible] = useState(false);
+  const [sdkInitialized, setSdkInitialized] = useState(false);
   const systemColorScheme = useColorScheme();
   const { t } = useI18n();
 
-  // Firebase Analytics & Push 初始化
+  // 合规（VIVO/OPPO/小米/应用宝/个人信息保护法 要求）：
+  // App 首次启动时主动弹窗告知隐私规则。用户可以选择「同意」或「拒绝」：
+  // - 同意：正常初始化 SDK
+  // - 拒绝：关闭弹窗，App 仍可浏览（但不初始化 SDK），后续登录/注册时再次弹窗
   useEffect(() => {
+    (async () => {
+      const agreed = await isPrivacyAgreed();
+      if (agreed) {
+        // 已同意：正常初始化 SDK
+        initSdks();
+      } else {
+        // 未同意：首次启动主动弹出隐私协议弹窗
+        setPrivacyDialogVisible(true);
+      }
+    })();
+  }, []);
+
+  // 供登录/注册/微信登录/Google 登录等关键操作调用
+  const requestPrivacyConsent = async (): Promise<boolean> => {
+    const agreed = await isPrivacyAgreed();
+    if (agreed) return true;
+    setPrivacyDialogVisible(true);
+    return new Promise((resolve) => {
+      const check = setInterval(async () => {
+        const nowAgreed = await isPrivacyAgreed();
+        if (nowAgreed) {
+          clearInterval(check);
+          resolve(true);
+        }
+      }, 300);
+      // 30 秒超时
+      setTimeout(() => {
+        clearInterval(check);
+        resolve(false);
+      }, 30000);
+    });
+  };
+
+  // 暴露给全局，方便登录/注册页面调用
+  (global as any).requestPrivacyConsent = requestPrivacyConsent;
+
+  // 用户同意隐私政策后，初始化所有 SDK
+  const initSdks = () => {
+    if (sdkInitialized) return;
+    setSdkInitialized(true);
     initAnalytics().catch(() => {});
     initNotifications().catch(() => {});
-    // 国内版初始化极光推送
+    // 国内版初始化极光推送（必须在用户同意隐私政策后）
     initJPush().catch(() => {});
-  }, []);
+  };
+
+  const handlePrivacyAgree = async () => {
+    await setPrivacyAgreed();
+    setPrivacyDialogVisible(false);
+    initSdks();
+  };
+
+  const handlePrivacyDisagree = () => {
+    // 合规：用户拒绝时关闭弹窗，禁止初始化 SDK，登录/注册时会再次拦截
+    setPrivacyDialogVisible(false);
+  };
+
+  const handleViewFullPolicy = () => {
+    if (navigationRef.isReady()) {
+      // 临时隐藏弹窗，让用户可以查看完整隐私政策
+      setPrivacyDialogVisible(false);
+      (navigationRef as any).navigate('Terms', { tab: 'privacy' });
+    }
+  };
+
+  const handleViewTerms = () => {
+    if (navigationRef.isReady()) {
+      // 临时隐藏弹窗，让用户可以查看完整用户协议
+      setPrivacyDialogVisible(false);
+      (navigationRef as any).navigate('Terms', { tab: 'terms' });
+    }
+  };
 
   // 剪贴板检测全局状态
   const isProcessingRef = useRef(false);
@@ -638,11 +712,15 @@ function AppContent() {
             logEvent('login', { method: userData.authSource || 'email' });
           }
           // 获取并上报 Push Token（后台任务：失败不弹 server busy toast）
-          getPushToken().then((pushToken) => {
-            if (pushToken) {
-              api.patch('/users/profile', { pushToken }, { __silent: true } as any).catch(() => {});
-            }
-          }).catch(() => {});
+          // 合规：仅在用户已同意隐私政策时执行
+          isPrivacyAgreed().then((agreed) => {
+            if (!agreed) return;
+            getPushToken().then((pushToken) => {
+              if (pushToken) {
+                api.patch('/users/profile', { pushToken }, { __silent: true } as any).catch(() => {});
+              }
+            }).catch(() => {});
+          });
         }).catch(() => {
           // 认证失败，清理 token
           SecureStore.deleteItemAsync('linkchest_token');
@@ -890,6 +968,13 @@ function AppContent() {
       </NavigationContainer>
       <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
       <Toast config={toastConfig} />
+      <PrivacyConsentDialog
+        visible={privacyDialogVisible}
+        onAgree={handlePrivacyAgree}
+        onDisagree={handlePrivacyDisagree}
+        onViewFullPolicy={handleViewFullPolicy}
+        onViewTerms={handleViewTerms}
+      />
     </ErrorBoundaryInner>
   );
 }

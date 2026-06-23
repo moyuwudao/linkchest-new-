@@ -1,8 +1,12 @@
 # LinkChest Terms of Service
 
-**Version:** 1.0  
-**Last Updated:** April 24, 2026  
-**Effective Date:** April 24, 2026
+**Version:** 2026-06-22 (Compliance Revision)  
+**Last Updated:** June 22, 2026  
+**Effective Date:** June 22, 2026
+
+**Service Provider:** Shenzhen Linkji Information Technology Co., Ltd. (深圳市链记信息技术有限责任公司)
+**Application Name:** LinkChest (链藏)
+**Application Package:** com.linkchest.app
 
 ---
 
@@ -10,7 +14,7 @@
 
 Welcome to LinkChest.
 
-This Terms of Service ("**Terms**") is a legally binding agreement between you and LinkChest ("**we**", "**us**", or "**our**") governing your use of LinkChest (including the Web client, mobile APP, and related services, branded as "LinkChest" internationally and "链藏" domestically).
+This Terms of Service ("**Terms**") is a legally binding agreement between you and **Shenzhen Linkji Information Technology Co., Ltd.** ("**we**", "**us**", or "**our**") governing your use of LinkChest (including the Web client, mobile APP, and related services, branded as "LinkChest" internationally and "链藏" domestically).
 
 By registering for, logging into, or using LinkChest in any manner—including by clicking to accept, logging in, or continuing to use the service—you agree to be bound by these Terms in full. If you do not agree with any part of these Terms, please stop using LinkChest immediately.
 
@@ -336,6 +340,7 @@ In the event of any dispute arising from or relating to LinkChest, the parties s
 
 If you have any questions, comments, or concerns regarding these Terms; if you need to report non-compliant content or submit an infringement complaint; or if you wish to request data deletion or account cancellation, please contact us through the following channels:
 
+- **Service Provider**: Shenzhen Linkji Information Technology Co., Ltd. (深圳市链记信息技术有限责任公司)
 - **In-App**: LinkChest APP → Settings → Help & Feedback → Contact Us
 - **Customer Service Email**: support@linkchest.net
 
@@ -350,5 +355,6 @@ We will process and respond to your request within a reasonable period after rec
 
 ---
 
-**LinkChest / 链藏 Operations Team**  
-**Version: 1.0 · Last Updated: April 24, 2026**
+**Service Provider:** Shenzhen Linkji Information Technology Co., Ltd.
+**Application:** LinkChest (链藏)
+**Version: 2026-06-22 · Last Updated: June 22, 2026**

@@ -10,7 +10,7 @@ import { Download, Smartphone, Shield, Zap, Globe, ArrowLeft, CheckCircle, Info,
 import ICPFiling from '@/components/ICPFiling';
 
 const APK_DOWNLOAD_URL = '/LinkChest.apk';
-const MIN_ANDROID_VERSION = 'Android 8.0+';
+const MIN_ANDROID_VERSION = 'Android 6.0+';
 
 interface VersionInfo {
   version: string;

@@ -19,6 +19,8 @@ import { useThemeStore } from '../store/theme';
 import { api, getSupportEmail, getDownloadUrl } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 import { isChinaMarket } from '../lib/market';
+import { revokePrivacyConsent, getPrivacyAgreedAt, PRIVACY_VERSION } from '../lib/privacyConsent';
+import { setJiguangAuth } from '../lib/privacyAuth';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -26,6 +28,54 @@ export default function ProfileScreen() {
   const { theme, resolvedTheme, toggleTheme, colors } = useThemeStore();
   const { t, locale, setLocale } = useI18n();
   const [showLangModal, setShowLangModal] = useState(false);
+  const [privacyAgreedAt, setPrivacyAgreedAtState] = useState<number | null>(null);
+
+  // 加载隐私同意时间，用于展示
+  React.useEffect(() => {
+    getPrivacyAgreedAt().then(setPrivacyAgreedAtState);
+  }, []);
+
+  // 撤回隐私同意
+  const handleRevokePrivacy = () => {
+    Alert.alert(
+      t('privacy.revokeTitle'),
+      t('privacy.revokeDesc'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('privacy.revokeConfirm'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // 1. 关闭极光（JCore）数据收集授权
+              await setJiguangAuth(false);
+              // 2. 清除本地同意记录
+              await revokePrivacyConsent();
+              Alert.alert(
+                t('common.success'),
+                t('privacy.revokeSuccess'),
+                [
+                  {
+                    text: t('common.confirm'),
+                    onPress: () => {
+                      // 撤回后退出登录，引导用户重新进入授权流程
+                      logout();
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Login' as any }],
+                      });
+                    },
+                  },
+                ]
+              );
+            } catch (err) {
+              Alert.alert(t('common.error'), t('common.operationFailed'));
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const { data: stats, refetch: refetchStats } = useQuery({
     queryKey: ['stats'],
@@ -150,6 +200,12 @@ export default function ProfileScreen() {
       icon: 'document-text-outline',
       title: t('terms.titleAndPrivacy'),
       onPress: () => navigation.navigate('Terms' as any, { tab: 'terms' }),
+    },
+    {
+      icon: 'shield-outline',
+      title: t('privacy.revokeEntry'),
+      value: privacyAgreedAt ? t('privacy.agreedAt', { date: new Date(privacyAgreedAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US') }) : '',
+      onPress: handleRevokePrivacy,
     },
     {
       icon: 'shield-checkmark-outline',

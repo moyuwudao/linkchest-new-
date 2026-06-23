@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 合规加固：默认禁止明文流量，仅对国内自有服务域名/IP 例外 -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- 国内自有服务允许 HTTP（暂无 HTTPS 证书） -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">linkchest.cn</domain>
+        <domain includeSubdomains="true">43.136.82.88</domain>
+        <domain includeSubdomains="true">114.132.81.246</domain>
+    </domain-config>
+</network-security-config>
