@@ -96,7 +96,7 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
   const [phase, setPhase] = useState<PayPhase>('idle');
   const [orderId, setOrderId] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const [autoRenew, setAutoRenew] = useState(true);
+  const [autoRenew, setAutoRenew] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const appStateRef = useRef(AppState.currentState);
 
