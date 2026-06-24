@@ -445,6 +445,18 @@ export default function AlipayPayScreen({ route, navigation }: AlipayPayScreenPr
                   </Text>
                 </>
               )}
+              <Text style={{ fontSize: 13, color: colors.text }}>
+                {locale === 'zh' ? '和' : ' and '}
+              </Text>
+              <Text
+                style={{ fontSize: 13, color: colors.primary, textDecorationLine: 'underline' }}
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  navigation?.navigate?.('Terms', { tab: 'refund' });
+                }}
+              >
+                《{t('refund.title') || '退款政策'}》
+              </Text>
             </View>
           </TouchableOpacity>
         </View>

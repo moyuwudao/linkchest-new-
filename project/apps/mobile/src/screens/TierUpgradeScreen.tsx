@@ -133,7 +133,6 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
   // v4.2: 恢复月付+年付切换
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [paying, setPaying] = useState(false);
-  const [agreeRefund, setAgreeRefund] = useState(false);
 
   // 共享 tier-me 缓存（与 AccountSettingsScreen 共用，5 分钟内复用）
   const { data, isLoading: loading, refetch } = useQuery({
@@ -180,11 +179,6 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
   }
 
   async function handleUpgrade(tierKey: string) {
-    // 检查是否同意退款政策
-    if (!agreeRefund) {
-      Alert.alert(t('common.error'), t('refund.agreeRequired'));
-      return;
-    }
     // 跳转到原生支付宝支付页（替代 WebView 跳转）
     if (navigation?.navigate) {
       const tierInfo = (data?.allTiers || []).find((x: any) => x.key === tierKey) || ({ pricing: {} } as any);
@@ -255,22 +249,6 @@ export default function TierUpgradeScreen({ navigation }: { navigation?: any }) 
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* 退款政策同意勾选框 */}
-      <TouchableOpacity
-        onPress={() => setAgreeRefund(!agreeRefund)}
-        style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, marginBottom: 4 }}
-      >
-        <Ionicons
-          name={agreeRefund ? 'checkbox-outline' : 'square-outline'}
-          size={20}
-          color={agreeRefund ? colors.primary : colors.textTertiary}
-          style={{ marginRight: 8 }}
-        />
-        <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-          {t('refund.agree')}
-        </Text>
-      </TouchableOpacity>
 
       {sorted.map(tier => {
         const isCurrent = tier.key === data.tier;

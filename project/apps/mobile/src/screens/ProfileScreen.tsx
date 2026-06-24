@@ -198,13 +198,8 @@ export default function ProfileScreen() {
   const otherItems = [
     {
       icon: 'document-text-outline',
-      title: t('terms.titleAndPrivacy'),
+      title: t('terms.title'),
       onPress: () => navigation.navigate('Terms' as any, { tab: 'terms' }),
-    },
-    {
-      icon: 'cash-outline',
-      title: t('refund.title'),
-      onPress: () => navigation.navigate('Terms' as any, { tab: 'refund' }),
     },
     {
       icon: 'shield-outline',
