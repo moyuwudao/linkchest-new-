@@ -649,6 +649,11 @@
     "revokeConfirm": "确认撤回",
     "revokeSuccess": "已成功撤回隐私同意。应用将退出登录，下次启动时需重新同意隐私政策。"
   },
+  "refund": {
+    "title": "退款政策",
+    "agree": "我已阅读并同意《退款政策》",
+    "agreeRequired": "请同意退款政策后继续"
+  },
   "tag": {
     "newTag": "新建标签",
     "editTag": "编辑标签",

@@ -647,6 +647,11 @@
     "revokeConfirm": "Confirm Withdrawal",
     "revokeSuccess": "Privacy consent withdrawn. The app will log out, and you will need to agree to the privacy policy again on next launch."
   },
+  "refund": {
+    "title": "Refund Policy",
+    "agree": "I have read and agree to the Refund Policy",
+    "agreeRequired": "Please agree to the Refund Policy to continue"
+  },
   "tag": {
     "newTag": "New Tag",
     "editTag": "Edit Tag",

@@ -202,6 +202,11 @@ export default function ProfileScreen() {
       onPress: () => navigation.navigate('Terms' as any, { tab: 'terms' }),
     },
     {
+      icon: 'cash-outline',
+      title: t('refund.title'),
+      onPress: () => navigation.navigate('Terms' as any, { tab: 'refund' }),
+    },
+    {
       icon: 'shield-outline',
       title: t('privacy.revokeEntry'),
       value: privacyAgreedAt ? t('privacy.agreedAt', { date: new Date(privacyAgreedAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US') }) : '',

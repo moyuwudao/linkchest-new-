@@ -8,6 +8,7 @@ import { useThemeStore } from '../store/theme';
 import { getBaseDomain, getSupportEmail } from '../lib/api';
 import termsContent from './terms-content.json';
 import privacyContent from './privacy-content.json';
+import refundContent from './refund-content.json';
 
 function renderInlineMarkdown(text: string) {
   const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -66,7 +67,7 @@ export default function TermsScreen() {
   const { colors } = useThemeStore();
   const navigation = useNavigation();
   const route = useRoute<any>();
-  const [activeTab, setActiveTab] = useState<'terms' | 'privacy'>(route.params?.tab === 'privacy' ? 'privacy' : 'terms');
+  const [activeTab, setActiveTab] = useState<'terms' | 'privacy' | 'refund'>(route.params?.tab === 'privacy' ? 'privacy' : route.params?.tab === 'refund' ? 'refund' : 'terms');
 
   // 获取市场环境
   const baseDomain = getBaseDomain();
@@ -75,9 +76,11 @@ export default function TermsScreen() {
   // 国内版显示国内版协议（中文），海外版显示海外版协议（英文）
   const content = activeTab === 'privacy'
     ? (isChinaMarket ? privacyContent.zh : privacyContent.en)
+    : activeTab === 'refund'
+    ? (isChinaMarket ? refundContent.zh : refundContent.en)
     : (isChinaMarket ? termsContent.zh : termsContent.en);
 
-  const title = activeTab === 'privacy' ? t('privacy.title') : t('terms.title');
+  const title = activeTab === 'privacy' ? t('privacy.title') : activeTab === 'refund' ? t('refund.title') : t('terms.title');
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -102,6 +105,12 @@ export default function TermsScreen() {
           onPress={() => setActiveTab('privacy')}
         >
           <Text style={[styles.tabBtnText, { color: activeTab === 'privacy' ? colors.primary : colors.textTertiary }]}>{t('privacy.title')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabBtn, activeTab === 'refund' && { borderBottomColor: colors.primary }]}
+          onPress={() => setActiveTab('refund')}
+        >
+          <Text style={[styles.tabBtnText, { color: activeTab === 'refund' ? colors.primary : colors.textTertiary }]}>{t('refund.title')}</Text>
         </TouchableOpacity>
       </View>
 
