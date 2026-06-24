@@ -1,25 +1,9 @@
-'use client';
+// 备案信息组件 - 纯静态渲染，无需异步请求
+// 公安备案图标使用内联 SVG，避免外部依赖
 
-import { useState, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { getMarketConfig } from '@/lib/api/market';
+const GABA_ICON_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%23007bff'%3E%3Cpath d='M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 2.18l6 2.25v4.91c0 3.81-2.53 7.53-6 8.63-3.47-1.1-6-4.82-6-8.63V6.43l6-2.25zM12 7c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 5c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z'/%3E%3C/svg%3E`;
 
-// 备案信息组件
-// 仅在国内版显示，默认折叠，点击展开查看详情
 export default function ICPFiling() {
-  const [show, setShow] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    getMarketConfig().then(config => {
-      setShow(config.market === 'china');
-    }).catch(() => {
-      setShow(false);
-    });
-  }, []);
-
-  if (!show) return null;
-
   return (
     <div className="text-center">
       {/* 版权 + 备案信息（紧凑排列，最多两行） */}
@@ -46,7 +30,7 @@ export default function ICPFiling() {
             className="inline-flex items-center gap-1 text-xs text-taupe hover:text-chest-600 dark:hover:text-chest-400 transition-colors"
           >
             <img
-              src="/images/gaba.png"
+              src={GABA_ICON_SVG}
               alt="公安备案"
               className="shrink-0"
               style={{ width: '1.1em', height: '1.1em' }}
