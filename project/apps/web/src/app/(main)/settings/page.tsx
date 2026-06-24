@@ -952,6 +952,10 @@ export default function SettingsPage() {
                 <span>{t('privacy.title')}</span>
                 <ExternalLink size={14} className="text-taupe" />
               </Link>
+              <Link href="/refund" className="flex items-center justify-between py-2 text-sm text-charcoal dark:text-parchment hover:text-chest-500 dark:hover:text-amber-400 transition-colors">
+                <span>{t('refund.title')}</span>
+                <ExternalLink size={14} className="text-taupe" />
+              </Link>
             </div>
           </div>
 

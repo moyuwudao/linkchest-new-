@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, FolderTree, Share2, Globe, Monitor, Smartphone, TabletSmartphone, ArrowRight, Check, Download } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useI18n } from '@/lib/i18n';
-import { isLoggedIn } from '@/lib/auth';
 import { getMarketConfig, MarketConfig } from '@/lib/api/market';
 import ICPFiling from '@/components/ICPFiling';
 
@@ -119,17 +117,10 @@ function PlatformItem({
 }
 
 export default function LandingPage() {
-  const router = useRouter();
   const { t, locale, setLocale } = useI18n();
   const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null);
 
   useEffect(() => {
-    // 已登录用户直接跳转（不显示转圈，直接静默跳转）
-    if (isLoggedIn()) {
-      router.replace('/collections');
-      return;
-    }
-
     // 获取市场配置（仅用于显示国内/海外差异化 UI）
     async function fetchMarketConfig() {
       try {
