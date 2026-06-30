@@ -6,7 +6,7 @@
 import prisma from '../lib/prisma'
 import logger from '../lib/logger'
 import { Prisma } from '@prisma/client'
-import { fetchWithTimeout } from '../lib/fetchWithTimeout'
+import { buildDailyReport, sendDailyReportToWebhooks } from './dailyReport'
 
 export interface WebhookConfig {
   feishu: string
@@ -72,67 +72,40 @@ export interface WebhookTestResult {
 /**
  * 向当前全局 Webhook 发送测试消息
  * 不修改数据库，仅使用传入的配置进行测试
+ * 测试内容为昨日完整运营日报
  */
 export async function sendWebhookTest(config: Partial<WebhookConfig>): Promise<WebhookTestResult[]> {
   const results: WebhookTestResult[] = []
 
-  if (config.feishu) {
-    try {
-      await sendFeishuTest(config.feishu)
-      results.push({ channel: 'feishu', success: true, message: '发送成功' })
-    } catch (e) {
-      results.push({ channel: 'feishu', success: false, message: (e as Error).message })
-    }
-  }
+  try {
+    const { metrics, sections } = await buildDailyReport()
 
-  if (config.wecom) {
-    try {
-      await sendWeComTest(config.wecom)
-      results.push({ channel: 'wecom', success: true, message: '发送成功' })
-    } catch (e) {
-      results.push({ channel: 'wecom', success: false, message: (e as Error).message })
+    if (config.feishu) {
+      try {
+        await sendDailyReportToWebhooks({ feishu: config.feishu }, sections, metrics.reportDate)
+        results.push({ channel: 'feishu', success: true, message: '发送成功' })
+      } catch (e) {
+        results.push({ channel: 'feishu', success: false, message: (e as Error).message })
+      }
+    }
+
+    if (config.wecom) {
+      try {
+        await sendDailyReportToWebhooks({ wecom: config.wecom }, sections, metrics.reportDate)
+        results.push({ channel: 'wecom', success: true, message: '发送成功' })
+      } catch (e) {
+        results.push({ channel: 'wecom', success: false, message: (e as Error).message })
+      }
+    }
+  } catch (e) {
+    logger.error({ err: (e as Error).message }, 'sendWebhookTest buildDailyReport failed')
+    if (config.feishu) {
+      results.push({ channel: 'feishu', success: false, message: '日报生成失败' })
+    }
+    if (config.wecom) {
+      results.push({ channel: 'wecom', success: false, message: '日报生成失败' })
     }
   }
 
   return results
-}
-
-async function sendFeishuTest(webhookUrl: string) {
-  const body = {
-    msg_type: 'text',
-    content: {
-      text: '🔔 LinkChest Webhook 测试消息\n这是一条来自管理后台的测试消息，如果收到说明 Webhook 配置正确。',
-    },
-  }
-
-  const res = await fetchWithTimeout(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    timeoutMs: 10000,
-  })
-
-  if (res instanceof Response && !res.ok) {
-    throw new Error(`status ${res.status}`)
-  }
-}
-
-async function sendWeComTest(webhookUrl: string) {
-  const body = {
-    msgtype: 'text',
-    text: {
-      content: '🔔 LinkChest Webhook 测试消息\n这是一条来自管理后台的测试消息，如果收到说明 Webhook 配置正确。',
-    },
-  }
-
-  const res = await fetchWithTimeout(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    timeoutMs: 10000,
-  })
-
-  if (res instanceof Response && !res.ok) {
-    throw new Error(`status ${res.status}`)
-  }
 }

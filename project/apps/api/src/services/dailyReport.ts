@@ -5,6 +5,7 @@
  * - 通过飞书 + 企业微信 Webhook 推送
  * - 一期不落库，仅推送
  */
+
 import prisma from '../lib/prisma'
 import logger from '../lib/logger'
 import { fetchWithTimeout } from '../lib/fetchWithTimeout'
@@ -42,6 +43,50 @@ interface ReportSection {
 }
 
 /**
+ * 构建每日运营报告数据
+ * 供定时任务和测试按钮复用
+ */
+export async function buildDailyReport(): Promise<{ metrics: DailyReportMetrics; sections: ReportSection[]; summaryText: string }> {
+  const metrics = await aggregateMetrics()
+  const sections = buildReportSections(metrics)
+  const summaryText = buildSummaryText(metrics)
+  return { metrics, sections, summaryText }
+}
+
+/**
+ * 向指定 Webhook 发送已构建好的日报
+ */
+export async function sendDailyReportToWebhooks(
+  webhooks: { feishu?: string; wecom?: string },
+  sections: ReportSection[],
+  reportDate: string,
+): Promise<string[]> {
+  const channels: string[] = []
+
+  if (webhooks.feishu) {
+    try {
+      await sendFeishuReport(webhooks.feishu, sections, reportDate)
+      channels.push('feishu')
+    } catch (e) {
+      logger.warn({ err: (e as Error).message }, '飞书运营日报发送失败')
+      throw new Error(`飞书: ${(e as Error).message}`)
+    }
+  }
+
+  if (webhooks.wecom) {
+    try {
+      await sendWeComReport(webhooks.wecom, sections, reportDate)
+      channels.push('wecom')
+    } catch (e) {
+      logger.warn({ err: (e as Error).message }, '企业微信运营日报发送失败')
+      throw new Error(`企微: ${(e as Error).message}`)
+    }
+  }
+
+  return channels
+}
+
+/**
  * 生成并发送每日运营报告
  */
 export async function generateDailyReport(): Promise<{ success: boolean; channels: string[]; message?: string }> {
@@ -55,37 +100,15 @@ export async function generateDailyReport(): Promise<{ success: boolean; channel
     return { success: false, channels: [], message: 'not china market' }
   }
 
-  const channels: string[] = []
-
   try {
     logger.info('🕐 开始生成每日运营报告...')
 
-    const metrics = await aggregateMetrics()
-    const sections = buildReportSections(metrics)
-    const summaryText = buildSummaryText(metrics)
+    const { metrics, sections, summaryText } = await buildDailyReport()
 
     // 获取全局 Webhook 配置
     const globalWebhooks = await getWebhookConfig()
 
-    // 飞书
-    if (globalWebhooks.feishu) {
-      try {
-        await sendFeishuReport(globalWebhooks.feishu, sections, metrics.reportDate)
-        channels.push('feishu')
-      } catch (e) {
-        logger.warn({ err: (e as Error).message }, '飞书运营日报发送失败')
-      }
-    }
-
-    // 企业微信
-    if (globalWebhooks.wecom) {
-      try {
-        await sendWeComReport(globalWebhooks.wecom, sections, metrics.reportDate)
-        channels.push('wecom')
-      } catch (e) {
-        logger.warn({ err: (e as Error).message }, '企业微信运营日报发送失败')
-      }
-    }
+    const channels = await sendDailyReportToWebhooks(globalWebhooks, sections, metrics.reportDate)
 
     if (channels.length === 0) {
       logger.warn('未配置飞书/企业微信 Webhook，运营日报未发送')
@@ -97,7 +120,7 @@ export async function generateDailyReport(): Promise<{ success: boolean; channel
   } catch (e) {
     const errMsg = (e as Error).message
     logger.error({ err: errMsg }, '❌ 每日运营报告生成失败')
-    return { success: false, channels, message: errMsg }
+    return { success: false, channels: [], message: errMsg }
   }
 }
 
