@@ -339,6 +339,17 @@ model AlertHistory {
   @@map("alert_history")
 }
 
+// 系统配置表：存储全局 Webhook、开关等运维配置
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_configs")
+}
+
 // ===== 等级配置表 =====
 model TierConfig {
   id            String   @id @default(uuid())

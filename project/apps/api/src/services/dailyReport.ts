@@ -9,11 +9,8 @@ import prisma from '../lib/prisma'
 import logger from '../lib/logger'
 import { fetchWithTimeout } from '../lib/fetchWithTimeout'
 import { getMetrics } from './metrics'
+import { getWebhookConfig } from './systemConfig'
 import { isChinaMarket } from '../lib/market'
-
-// Webhook 配置
-const FEISHU_WEBHOOK = process.env.FEISHU_WEBHOOK_URL || ''
-const WECOM_WEBHOOK = process.env.WECOM_WEBHOOK_URL || ''
 
 // 报告开关
 const isEnabled = process.env.DAILY_REPORT_ENABLED !== 'false'
@@ -67,10 +64,13 @@ export async function generateDailyReport(): Promise<{ success: boolean; channel
     const sections = buildReportSections(metrics)
     const summaryText = buildSummaryText(metrics)
 
+    // 获取全局 Webhook 配置
+    const globalWebhooks = await getWebhookConfig()
+
     // 飞书
-    if (FEISHU_WEBHOOK) {
+    if (globalWebhooks.feishu) {
       try {
-        await sendFeishuReport(sections, metrics.reportDate)
+        await sendFeishuReport(globalWebhooks.feishu, sections, metrics.reportDate)
         channels.push('feishu')
       } catch (e) {
         logger.warn({ err: (e as Error).message }, '飞书运营日报发送失败')
@@ -78,9 +78,9 @@ export async function generateDailyReport(): Promise<{ success: boolean; channel
     }
 
     // 企业微信
-    if (WECOM_WEBHOOK) {
+    if (globalWebhooks.wecom) {
       try {
-        await sendWeComReport(sections, metrics.reportDate)
+        await sendWeComReport(globalWebhooks.wecom, sections, metrics.reportDate)
         channels.push('wecom')
       } catch (e) {
         logger.warn({ err: (e as Error).message }, '企业微信运营日报发送失败')
@@ -264,8 +264,8 @@ function buildFeishuContent(sections: ReportSection[], reportDate: string): stri
 /**
  * 发送飞书运营日报
  */
-async function sendFeishuReport(sections: ReportSection[], reportDate: string) {
-  if (!FEISHU_WEBHOOK) return
+async function sendFeishuReport(webhookUrl: string, sections: ReportSection[], reportDate: string) {
+  if (!webhookUrl) return
 
   const content = buildFeishuContent(sections, reportDate)
 
@@ -292,7 +292,7 @@ async function sendFeishuReport(sections: ReportSection[], reportDate: string) {
     },
   }
 
-  const res = await fetchWithTimeout(FEISHU_WEBHOOK, {
+  const res = await fetchWithTimeout(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -307,8 +307,8 @@ async function sendFeishuReport(sections: ReportSection[], reportDate: string) {
 /**
  * 发送企业微信运营日报
  */
-async function sendWeComReport(sections: ReportSection[], reportDate: string) {
-  if (!WECOM_WEBHOOK) return
+async function sendWeComReport(webhookUrl: string, sections: ReportSection[], reportDate: string) {
+  if (!webhookUrl) return
 
   const lines: string[] = [`## 📊 LinkChest 国内运营日报（${reportDate}）`, '']
   for (const section of sections) {
@@ -325,7 +325,7 @@ async function sendWeComReport(sections: ReportSection[], reportDate: string) {
     markdown: { content: lines.join('\n') },
   }
 
-  const res = await fetchWithTimeout(WECOM_WEBHOOK, {
+  const res = await fetchWithTimeout(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

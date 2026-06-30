@@ -10,6 +10,7 @@ import { getRedisClient, isRedisAvailable } from '../lib/redis'
 import logger from '../lib/logger'
 import { fetchWithTimeout } from '../lib/fetchWithTimeout'
 import { sendAlertEmail } from './ses'
+import { getWebhookConfig } from './systemConfig'
 
 // ===== 配置 =====
 const SCAN_INTERVAL_MS = 15 * 60 * 1000 // 15 分钟
@@ -166,6 +167,9 @@ async function evaluateRule(
   const priorityConfig = PRIORITY_CHANNELS[rule.priority] || PRIORITY_CHANNELS.P1
   const actualChannels: string[] = []
 
+  // 获取全局 Webhook 作为兜底
+  const globalWebhooks = await getWebhookConfig()
+
   // 邮件
   if (priorityConfig.email) {
     const emails = channels.email?.length ? channels.email : ALERT_EMAILS
@@ -179,9 +183,9 @@ async function evaluateRule(
     }
   }
 
-  // 飞书
+  // 飞书：优先规则配置，其次全局配置，最后环境变量
   if (priorityConfig.feishu) {
-    const hookUrl = channels.feishu?.[0] || FEISHU_WEBHOOK
+    const hookUrl = channels.feishu?.[0] || globalWebhooks.feishu || FEISHU_WEBHOOK
     if (hookUrl) {
       try {
         await sendFeishuAlert(hookUrl, rule.name, message, rule.priority)
@@ -192,9 +196,9 @@ async function evaluateRule(
     }
   }
 
-  // 企业微信
+  // 企业微信：优先规则配置，其次全局配置，最后环境变量
   if (priorityConfig.wecom) {
-    const hookUrl = channels.wecom?.[0] || WECOM_WEBHOOK
+    const hookUrl = channels.wecom?.[0] || globalWebhooks.wecom || WECOM_WEBHOOK
     if (hookUrl) {
       try {
         await sendWeComAlert(hookUrl, rule.name, message, rule.priority)

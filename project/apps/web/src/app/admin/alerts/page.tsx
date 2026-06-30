@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Bell, Plus, Trash2, Edit3, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock, Send, AlertTriangle } from 'lucide-react';
-import { getAlertRules, createAlertRule, updateAlertRule, deleteAlertRule, testAlertRule, getAlertHistory } from '@/lib/adminApi';
+import { Bell, Plus, Trash2, Edit3, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock, Send, AlertTriangle, Link2, Save } from 'lucide-react';
+import { getAlertRules, createAlertRule, updateAlertRule, deleteAlertRule, testAlertRule, getAlertHistory, getWebhookConfig, updateWebhookConfig } from '@/lib/adminApi';
 
 interface AlertRule { id: string; name: string; type: string; conditionConfig: Record<string, number>; channels: Record<string, string[]>; enabled: boolean; cooldownMinutes: number; priority: 'P0' | 'P1' | 'P2' | 'P3'; silentStart: string | null; silentEnd: string | null; }
 
@@ -26,13 +26,37 @@ export default function AdminAlertsPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', type: 'error_rate', conditionConfig: { window: 300, threshold: 0.1 }, channels: { email: [] as string[], feishu: [] as string[], wecom: [] as string[] }, enabled: true, cooldownMinutes: 30, priority: 'P1' as 'P0'|'P1'|'P2'|'P3', silentStart: '', silentEnd: '' });
 
+  // 全局 Webhook 配置
+  const [webhooks, setWebhooks] = useState({ feishu: '', wecom: '' });
+  const [webhookLoading, setWebhookLoading] = useState(false);
+  const [webhookSaving, setWebhookSaving] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
+    setWebhookLoading(true);
     try {
-      const [r, h] = await Promise.all([getAlertRules(), getAlertHistory({ page: hPage, pageSize: 10 })]);
+      const [r, h, w] = await Promise.all([
+        getAlertRules(),
+        getAlertHistory({ page: hPage, pageSize: 10 }),
+        getWebhookConfig().catch(() => ({ data: { data: { feishu: '', wecom: '' } } })),
+      ]);
       setRules(r.data.rules || []); setHistory(h.data.items || []); setHTotal(h.data.total || 0);
-    } catch { /* ignore */ } finally { setLoading(false); }
+      const config = w.data.data || { feishu: '', wecom: '' };
+      setWebhooks({ feishu: config.feishu || '', wecom: config.wecom || '' });
+    } catch { /* ignore */ } finally { setLoading(false); setWebhookLoading(false); }
   }, [hPage]);
+
+  async function saveWebhooks() {
+    setWebhookSaving(true);
+    try {
+      await updateWebhookConfig({ feishu: webhooks.feishu, wecom: webhooks.wecom });
+      alert('全局 Webhook 已保存');
+    } catch {
+      alert('保存失败');
+    } finally {
+      setWebhookSaving(false);
+    }
+  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -65,6 +89,51 @@ export default function AdminAlertsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* 全局 Webhook 配置 */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 text-sm text-gray-600">
+          <Link2 className="w-4 h-4" />
+          <span>全局 Webhook 配置</span>
+          <span className="text-[11px] text-gray-400">（告警和日报默认使用）</span>
+        </div>
+        <div className="p-4 space-y-4">
+          {webhookLoading ? (
+            <div className="h-8 skeleton rounded" />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="label text-xs text-gray-500">飞书 Webhook</label>
+                  <input
+                    type="text"
+                    value={webhooks.feishu}
+                    onChange={e => setWebhooks(w => ({ ...w, feishu: e.target.value }))}
+                    className="input text-sm"
+                    placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/..."
+                  />
+                </div>
+                <div>
+                  <label className="label text-xs text-gray-500">企微 Webhook</label>
+                  <input
+                    type="text"
+                    value={webhooks.wecom}
+                    onChange={e => setWebhooks(w => ({ ...w, wecom: e.target.value }))}
+                    className="input text-sm"
+                    placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=..."
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button onClick={saveWebhooks} disabled={webhookSaving} className="btn-primary btn-sm">
+                  <Save className="w-3.5 h-3.5" />
+                  {webhookSaving ? '保存中...' : '保存'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <div className="flex items-center gap-2 text-sm text-gray-600"><Bell className="w-4 h-4" /><span>告警规则</span><span className="text-gray-400">({rules.length})</span></div>

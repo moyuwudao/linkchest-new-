@@ -14,6 +14,7 @@ import { queryLogs, getLogFileList } from '../services/logReader'
 import { getAllTierConfigs, createTierConfig, updateTierConfig, deleteTierConfig, clearTierConfigCache, syncTierConfigs, getQuotaConfig } from '../services/tierConfig'
 import { getMetricsText } from '../services/prom-metrics'
 import { getAllServerMetrics, syncAllRemoteMetrics, fetchRemotePm2Status, getRemoteServers, getLocalServer } from '../services/remoteMetrics'
+import { getWebhookConfig, setWebhookConfig } from '../services/systemConfig'
 import { isChinaMarket, isGlobalMarket } from '../lib/market'
 import { TierErrorCodes, errorResponse, CommonErrorCodes, AuthErrorCodes } from '../lib/errorCodes'
 
@@ -984,6 +985,32 @@ router.post('/reports/daily/trigger', async (_req, res) => {
     }
   } catch (e) {
     logger.error({ err: (e as Error).message }, 'admin daily report trigger failed')
+    return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
+  }
+})
+
+// ===== 全局 Webhook 配置 =====
+
+router.get('/webhooks', async (_req, res) => {
+  try {
+    const config = await getWebhookConfig()
+    res.json({ success: true, data: config })
+  } catch (e) {
+    logger.error({ err: (e as Error).message }, 'admin webhooks get failed')
+    return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
+  }
+})
+
+router.put('/webhooks', async (req, res) => {
+  try {
+    const { feishu, wecom } = req.body
+    const config = await setWebhookConfig({
+      feishu: typeof feishu === 'string' ? feishu.trim() : undefined,
+      wecom: typeof wecom === 'string' ? wecom.trim() : undefined,
+    })
+    res.json({ success: true, data: config })
+  } catch (e) {
+    logger.error({ err: (e as Error).message }, 'admin webhooks update failed')
     return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
   }
 })

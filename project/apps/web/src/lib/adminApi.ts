@@ -118,3 +118,13 @@ export function getTierStats() {
 export function syncTierConfigs() {
   return api.post('/admin/tiers/sync');
 }
+
+// ===== Global Webhooks =====
+
+export function getWebhookConfig() {
+  return api.get('/admin/webhooks');
+}
+
+export function updateWebhookConfig(data: { feishu?: string; wecom?: string }) {
+  return api.put('/admin/webhooks', data);
+}
