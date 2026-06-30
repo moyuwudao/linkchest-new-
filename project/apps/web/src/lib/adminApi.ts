@@ -128,3 +128,7 @@ export function getWebhookConfig() {
 export function updateWebhookConfig(data: { feishu?: string; wecom?: string }) {
   return api.put('/admin/webhooks', data);
 }
+
+export function testWebhookConfig(data: { feishu?: string; wecom?: string }) {
+  return api.post('/admin/webhooks/test', data);
+}

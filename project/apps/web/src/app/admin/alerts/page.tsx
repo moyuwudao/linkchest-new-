@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Bell, Plus, Trash2, Edit3, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock, Send, AlertTriangle, Link2, Save } from 'lucide-react';
-import { getAlertRules, createAlertRule, updateAlertRule, deleteAlertRule, testAlertRule, getAlertHistory, getWebhookConfig, updateWebhookConfig } from '@/lib/adminApi';
+import { Bell, Plus, Trash2, Edit3, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Clock, Send, AlertTriangle, Link2, Save, Play } from 'lucide-react';
+import { getAlertRules, createAlertRule, updateAlertRule, deleteAlertRule, testAlertRule, getAlertHistory, getWebhookConfig, updateWebhookConfig, testWebhookConfig } from '@/lib/adminApi';
 
 interface AlertRule { id: string; name: string; type: string; conditionConfig: Record<string, number>; channels: Record<string, string[]>; enabled: boolean; cooldownMinutes: number; priority: 'P0' | 'P1' | 'P2' | 'P3'; silentStart: string | null; silentEnd: string | null; }
 
@@ -30,6 +30,8 @@ export default function AdminAlertsPage() {
   const [webhooks, setWebhooks] = useState({ feishu: '', wecom: '' });
   const [webhookLoading, setWebhookLoading] = useState(false);
   const [webhookSaving, setWebhookSaving] = useState(false);
+  const [webhookTesting, setWebhookTesting] = useState(false);
+  const [webhookTestResult, setWebhookTestResult] = useState<{ channel: string; success: boolean; message: string }[] | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -55,6 +57,19 @@ export default function AdminAlertsPage() {
       alert('保存失败');
     } finally {
       setWebhookSaving(false);
+    }
+  }
+
+  async function testWebhooks() {
+    setWebhookTesting(true);
+    setWebhookTestResult(null);
+    try {
+      const res = await testWebhookConfig({ feishu: webhooks.feishu, wecom: webhooks.wecom });
+      setWebhookTestResult(res.data.data || []);
+    } catch {
+      alert('测试发送失败');
+    } finally {
+      setWebhookTesting(false);
     }
   }
 
@@ -123,12 +138,27 @@ export default function AdminAlertsPage() {
                   />
                 </div>
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <button onClick={testWebhooks} disabled={webhookTesting || (!webhooks.feishu && !webhooks.wecom)} className="btn-secondary btn-sm">
+                  <Play className="w-3.5 h-3.5" />
+                  {webhookTesting ? '发送中...' : '测试发送'}
+                </button>
                 <button onClick={saveWebhooks} disabled={webhookSaving} className="btn-primary btn-sm">
                   <Save className="w-3.5 h-3.5" />
                   {webhookSaving ? '保存中...' : '保存'}
                 </button>
               </div>
+              {webhookTestResult && (
+                <div className="space-y-2 text-sm">
+                  {webhookTestResult.map((r, i) => (
+                    <div key={i} className={`flex items-center gap-2 p-2 rounded ${r.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                      {r.success ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                      <span className="font-medium">{r.channel === 'feishu' ? '飞书' : '企微'}</span>
+                      <span className="text-gray-600">{r.message}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </>
           )}
         </div>

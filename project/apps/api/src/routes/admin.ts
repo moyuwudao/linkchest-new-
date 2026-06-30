@@ -14,7 +14,7 @@ import { queryLogs, getLogFileList } from '../services/logReader'
 import { getAllTierConfigs, createTierConfig, updateTierConfig, deleteTierConfig, clearTierConfigCache, syncTierConfigs, getQuotaConfig } from '../services/tierConfig'
 import { getMetricsText } from '../services/prom-metrics'
 import { getAllServerMetrics, syncAllRemoteMetrics, fetchRemotePm2Status, getRemoteServers, getLocalServer } from '../services/remoteMetrics'
-import { getWebhookConfig, setWebhookConfig } from '../services/systemConfig'
+import { getWebhookConfig, setWebhookConfig, sendWebhookTest } from '../services/systemConfig'
 import { isChinaMarket, isGlobalMarket } from '../lib/market'
 import { TierErrorCodes, errorResponse, CommonErrorCodes, AuthErrorCodes } from '../lib/errorCodes'
 
@@ -1011,6 +1011,21 @@ router.put('/webhooks', async (req, res) => {
     res.json({ success: true, data: config })
   } catch (e) {
     logger.error({ err: (e as Error).message }, 'admin webhooks update failed')
+    return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
+  }
+})
+
+// 测试全局 Webhook（不保存，仅发送测试消息）
+router.post('/webhooks/test', async (req, res) => {
+  try {
+    const { feishu, wecom } = req.body
+    const results = await sendWebhookTest({
+      feishu: typeof feishu === 'string' ? feishu.trim() : undefined,
+      wecom: typeof wecom === 'string' ? wecom.trim() : undefined,
+    })
+    res.json({ success: true, data: results })
+  } catch (e) {
+    logger.error({ err: (e as Error).message }, 'admin webhooks test failed')
     return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
   }
 })
