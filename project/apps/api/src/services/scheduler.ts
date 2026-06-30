@@ -234,6 +234,24 @@ export function initScheduler(): void {
     }
   })
 
+  // 每日上午 9:00 生成并发送国内运营日报（北京时间）
+  cron.schedule('0 9 * * *', async () => {
+    await withDistributedLock('daily-operations-report', 600_000, async () => {
+      logger.info('🕐 开始生成每日运营报告...')
+      try {
+        const { generateDailyReport } = await import('./dailyReport')
+        const result = await generateDailyReport()
+        if (result.success) {
+          logger.info({ channels: result.channels }, '✅ 每日运营报告任务完成')
+        } else {
+          logger.warn({ message: result.message }, '⚠️ 每日运营报告未发送')
+        }
+      } catch (err) {
+        logger.error({ err: err instanceof Error ? err.message : String(err) }, '❌ 每日运营报告任务失败')
+      }
+    })
+  }, { timezone: 'Asia/Shanghai' })
+
   // 每日上午 9:00 检查即将到期的订阅，发送推送提醒（北京时间）
   // 未开启自动续费的用户：提前 7 天和 1 天各提醒一次
   cron.schedule('0 9 * * *', async () => {

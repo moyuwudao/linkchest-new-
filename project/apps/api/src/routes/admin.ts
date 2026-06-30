@@ -970,6 +970,24 @@ router.get('/server-monitor/servers', (_req, res) => {
   })
 })
 
+// ===== 每日运营报告 =====
+
+// 手动触发每日运营报告生成（仅国内环境生效）
+router.post('/reports/daily/trigger', async (_req, res) => {
+  try {
+    const { generateDailyReport } = await import('../services/dailyReport')
+    const result = await generateDailyReport()
+    if (result.success) {
+      res.json({ success: true, channels: result.channels })
+    } else {
+      res.status(400).json({ success: false, message: result.message })
+    }
+  } catch (e) {
+    logger.error({ err: (e as Error).message }, 'admin daily report trigger failed')
+    return errorResponse(res, 500, AuthErrorCodes.SERVER_ERROR)
+  }
+})
+
 // ===== Prometheus /metrics 端点 =====
 // 注意：生产环境应通过反向代理限制访问（如只允许 Prometheus IP）
 router.get('/prometheus-metrics', async (_req, res) => {
